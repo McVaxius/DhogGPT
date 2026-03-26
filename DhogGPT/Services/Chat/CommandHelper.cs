@@ -71,6 +71,9 @@ public static class CommandHelper
     {
         try
         {
+            if (Plugin.CommandManager.ProcessCommand(command))
+                return true;
+
             var uiModule = UIModule.Instance();
             if (uiModule == null)
             {
@@ -78,16 +81,10 @@ public static class CommandHelper
                 return false;
             }
 
-            var utf8 = Utf8String.FromString(command);
-            try
-            {
-                uiModule->ProcessChatBoxEntry(utf8, nint.Zero);
-                return true;
-            }
-            finally
-            {
-                utf8->Dtor(true);
-            }
+            var bytes = Encoding.UTF8.GetBytes(command);
+            var utf8 = Utf8String.FromSequence(bytes);
+            uiModule->ProcessChatBoxEntry(utf8, nint.Zero);
+            return true;
         }
         catch (Exception ex)
         {

@@ -281,10 +281,10 @@ public sealed class MainWindow : Window, IDisposable
                 Sender = Plugin.ObjectTable.LocalPlayer?.Name.TextValue ?? string.Empty,
             };
 
-            var result = await translationCoordinator.TranslateImmediatelyAsync(request).ConfigureAwait(false);
+            var result = await translationCoordinator.TranslateImmediatelyAsync(request);
             if (!result.Success)
             {
-                previewStatus = $"Translation failed: {result.Error}";
+                await SetPreviewStateAsync(status: $"Translation failed: {result.Error}");
                 return;
             }
 
@@ -292,40 +292,52 @@ public sealed class MainWindow : Window, IDisposable
                 ? languageRegistry.GetName(result.DetectedSourceLanguage)
                 : languageRegistry.GetName(result.Request.SourceLanguage);
 
-            previewStatus = result.FromCache
-                ? "Preview ready from cache."
-                : "Preview ready.";
-            previewText = result.TranslatedText;
-            previewMetadata = $"Source: {sourceDisplay}  Target: {languageRegistry.GetName(result.Request.TargetLanguage)}  Provider: {result.ProviderName} ({result.Endpoint})";
+            await SetPreviewStateAsync(
+                status: result.FromCache ? "Preview ready from cache." : "Preview ready.",
+                text: result.TranslatedText,
+                metadata: $"Source: {sourceDisplay}  Target: {languageRegistry.GetName(result.Request.TargetLanguage)}  Provider: {result.ProviderName} ({result.Endpoint})");
 
             if (!sendAfterTranslate)
                 return;
 
             if (!CommandHelper.TryBuildOutgoingCommand(configuration, result.TranslatedText, out var command, out var error))
             {
-                previewStatus = error;
+                await SetPreviewStateAsync(status: error);
                 return;
             }
 
-            var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command)).ConfigureAwait(false);
-            previewStatus = sent
+            var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
+            await SetPreviewStateAsync(status: sent
                 ? $"Sent translated message to {ChatChannelMapper.GetOutgoingLabel(configuration)}."
-                : "Translation succeeded, but sending the message failed.";
+                : "Translation succeeded, but sending the message failed.");
         }
         catch (OperationCanceledException)
         {
-            previewStatus = "Translation was cancelled.";
+            await SetPreviewStateAsync(status: "Translation was cancelled.");
         }
         catch (Exception ex)
         {
-            previewStatus = $"Unexpected error: {ex.Message}";
+            await SetPreviewStateAsync(status: $"Unexpected error: {ex.Message}");
             Plugin.Log.Error($"[DhogGPT] Preview/send failed: {ex.Message}");
         }
         finally
         {
-            previewBusy = false;
+            await SetPreviewStateAsync(busy: false);
         }
     }
+
+    private Task SetPreviewStateAsync(string? status = null, string? text = null, string? metadata = null, bool? busy = null)
+        => Plugin.Framework.RunOnFrameworkThread(() =>
+        {
+            if (busy.HasValue)
+                previewBusy = busy.Value;
+            if (status != null)
+                previewStatus = status;
+            if (text != null)
+                previewText = text;
+            if (metadata != null)
+                previewMetadata = metadata;
+        });
 
     private bool DrawOutgoingChannelCombo()
     {
