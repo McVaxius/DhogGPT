@@ -27,6 +27,9 @@ public static class CommandHelper
             case OutgoingChannel.Party:
                 prefix = "/p ";
                 break;
+            case OutgoingChannel.Alliance:
+                prefix = "/a ";
+                break;
             case OutgoingChannel.FreeCompany:
                 prefix = "/fc ";
                 break;

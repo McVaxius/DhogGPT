@@ -1,4 +1,5 @@
 using Dalamud.Configuration;
+using DhogGPT.Models;
 
 namespace DhogGPT;
 
@@ -19,6 +20,11 @@ public sealed class Configuration : IPluginConfiguration
     public bool IncludeChannelLabel { get; set; } = true;
     public bool EnableDebugLogging { get; set; }
     public bool UseSimpleChatMode { get; set; }
+    public bool CompactSimpleChatMode { get; set; } = true;
+    public bool KrangleChatNames { get; set; }
+    public float WindowOpacity { get; set; } = 0.92f;
+    public int CompactChatColorTheme { get; set; }
+    public CompactChatCustomColors CompactChatCustomColors { get; set; } = new();
 
     public string IncomingSourceLanguage { get; set; } = "auto";
     public string IncomingTargetLanguage { get; set; } = "en";

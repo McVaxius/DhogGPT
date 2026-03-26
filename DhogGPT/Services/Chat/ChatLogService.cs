@@ -18,6 +18,7 @@ public sealed class ChatLogService : IDisposable
     private readonly object syncRoot = new();
     private readonly TranslationCoordinator translationCoordinator;
     private readonly List<TranslationHistoryItem> entries = [];
+    private readonly List<TranslationHistoryItem> pendingEntries = [];
 
     private string? activeLogPath;
 
@@ -51,21 +52,16 @@ public sealed class ChatLogService : IDisposable
         var entry = TranslationHistoryItem.FromResult(result);
         lock (syncRoot)
         {
-            EnsureCurrentContextLoaded();
             entries.Insert(0, entry);
-            if (entries.Count > MaxInMemoryEntries)
-                entries.RemoveRange(MaxInMemoryEntries, entries.Count - MaxInMemoryEntries);
+            TrimEntries();
 
             if (activeLogPath == null)
+            {
+                pendingEntries.Add(entry);
                 return;
+            }
 
-            var directory = Path.GetDirectoryName(activeLogPath);
-            if (!string.IsNullOrWhiteSpace(directory))
-                Directory.CreateDirectory(directory);
-            File.AppendAllText(
-                activeLogPath,
-                JsonSerializer.Serialize(entry, JsonOptions) + Environment.NewLine,
-                Encoding.UTF8);
+            AppendEntryToLog(activeLogPath, entry);
         }
     }
 
@@ -84,13 +80,19 @@ public sealed class ChatLogService : IDisposable
             return;
 
         if (activeLogPath != null && string.Equals(activeLogPath, logPath, StringComparison.OrdinalIgnoreCase))
+        {
+            FlushPendingEntries();
             return;
+        }
 
         activeLogPath = logPath;
         entries.Clear();
 
         if (!File.Exists(activeLogPath))
+        {
+            FlushPendingEntries();
             return;
+        }
 
         foreach (var line in File.ReadLines(activeLogPath, Encoding.UTF8))
         {
@@ -109,7 +111,38 @@ public sealed class ChatLogService : IDisposable
             }
         }
 
+        FlushPendingEntries();
         entries.Sort((left, right) => right.TimestampUtc.CompareTo(left.TimestampUtc));
+        TrimEntries();
+    }
+
+    private void FlushPendingEntries()
+    {
+        if (activeLogPath == null || pendingEntries.Count == 0)
+            return;
+
+        foreach (var entry in pendingEntries)
+            AppendEntryToLog(activeLogPath, entry);
+
+        pendingEntries.Clear();
+        entries.Sort((left, right) => right.TimestampUtc.CompareTo(left.TimestampUtc));
+        TrimEntries();
+    }
+
+    private static void AppendEntryToLog(string logPath, TranslationHistoryItem entry)
+    {
+        var directory = Path.GetDirectoryName(logPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+            Directory.CreateDirectory(directory);
+
+        File.AppendAllText(
+            logPath,
+            JsonSerializer.Serialize(entry, JsonOptions) + Environment.NewLine,
+            Encoding.UTF8);
+    }
+
+    private void TrimEntries()
+    {
         if (entries.Count > MaxInMemoryEntries)
             entries.RemoveRange(MaxInMemoryEntries, entries.Count - MaxInMemoryEntries);
     }

@@ -1,3 +1,4 @@
+using System.Text;
 using Dalamud.Game.Text;
 
 namespace DhogGPT.Services.Chat;
@@ -10,6 +11,9 @@ public static class ChatChannelMapper
         {
             case XivChatType.Party:
                 label = "Party";
+                return configuration.EnableParty;
+            case XivChatType.Alliance:
+                label = "Alliance";
                 return configuration.EnableParty;
             case XivChatType.FreeCompany:
                 label = "FC";
@@ -59,6 +63,7 @@ public static class ChatChannelMapper
         {
             OutgoingChannel.Say => "Say",
             OutgoingChannel.Party => "Party",
+            OutgoingChannel.Alliance => "Alliance",
             OutgoingChannel.FreeCompany => "FC",
             OutgoingChannel.Linkshell => $"LS{Math.Clamp(configuration.LinkshellSlot, 1, 8)}",
             OutgoingChannel.CrossWorldLinkshell => $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}",
@@ -73,8 +78,8 @@ public static class ChatChannelMapper
     {
         if (string.Equals(channelLabel, "DM", StringComparison.OrdinalIgnoreCase))
         {
-            var label = string.IsNullOrWhiteSpace(sender) ? "DM" : sender.Trim();
-            return ($"dm:{NormalizeConversationToken(label)}", label);
+            var label = NormalizeDirectMessageLabel(sender);
+            return (GetDirectMessageConversationKey(label), label);
         }
 
         return ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel);
@@ -85,13 +90,20 @@ public static class ChatChannelMapper
         var channelLabel = GetOutgoingLabel(configuration);
         if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
         {
-            var label = string.IsNullOrWhiteSpace(configuration.TellTarget)
-                ? "DM"
-                : configuration.TellTarget.Trim();
-            return ($"dm:{NormalizeConversationToken(label)}", label);
+            var label = NormalizeDirectMessageLabel(configuration.TellTarget);
+            return (GetDirectMessageConversationKey(label), label);
         }
 
         return ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel);
+    }
+
+    public static string GetDirectMessageConversationKey(string value)
+        => $"dm:{NormalizeDirectMessageToken(value)}";
+
+    public static string NormalizeDirectMessageLabel(string value)
+    {
+        var cleaned = CleanDirectMessageIdentity(value);
+        return string.IsNullOrWhiteSpace(cleaned) ? "DM" : cleaned;
     }
 
     private static int GetLinkshellSlot(XivChatType chatType)
@@ -130,5 +142,33 @@ public static class ChatChannelMapper
     {
         return string.Join(" ", value.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
             .ToUpperInvariant();
+    }
+
+    private static string NormalizeDirectMessageToken(string value)
+    {
+        var label = NormalizeDirectMessageLabel(value);
+        var atIndex = label.IndexOf('@');
+        if (atIndex >= 0)
+            label = label[..atIndex];
+
+        return NormalizeConversationToken(label);
+    }
+
+    private static string CleanDirectMessageIdentity(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var builder = new StringBuilder(value.Length);
+        foreach (var character in value.Trim())
+        {
+            if (char.IsLetterOrDigit(character) ||
+                character is ' ' or '\'' or '-' or '@')
+            {
+                builder.Append(character);
+            }
+        }
+
+        return string.Join(" ", builder.ToString().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     }
 }

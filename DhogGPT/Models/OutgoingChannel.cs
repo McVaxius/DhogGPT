@@ -4,6 +4,7 @@ public enum OutgoingChannel
 {
     Say,
     Party,
+    Alliance,
     FreeCompany,
     Linkshell,
     CrossWorldLinkshell,

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
+using DhogGPT.Models;
 using DhogGPT.Services;
 
 namespace DhogGPT.Windows;
@@ -8,6 +9,15 @@ namespace DhogGPT.Windows;
 public sealed class ConfigWindow : Window, IDisposable
 {
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
+    private static readonly string[] CompactChatColorThemes =
+    {
+        "Soft contrast",
+        "High contrast",
+        "Role tints",
+        "Neon night",
+        "Custom",
+    };
+
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
 
@@ -51,10 +61,31 @@ public sealed class ConfigWindow : Window, IDisposable
         changed |= DrawCheckbox("Include sender name in translated Echo output", configuration.IncludeSenderName, value => configuration.IncludeSenderName = value);
         changed |= DrawCheckbox("Include channel label in translated Echo output", configuration.IncludeChannelLabel, value => configuration.IncludeChannelLabel = value);
         changed |= DrawCheckbox("Use simple all-in-one chat mode", configuration.UseSimpleChatMode, value => configuration.UseSimpleChatMode = value);
+        changed |= DrawCheckbox("Use compact simple chat header", configuration.CompactSimpleChatMode, value => configuration.CompactSimpleChatMode = value);
+        changed |= DrawCheckbox("Krangle names in chat UI", configuration.KrangleChatNames, value => configuration.KrangleChatNames = value);
         changed |= DrawCheckbox("Enable debug logging", configuration.EnableDebugLogging, value => configuration.EnableDebugLogging = value);
 
         changed |= DrawLanguageCombo("Incoming source language", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
         changed |= DrawLanguageCombo("Incoming target language", configuration.IncomingTargetLanguage, value => configuration.IncomingTargetLanguage = value, includeAuto: false);
+
+        var windowOpacity = Math.Clamp(configuration.WindowOpacity, 0.35f, 1.0f);
+        if (ImGui.SliderFloat("Window opacity", ref windowOpacity, 0.35f, 1.0f, "%.2f"))
+        {
+            configuration.WindowOpacity = windowOpacity;
+            changed = true;
+        }
+
+        var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
+        if (ImGui.Combo("Compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
+        {
+            configuration.CompactChatColorTheme = compactChatColorTheme;
+            changed = true;
+        }
+
+        if (configuration.CompactChatColorTheme == CompactChatColorThemes.Length - 1)
+        {
+            changed |= DrawCustomColorEditor(configuration.CompactChatCustomColors);
+        }
 
         var requestTimeoutSeconds = configuration.RequestTimeoutSeconds;
         if (ImGui.SliderInt("Request timeout seconds", ref requestTimeoutSeconds, 5, 60))
@@ -74,6 +105,8 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
+        ImGui.TextDisabled("Compact simple chat hides the extra utility strip, while opacity gives the chat window a softer overlay look.");
+        ImGui.TextDisabled("Color themes are configured here only, not from the main chat window.");
     }
 
     private void DrawDtrSettings()
@@ -201,5 +234,28 @@ public sealed class ConfigWindow : Window, IDisposable
         }
 
         return changed;
+    }
+
+    private static bool DrawCustomColorEditor(CompactChatCustomColors colors)
+    {
+        var changed = false;
+        ImGui.Separator();
+        ImGui.TextUnformatted("Custom compact chat colors");
+        changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader);
+        changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation);
+        changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader);
+        changed |= DrawColorPicker("Outbound translation", colors.GetOutboundTranslation(), colors.SetOutboundTranslation);
+        changed |= DrawColorPicker("Error", colors.GetError(), colors.SetError);
+        return changed;
+    }
+
+    private static bool DrawColorPicker(string label, Vector4 currentValue, Action<Vector4> setter)
+    {
+        var color = currentValue;
+        if (!ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar))
+            return false;
+
+        setter(color);
+        return true;
     }
 }

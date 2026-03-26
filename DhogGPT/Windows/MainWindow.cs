@@ -18,6 +18,7 @@ public sealed class MainWindow : Window, IDisposable
     private readonly TranslationCoordinator translationCoordinator;
     private readonly SessionHealthService sessionHealth;
     private readonly ChatLogService chatLogService;
+    private readonly Dictionary<string, DateTimeOffset> closedConversationCutoffs = new(StringComparer.OrdinalIgnoreCase);
 
     private bool previewBusy;
     private string previewStatus = string.Empty;
@@ -26,6 +27,8 @@ public sealed class MainWindow : Window, IDisposable
     private string simpleChatStatus = string.Empty;
     private string activeConversationKey = string.Empty;
     private string activeConversationLabel = string.Empty;
+    private bool requestSimpleComposerFocus;
+    private bool forceActiveConversationSelection;
 
     public MainWindow(
         Plugin plugin,
@@ -52,9 +55,22 @@ public sealed class MainWindow : Window, IDisposable
     {
     }
 
+    public override void PreDraw()
+    {
+        ImGui.SetNextWindowBgAlpha(Math.Clamp(plugin.Configuration.WindowOpacity, 0.35f, 1.0f));
+    }
+
     public override void Draw()
     {
-        DrawHeader();
+        if (plugin.Configuration.UseSimpleChatMode && plugin.Configuration.CompactSimpleChatMode)
+        {
+            DrawCompactHeader();
+        }
+        else
+        {
+            DrawHeader();
+        }
+
         ImGui.Separator();
 
         if (plugin.Configuration.UseSimpleChatMode)
@@ -125,9 +141,73 @@ public sealed class MainWindow : Window, IDisposable
             configuration.Save();
         }
 
+        if (configuration.UseSimpleChatMode)
+        {
+            ImGui.SameLine();
+            var compactSimpleChat = configuration.CompactSimpleChatMode;
+            if (ImGui.Checkbox("Compact", ref compactSimpleChat))
+            {
+                configuration.CompactSimpleChatMode = compactSimpleChat;
+                configuration.Save();
+            }
+        }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton(configuration.KrangleChatNames ? "Krangle Names: On" : "Krangle Names: Off"))
+        {
+            configuration.KrangleChatNames = !configuration.KrangleChatNames;
+            configuration.Save();
+        }
+
         ImGui.TextWrapped(configuration.UseSimpleChatMode
             ? "Simple chat mode keeps translated conversations in tabs by channel or DM, with a compact composer at the bottom."
             : "Incoming chat is translated in the background and echoed back with labels. Outgoing translation uses the composer below so you stay in control of what gets sent.");
+    }
+
+    private void DrawCompactHeader()
+    {
+        var configuration = plugin.Configuration;
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+
+        if (!ImGui.BeginTable("DhogGPTCompactHeader", 2, ImGuiTableFlags.SizingStretchProp))
+            return;
+
+        ImGui.TableSetupColumn("Left", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Right", ImGuiTableColumnFlags.WidthFixed, 370f);
+        ImGui.TableNextRow();
+
+        ImGui.TableSetColumnIndex(0);
+        ImGui.TextDisabled($"{Plugin.DisplayName} v{version}");
+
+        ImGui.TableSetColumnIndex(1);
+        var enabled = configuration.PluginEnabled;
+        if (ImGui.Checkbox("Enabled##CompactHeader", ref enabled))
+            plugin.SetPluginEnabled(enabled);
+
+        ImGui.SameLine();
+        var compact = configuration.CompactSimpleChatMode;
+        if (ImGui.Checkbox("Compact##CompactHeader", ref compact))
+        {
+            configuration.CompactSimpleChatMode = compact;
+            configuration.Save();
+        }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton(configuration.KrangleChatNames ? "Krangle: On" : "Krangle: Off"))
+        {
+            configuration.KrangleChatNames = !configuration.KrangleChatNames;
+            configuration.Save();
+        }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Settings"))
+            plugin.ToggleConfigUi();
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Ko-fi"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+
+        ImGui.EndTable();
     }
 
     private void DrawSimpleChatMode()
@@ -172,32 +252,56 @@ public sealed class MainWindow : Window, IDisposable
     private void DrawTabbedConversationArea(float height)
     {
         var entries = chatLogService.GetEntriesSnapshot();
-        var conversations = entries
-            .GroupBy(entry => string.IsNullOrWhiteSpace(entry.ConversationKey) ? entry.ChannelLabel : entry.ConversationKey)
-            .Select(group => new ConversationTabState(
-                group.Key,
-                group.FirstOrDefault(entry => !string.IsNullOrWhiteSpace(entry.ConversationLabel))?.ConversationLabel
-                    ?? group.FirstOrDefault(entry => !string.IsNullOrWhiteSpace(entry.ChannelLabel))?.ChannelLabel
-                    ?? "Chat",
-                group.OrderBy(entry => entry.TimestampUtc).ToList(),
-                group.Max(entry => entry.TimestampUtc)))
+        var recordedConversations = entries
+            .GroupBy(GetConversationGroupingKey)
+            .Select(group =>
+            {
+                var messages = group.OrderBy(entry => entry.TimestampUtc).ToList();
+                return new ConversationTabState(
+                    group.Key,
+                    ResolveConversationLabel(messages),
+                    messages,
+                    messages.Count > 0 ? messages[^1].TimestampUtc : DateTimeOffset.MinValue);
+            })
             .OrderByDescending(state => state.LastMessageUtc)
             .ToList();
 
-        var configuredConversation = ChatChannelMapper.GetOutgoingConversation(plugin.Configuration);
-        if (!conversations.Any(state => state.Key.Equals(configuredConversation.Key, StringComparison.OrdinalIgnoreCase)))
+        var conversations = new List<ConversationTabState>();
+        var remainingConversations = recordedConversations.ToDictionary(state => state.Key, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var pinnedConversation in GetPinnedGeneralConversations())
         {
-            conversations.Insert(0, new ConversationTabState(
+            if (remainingConversations.Remove(pinnedConversation.Key, out var existingConversation))
+                conversations.Add(existingConversation);
+            else
+                conversations.Add(pinnedConversation);
+        }
+
+        var configuredConversation = ChatChannelMapper.GetOutgoingConversation(plugin.Configuration);
+        if (ShouldInsertConfiguredConversation(configuredConversation) &&
+            !remainingConversations.ContainsKey(configuredConversation.Key) &&
+            !conversations.Any(state => state.Key.Equals(configuredConversation.Key, StringComparison.OrdinalIgnoreCase)))
+        {
+            remainingConversations[configuredConversation.Key] = new ConversationTabState(
                 configuredConversation.Key,
                 configuredConversation.Label,
                 new List<TranslationHistoryItem>(),
-                DateTimeOffset.MinValue));
+                DateTimeOffset.MinValue);
         }
+
+        var directMessageConversations = remainingConversations.Values
+            .Where(IsConversationVisible)
+            .Where(conversation => IsDirectMessageConversation(conversation.Key))
+            .OrderByDescending(conversation => conversation.LastMessageUtc)
+            .ToList();
+
+        conversations.AddRange(directMessageConversations);
 
         if (string.IsNullOrWhiteSpace(activeConversationKey) || conversations.All(state => !state.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase)))
         {
             activeConversationKey = conversations.FirstOrDefault()?.Key ?? string.Empty;
             activeConversationLabel = conversations.FirstOrDefault()?.Label ?? string.Empty;
+            forceActiveConversationSelection = true;
         }
 
         if (!ImGui.BeginTabBar("DhogGPTConversationTabs"))
@@ -205,16 +309,37 @@ public sealed class MainWindow : Window, IDisposable
 
         foreach (var conversation in conversations)
         {
-            if (!ImGui.BeginTabItem($"{conversation.Label}##{conversation.Key}"))
+            var displayLabel = GetConversationDisplayLabel(conversation);
+            var isDirectMessage = IsDirectMessageConversation(conversation.Key);
+            var tabFlags = conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase) && forceActiveConversationSelection
+                ? ImGuiTabItemFlags.SetSelected
+                : ImGuiTabItemFlags.None;
+            var tabOpen = true;
+            var tabVisible = isDirectMessage
+                ? ImGui.BeginTabItem($"{displayLabel}##{conversation.Key}", ref tabOpen, tabFlags)
+                : ImGui.BeginTabItem($"{displayLabel}##{conversation.Key}", tabFlags);
+
+            if (!tabVisible)
+            {
+                if (isDirectMessage && !tabOpen)
+                    CloseConversation(conversation);
+
                 continue;
+            }
 
             activeConversationKey = conversation.Key;
             activeConversationLabel = conversation.Label;
+            if (SyncOutgoingChannelToConversation(conversation))
+                plugin.Configuration.Save();
             DrawConversationMessages(conversation.Messages, height);
             ImGui.EndTabItem();
+
+            if (isDirectMessage && !tabOpen)
+                CloseConversation(conversation);
         }
 
         ImGui.EndTabBar();
+        forceActiveConversationSelection = false;
     }
 
     private void DrawConversationMessages(IReadOnlyList<TranslationHistoryItem> messages, float height)
@@ -232,52 +357,47 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
+        var originalSpacing = ImGui.GetStyle().ItemSpacing;
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(originalSpacing.X, 1f));
+
         foreach (var message in messages.OrderBy(entry => entry.TimestampUtc))
         {
-            var headerColor = message.IsInbound
-                ? new Vector4(0.55f, 0.80f, 1.0f, 1.0f)
-                : new Vector4(0.60f, 0.95f, 0.70f, 1.0f);
-            var secondaryColor = new Vector4(0.62f, 0.62f, 0.62f, 1.0f);
+            var (headerColor, translatedColor, errorColor) = GetMessagePalette(message.IsInbound);
             var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm");
             var displayName = GetDisplayName(message);
-            var primaryText = message.Success ? message.TranslatedText : message.OriginalText;
+            var originalText = string.IsNullOrWhiteSpace(message.OriginalText) ? "(empty)" : message.OriginalText;
 
-            ImGui.TextColored(headerColor, $"{displayName}  {timestamp}");
-            ImGui.TextWrapped(primaryText);
+            ImGui.PushStyleColor(ImGuiCol.Text, headerColor);
+            ImGui.TextWrapped($"{timestamp} - {displayName} - {originalText}");
+            ImGui.PopStyleColor();
 
-            if (message.Success &&
-                !string.IsNullOrWhiteSpace(message.OriginalText) &&
-                !string.Equals(Normalize(message.OriginalText), Normalize(message.TranslatedText), StringComparison.OrdinalIgnoreCase))
+            if (message.Success)
             {
-                ImGui.TextColored(secondaryColor, message.OriginalText);
+                ImGui.PushStyleColor(ImGuiCol.Text, translatedColor);
+                ImGui.TextWrapped(message.TranslatedText);
+                ImGui.PopStyleColor();
+            }
+            else if (!string.IsNullOrWhiteSpace(message.Error))
+            {
+                ImGui.TextColored(errorColor, $"Translation failed: {message.Error}");
             }
 
-            if (!message.Success && !string.IsNullOrWhiteSpace(message.Error))
-            {
-                ImGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), $"Translation failed: {message.Error}");
-            }
-
-            ImGui.Spacing();
+            ImGui.Dummy(new Vector2(0f, 2f));
         }
 
+        ImGui.PopStyleVar();
         ImGui.EndChild();
     }
 
     private void DrawSimpleComposer()
     {
         var configuration = plugin.Configuration;
-        var changed = false;
-        if (activeConversationKey.StartsWith("dm:", StringComparison.OrdinalIgnoreCase) &&
-            configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
-            string.IsNullOrWhiteSpace(configuration.TellTarget) &&
-            !string.IsNullOrWhiteSpace(activeConversationLabel) &&
-            !string.Equals(activeConversationLabel, "DM", StringComparison.OrdinalIgnoreCase))
-        {
-            configuration.TellTarget = activeConversationLabel;
-            configuration.Save();
-        }
+        var changed = SyncSimpleComposerToActiveConversation();
 
-        if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
+        if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+            (!IsDirectMessageConversation(activeConversationKey) ||
+             string.IsNullOrWhiteSpace(activeConversationLabel) ||
+             string.Equals(activeConversationLabel, "DM", StringComparison.OrdinalIgnoreCase)))
         {
             var tellTarget = configuration.TellTarget;
             if (ImGui.InputTextWithHint("Tell target##Simple", "First Last@World", ref tellTarget, 128))
@@ -287,46 +407,52 @@ public sealed class MainWindow : Window, IDisposable
             }
         }
 
-        if (ImGui.BeginTable("DhogGPTSimpleComposer", 3, ImGuiTableFlags.SizingStretchProp))
+        var comboWidth = 150f;
+        var sendWidth = 70f;
+        var spacing = ImGui.GetStyle().ItemSpacing.X;
+        var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - comboWidth - sendWidth - (spacing * 2f));
+        var submitFromEnter = false;
+
+        ImGui.SetNextItemWidth(comboWidth);
+        if (DrawOutgoingChannelCombo("##SimpleChannel"))
         {
-            ImGui.TableSetupColumn("Channel", ImGuiTableColumnFlags.WidthFixed, 150f);
-            ImGui.TableSetupColumn("Entry", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("Send", ImGuiTableColumnFlags.WidthFixed, 70f);
-            ImGui.TableNextRow();
-
-            ImGui.TableSetColumnIndex(0);
-            if (DrawOutgoingChannelCombo("Chat type##Simple"))
-                changed = true;
-
-            ImGui.TableSetColumnIndex(1);
-            var draft = configuration.OutgoingDraft;
-            var submitFromEnter = ImGui.InputTextWithHint(
-                "##SimpleChatEntry",
-                "Translate this text and press Enter to send",
-                ref draft,
-                2000,
-                ImGuiInputTextFlags.EnterReturnsTrue);
-            if (draft != configuration.OutgoingDraft)
-            {
-                configuration.OutgoingDraft = draft;
-                changed = true;
-            }
-
-            ImGui.TableSetColumnIndex(2);
-            if (ImGui.Button("Send##SimpleSend", new Vector2(-1f, 0f)))
-                submitFromEnter = true;
-
-            ImGui.EndTable();
-
-            if (submitFromEnter)
-                _ = SendSimpleChatAsync();
+            changed = true;
+            SyncActiveConversationToOutgoingChannel();
         }
+
+        ImGui.SameLine();
+        if (requestSimpleComposerFocus)
+        {
+            ImGui.SetKeyboardFocusHere();
+            requestSimpleComposerFocus = false;
+        }
+
+        ImGui.SetNextItemWidth(entryWidth);
+        var draft = configuration.OutgoingDraft;
+        submitFromEnter = ImGui.InputTextWithHint(
+            "##SimpleChatEntry",
+            "Translate this text and press Enter to send",
+            ref draft,
+            2000,
+            ImGuiInputTextFlags.EnterReturnsTrue);
+        if (draft != configuration.OutgoingDraft)
+        {
+            configuration.OutgoingDraft = draft;
+            changed = true;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Send##SimpleSend", new Vector2(sendWidth, 0f)))
+            submitFromEnter = true;
+
+        if (submitFromEnter)
+            _ = SendSimpleChatAsync();
 
         if (changed)
             configuration.Save();
 
         if (!string.IsNullOrWhiteSpace(simpleChatStatus))
-            ImGui.TextWrapped(simpleChatStatus);
+            ImGui.TextColored(new Vector4(1.0f, 0.62f, 0.62f, 1.0f), simpleChatStatus);
     }
 
     private void DrawStatusPanel()
@@ -575,8 +701,10 @@ public sealed class MainWindow : Window, IDisposable
                 plugin.Configuration.Save();
             });
 
-            activeConversationKey = request.ConversationKey;
-            await SetSimpleChatStatusAsync($"Sent to {request.ConversationLabel}.");
+        activeConversationKey = request.ConversationKey;
+        activeConversationLabel = request.ConversationLabel;
+        forceActiveConversationSelection = true;
+        await SetSimpleChatStatusAsync(string.Empty);
         }
         catch (OperationCanceledException)
         {
@@ -589,7 +717,11 @@ public sealed class MainWindow : Window, IDisposable
         }
         finally
         {
-            previewBusy = false;
+            await Plugin.Framework.RunOnFrameworkThread(() =>
+            {
+                previewBusy = false;
+                requestSimpleComposerFocus = true;
+            });
         }
     }
 
@@ -688,16 +820,232 @@ public sealed class MainWindow : Window, IDisposable
         return changed;
     }
 
-    private static string GetDisplayName(TranslationHistoryItem message)
+    private string GetDisplayName(TranslationHistoryItem message)
     {
-        if (!string.IsNullOrWhiteSpace(message.Sender))
-            return message.Sender;
+        var displayName = !string.IsNullOrWhiteSpace(message.Sender)
+            ? message.Sender
+            : message.IsInbound ? "Unknown" : "You";
 
-        return message.IsInbound ? "Unknown" : "You";
+        if (!plugin.Configuration.KrangleChatNames)
+            return displayName;
+
+        if (displayName.Equals("You", StringComparison.OrdinalIgnoreCase) ||
+            displayName.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+        {
+            return displayName;
+        }
+
+        return KrangleService.KrangleName(displayName);
     }
 
     private static string Normalize(string value)
         => string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+    private string GetConversationDisplayLabel(ConversationTabState conversation)
+    {
+        if (!plugin.Configuration.KrangleChatNames)
+            return conversation.Label;
+
+        if (!conversation.Key.StartsWith("dm:", StringComparison.OrdinalIgnoreCase))
+            return conversation.Label;
+
+        return KrangleService.KrangleName(conversation.Label);
+    }
+
+    private string GetConversationGroupingKey(TranslationHistoryItem entry)
+    {
+        if (string.Equals(entry.ChannelLabel, "DM", StringComparison.OrdinalIgnoreCase))
+        {
+            var identity = !string.IsNullOrWhiteSpace(entry.ConversationLabel)
+                ? entry.ConversationLabel
+                : entry.Sender;
+            return ChatChannelMapper.GetDirectMessageConversationKey(identity);
+        }
+
+        if (!string.IsNullOrWhiteSpace(entry.ConversationKey))
+            return entry.ConversationKey;
+
+        return $"channel:{Normalize(entry.ChannelLabel).ToUpperInvariant()}";
+    }
+
+    private static string ResolveConversationLabel(IReadOnlyList<TranslationHistoryItem> messages)
+    {
+        var candidate = messages
+            .Select(message => !string.IsNullOrWhiteSpace(message.ConversationLabel) ? message.ConversationLabel : message.Sender)
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .OrderByDescending(label => label.Contains('@'))
+            .ThenByDescending(label => label.Length)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(candidate))
+            return candidate;
+
+        return messages.FirstOrDefault()?.ChannelLabel ?? "Chat";
+    }
+
+    private bool ShouldInsertConfiguredConversation((string Key, string Label) configuredConversation)
+    {
+        if (!IsDirectMessageConversation(configuredConversation.Key))
+            return true;
+
+        return plugin.Configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+               !string.IsNullOrWhiteSpace(plugin.Configuration.TellTarget);
+    }
+
+    private bool IsConversationVisible(ConversationTabState conversation)
+    {
+        if (!IsDirectMessageConversation(conversation.Key))
+        {
+            closedConversationCutoffs.Remove(conversation.Key);
+            return true;
+        }
+
+        if (!closedConversationCutoffs.TryGetValue(conversation.Key, out var cutoff))
+            return true;
+
+        if (conversation.LastMessageUtc > cutoff)
+        {
+            closedConversationCutoffs.Remove(conversation.Key);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void CloseConversation(ConversationTabState conversation)
+    {
+        closedConversationCutoffs[conversation.Key] = conversation.LastMessageUtc;
+        if (conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase))
+        {
+            activeConversationKey = string.Empty;
+            activeConversationLabel = string.Empty;
+        }
+    }
+
+    private bool SyncSimpleComposerToActiveConversation()
+    {
+        if (!IsDirectMessageConversation(activeConversationKey) ||
+            string.IsNullOrWhiteSpace(activeConversationLabel) ||
+            string.Equals(activeConversationLabel, "DM", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var configuration = plugin.Configuration;
+        var desiredTarget = activeConversationLabel;
+        if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+            string.Equals(configuration.TellTarget, desiredTarget, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        configuration.SelectedOutgoingChannel = OutgoingChannel.Tell;
+        configuration.TellTarget = desiredTarget;
+        return true;
+    }
+
+    private void SyncActiveConversationToOutgoingChannel()
+    {
+        var conversation = ChatChannelMapper.GetOutgoingConversation(plugin.Configuration);
+        activeConversationKey = conversation.Key;
+        activeConversationLabel = conversation.Label;
+        forceActiveConversationSelection = true;
+    }
+
+    private bool SyncOutgoingChannelToConversation(ConversationTabState conversation)
+    {
+        var configuration = plugin.Configuration;
+        if (IsDirectMessageConversation(conversation.Key))
+        {
+            if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+                string.Equals(configuration.TellTarget, conversation.Label, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            configuration.SelectedOutgoingChannel = OutgoingChannel.Tell;
+            configuration.TellTarget = conversation.Label;
+            return true;
+        }
+
+        var targetChannel = conversation.Key switch
+        {
+            "channel:SAY" => OutgoingChannel.Say,
+            "channel:PARTY" => OutgoingChannel.Party,
+            "channel:ALLIANCE" => OutgoingChannel.Alliance,
+            "channel:FC" => OutgoingChannel.FreeCompany,
+            "channel:SHOUT" => OutgoingChannel.Shout,
+            "channel:YELL" => OutgoingChannel.Yell,
+            _ when conversation.Key.StartsWith("channel:LS", StringComparison.OrdinalIgnoreCase) => OutgoingChannel.Linkshell,
+            _ when conversation.Key.StartsWith("channel:CWLS", StringComparison.OrdinalIgnoreCase) => OutgoingChannel.CrossWorldLinkshell,
+            _ => configuration.SelectedOutgoingChannel,
+        };
+
+        if (configuration.SelectedOutgoingChannel == targetChannel)
+            return false;
+
+        configuration.SelectedOutgoingChannel = targetChannel;
+        return true;
+    }
+
+    private List<ConversationTabState> GetPinnedGeneralConversations()
+    {
+        var configuration = plugin.Configuration;
+        return
+        [
+            BuildPinnedConversation(OutgoingChannel.Say, "Say"),
+            BuildPinnedConversation(OutgoingChannel.Party, "Party"),
+            BuildPinnedConversation(OutgoingChannel.Alliance, "Alliance"),
+            BuildPinnedConversation(OutgoingChannel.FreeCompany, "FC"),
+            BuildPinnedConversation(OutgoingChannel.Linkshell, $"LS{Math.Clamp(configuration.LinkshellSlot, 1, 8)}"),
+            BuildPinnedConversation(OutgoingChannel.CrossWorldLinkshell, $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}"),
+            BuildPinnedConversation(OutgoingChannel.Shout, "Shout"),
+            BuildPinnedConversation(OutgoingChannel.Yell, "Yell"),
+        ];
+    }
+
+    private ConversationTabState BuildPinnedConversation(OutgoingChannel channel, string label)
+    {
+        var key = channel switch
+        {
+            OutgoingChannel.Say => "channel:SAY",
+            OutgoingChannel.Party => "channel:PARTY",
+            OutgoingChannel.Alliance => "channel:ALLIANCE",
+            OutgoingChannel.FreeCompany => "channel:FC",
+            OutgoingChannel.Linkshell => $"channel:LS{Math.Clamp(plugin.Configuration.LinkshellSlot, 1, 8)}",
+            OutgoingChannel.CrossWorldLinkshell => $"channel:CWLS{Math.Clamp(plugin.Configuration.CrossWorldLinkshellSlot, 1, 8)}",
+            OutgoingChannel.Shout => "channel:SHOUT",
+            OutgoingChannel.Yell => "channel:YELL",
+            _ => "channel:UNKNOWN",
+        };
+
+        return new ConversationTabState(key, label, new List<TranslationHistoryItem>(), DateTimeOffset.MinValue);
+    }
+
+    private (Vector4 Header, Vector4 Translation, Vector4 Error) GetMessagePalette(bool isInbound)
+    {
+        return plugin.Configuration.CompactChatColorTheme switch
+        {
+            1 => isInbound
+                ? (new Vector4(0.45f, 0.82f, 1.0f, 1.0f), new Vector4(0.95f, 0.98f, 1.0f, 1.0f), new Vector4(1.0f, 0.45f, 0.45f, 1.0f))
+                : (new Vector4(0.42f, 1.0f, 0.62f, 1.0f), new Vector4(0.94f, 1.0f, 0.95f, 1.0f), new Vector4(1.0f, 0.45f, 0.45f, 1.0f)),
+            2 => isInbound
+                ? (new Vector4(0.42f, 0.70f, 1.0f, 1.0f), new Vector4(0.82f, 0.90f, 1.0f, 1.0f), new Vector4(0.95f, 0.38f, 0.38f, 1.0f))
+                : (new Vector4(0.45f, 0.92f, 0.55f, 1.0f), new Vector4(0.85f, 1.0f, 0.88f, 1.0f), new Vector4(0.95f, 0.38f, 0.38f, 1.0f)),
+            3 => isInbound
+                ? (new Vector4(0.75f, 0.58f, 1.0f, 1.0f), new Vector4(0.94f, 0.88f, 1.0f, 1.0f), new Vector4(1.0f, 0.50f, 0.72f, 1.0f))
+                : (new Vector4(0.38f, 1.0f, 0.92f, 1.0f), new Vector4(0.86f, 1.0f, 0.98f, 1.0f), new Vector4(1.0f, 0.50f, 0.72f, 1.0f)),
+            4 => isInbound
+                ? (plugin.Configuration.CompactChatCustomColors.GetInboundHeader(), plugin.Configuration.CompactChatCustomColors.GetInboundTranslation(), plugin.Configuration.CompactChatCustomColors.GetError())
+                : (plugin.Configuration.CompactChatCustomColors.GetOutboundHeader(), plugin.Configuration.CompactChatCustomColors.GetOutboundTranslation(), plugin.Configuration.CompactChatCustomColors.GetError()),
+            _ => isInbound
+                ? (new Vector4(0.58f, 0.80f, 1.0f, 1.0f), new Vector4(0.84f, 0.92f, 1.0f, 1.0f), new Vector4(1.0f, 0.55f, 0.55f, 1.0f))
+                : (new Vector4(0.66f, 0.96f, 0.72f, 1.0f), new Vector4(0.86f, 1.0f, 0.90f, 1.0f), new Vector4(1.0f, 0.55f, 0.55f, 1.0f)),
+        };
+    }
+
+    private static bool IsDirectMessageConversation(string conversationKey)
+        => conversationKey.StartsWith("dm:", StringComparison.OrdinalIgnoreCase);
 
     private sealed record ConversationTabState(
         string Key,
