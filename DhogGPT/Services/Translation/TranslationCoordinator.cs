@@ -41,6 +41,8 @@ public sealed class TranslationCoordinator : IDisposable
 
     public event Action<TranslationResult>? InboundTranslationReady;
 
+    public event Action<TranslationResult>? TranslationCompleted;
+
     public event Action? HistoryUpdated;
 
     public int PendingCount => Volatile.Read(ref queuedCount);
@@ -63,7 +65,8 @@ public sealed class TranslationCoordinator : IDisposable
     public async Task<TranslationResult> TranslateImmediatelyAsync(TranslationRequest request, CancellationToken cancellationToken = default)
     {
         var result = await TranslateCoreAsync(request, cancellationToken).ConfigureAwait(false);
-        AddHistory(result);
+        if (request.RecordInHistory)
+            RecordCompletedTranslation(result);
         return result;
     }
 
@@ -96,7 +99,8 @@ public sealed class TranslationCoordinator : IDisposable
             try
             {
                 var result = await TranslateCoreAsync(request, disposeCts.Token).ConfigureAwait(false);
-                AddHistory(result);
+                if (request.RecordInHistory)
+                    RecordCompletedTranslation(result);
 
                 if (request.IsInbound && result.Success && result.HasMeaningfulTranslation)
                     InboundTranslationReady?.Invoke(result);
@@ -169,5 +173,11 @@ public sealed class TranslationCoordinator : IDisposable
         }
 
         HistoryUpdated?.Invoke();
+    }
+
+    private void RecordCompletedTranslation(TranslationResult result)
+    {
+        AddHistory(result);
+        TranslationCompleted?.Invoke(result);
     }
 }

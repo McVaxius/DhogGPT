@@ -18,6 +18,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool IncludeSenderName { get; set; } = true;
     public bool IncludeChannelLabel { get; set; } = true;
     public bool EnableDebugLogging { get; set; }
+    public bool UseSimpleChatMode { get; set; }
 
     public string IncomingSourceLanguage { get; set; } = "auto";
     public string IncomingTargetLanguage { get; set; } = "en";

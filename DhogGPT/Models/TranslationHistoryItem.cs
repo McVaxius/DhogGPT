@@ -7,6 +7,8 @@ public sealed class TranslationHistoryItem
     public bool Success { get; init; }
     public string ChannelLabel { get; init; } = string.Empty;
     public string Sender { get; init; } = string.Empty;
+    public string ConversationKey { get; init; } = string.Empty;
+    public string ConversationLabel { get; init; } = string.Empty;
     public string SourceLanguage { get; init; } = string.Empty;
     public string TargetLanguage { get; init; } = string.Empty;
     public string DetectedSourceLanguage { get; init; } = string.Empty;
@@ -25,6 +27,8 @@ public sealed class TranslationHistoryItem
             Success = result.Success,
             ChannelLabel = result.Request.ChannelLabel,
             Sender = result.Request.Sender,
+            ConversationKey = result.Request.ConversationKey,
+            ConversationLabel = result.Request.ConversationLabel,
             SourceLanguage = result.Request.SourceLanguage,
             TargetLanguage = result.Request.TargetLanguage,
             DetectedSourceLanguage = result.DetectedSourceLanguage,

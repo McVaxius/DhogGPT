@@ -17,23 +17,29 @@ public sealed class MainWindow : Window, IDisposable
     private readonly LanguageRegistryService languageRegistry;
     private readonly TranslationCoordinator translationCoordinator;
     private readonly SessionHealthService sessionHealth;
+    private readonly ChatLogService chatLogService;
 
     private bool previewBusy;
     private string previewStatus = string.Empty;
     private string previewText = string.Empty;
     private string previewMetadata = string.Empty;
+    private string simpleChatStatus = string.Empty;
+    private string activeConversationKey = string.Empty;
+    private string activeConversationLabel = string.Empty;
 
     public MainWindow(
         Plugin plugin,
         LanguageRegistryService languageRegistry,
         TranslationCoordinator translationCoordinator,
-        SessionHealthService sessionHealth)
+        SessionHealthService sessionHealth,
+        ChatLogService chatLogService)
         : base("DhogGPT###DhogGPTMain")
     {
         this.plugin = plugin;
         this.languageRegistry = languageRegistry;
         this.translationCoordinator = translationCoordinator;
         this.sessionHealth = sessionHealth;
+        this.chatLogService = chatLogService;
 
         SizeConstraints = new WindowSizeConstraints
         {
@@ -50,6 +56,13 @@ public sealed class MainWindow : Window, IDisposable
     {
         DrawHeader();
         ImGui.Separator();
+
+        if (plugin.Configuration.UseSimpleChatMode)
+        {
+            DrawSimpleChatMode();
+            return;
+        }
+
         DrawStatusPanel();
         ImGui.Separator();
         DrawComposer();
@@ -104,7 +117,216 @@ public sealed class MainWindow : Window, IDisposable
             plugin.UpdateDtrBar();
         }
 
-        ImGui.TextWrapped("Incoming chat is translated in the background and echoed back with labels. Outgoing translation uses the composer below so you stay in control of what gets sent.");
+        ImGui.SameLine();
+        var simpleChatMode = configuration.UseSimpleChatMode;
+        if (ImGui.Checkbox("Simple chat mode", ref simpleChatMode))
+        {
+            configuration.UseSimpleChatMode = simpleChatMode;
+            configuration.Save();
+        }
+
+        ImGui.TextWrapped(configuration.UseSimpleChatMode
+            ? "Simple chat mode keeps translated conversations in tabs by channel or DM, with a compact composer at the bottom."
+            : "Incoming chat is translated in the background and echoed back with labels. Outgoing translation uses the composer below so you stay in control of what gets sent.");
+    }
+
+    private void DrawSimpleChatMode()
+    {
+        DrawSimpleLanguageBar();
+        ImGui.Separator();
+
+        var composerHeight = ImGui.GetFrameHeightWithSpacing() * 2.6f;
+        var chatBodyHeight = Math.Max(220f, ImGui.GetContentRegionAvail().Y - composerHeight);
+        DrawTabbedConversationArea(chatBodyHeight);
+
+        ImGui.Separator();
+        DrawSimpleComposer();
+    }
+
+    private void DrawSimpleLanguageBar()
+    {
+        var configuration = plugin.Configuration;
+        var changed = false;
+
+        if (ImGui.BeginTable("DhogGPTSimpleLanguageTable", 2, ImGuiTableFlags.SizingStretchProp))
+        {
+            ImGui.TableNextRow();
+
+            ImGui.TableSetColumnIndex(0);
+            ImGui.TextUnformatted("Outgoing");
+            changed |= DrawLanguageCombo("From##SimpleOutgoing", configuration.OutgoingSourceLanguage, value => configuration.OutgoingSourceLanguage = value, includeAuto: true);
+            changed |= DrawLanguageCombo("To##SimpleOutgoing", configuration.OutgoingTargetLanguage, value => configuration.OutgoingTargetLanguage = value, includeAuto: false);
+
+            ImGui.TableSetColumnIndex(1);
+            ImGui.TextUnformatted("Incoming");
+            changed |= DrawLanguageCombo("From##SimpleIncoming", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
+            changed |= DrawLanguageCombo("To##SimpleIncoming", configuration.IncomingTargetLanguage, value => configuration.IncomingTargetLanguage = value, includeAuto: false);
+
+            ImGui.EndTable();
+        }
+
+        if (changed)
+            configuration.Save();
+    }
+
+    private void DrawTabbedConversationArea(float height)
+    {
+        var entries = chatLogService.GetEntriesSnapshot();
+        var conversations = entries
+            .GroupBy(entry => string.IsNullOrWhiteSpace(entry.ConversationKey) ? entry.ChannelLabel : entry.ConversationKey)
+            .Select(group => new ConversationTabState(
+                group.Key,
+                group.FirstOrDefault(entry => !string.IsNullOrWhiteSpace(entry.ConversationLabel))?.ConversationLabel
+                    ?? group.FirstOrDefault(entry => !string.IsNullOrWhiteSpace(entry.ChannelLabel))?.ChannelLabel
+                    ?? "Chat",
+                group.OrderBy(entry => entry.TimestampUtc).ToList(),
+                group.Max(entry => entry.TimestampUtc)))
+            .OrderByDescending(state => state.LastMessageUtc)
+            .ToList();
+
+        var configuredConversation = ChatChannelMapper.GetOutgoingConversation(plugin.Configuration);
+        if (!conversations.Any(state => state.Key.Equals(configuredConversation.Key, StringComparison.OrdinalIgnoreCase)))
+        {
+            conversations.Insert(0, new ConversationTabState(
+                configuredConversation.Key,
+                configuredConversation.Label,
+                new List<TranslationHistoryItem>(),
+                DateTimeOffset.MinValue));
+        }
+
+        if (string.IsNullOrWhiteSpace(activeConversationKey) || conversations.All(state => !state.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            activeConversationKey = conversations.FirstOrDefault()?.Key ?? string.Empty;
+            activeConversationLabel = conversations.FirstOrDefault()?.Label ?? string.Empty;
+        }
+
+        if (!ImGui.BeginTabBar("DhogGPTConversationTabs"))
+            return;
+
+        foreach (var conversation in conversations)
+        {
+            if (!ImGui.BeginTabItem($"{conversation.Label}##{conversation.Key}"))
+                continue;
+
+            activeConversationKey = conversation.Key;
+            activeConversationLabel = conversation.Label;
+            DrawConversationMessages(conversation.Messages, height);
+            ImGui.EndTabItem();
+        }
+
+        ImGui.EndTabBar();
+    }
+
+    private void DrawConversationMessages(IReadOnlyList<TranslationHistoryItem> messages, float height)
+    {
+        if (!ImGui.BeginChild("DhogGPTConversationBody", new Vector2(0f, height), true))
+        {
+            ImGui.EndChild();
+            return;
+        }
+
+        if (messages.Count == 0)
+        {
+            ImGui.TextDisabled("No translated chat has been logged for this tab yet.");
+            ImGui.EndChild();
+            return;
+        }
+
+        foreach (var message in messages.OrderBy(entry => entry.TimestampUtc))
+        {
+            var headerColor = message.IsInbound
+                ? new Vector4(0.55f, 0.80f, 1.0f, 1.0f)
+                : new Vector4(0.60f, 0.95f, 0.70f, 1.0f);
+            var secondaryColor = new Vector4(0.62f, 0.62f, 0.62f, 1.0f);
+            var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm");
+            var displayName = GetDisplayName(message);
+            var primaryText = message.Success ? message.TranslatedText : message.OriginalText;
+
+            ImGui.TextColored(headerColor, $"{displayName}  {timestamp}");
+            ImGui.TextWrapped(primaryText);
+
+            if (message.Success &&
+                !string.IsNullOrWhiteSpace(message.OriginalText) &&
+                !string.Equals(Normalize(message.OriginalText), Normalize(message.TranslatedText), StringComparison.OrdinalIgnoreCase))
+            {
+                ImGui.TextColored(secondaryColor, message.OriginalText);
+            }
+
+            if (!message.Success && !string.IsNullOrWhiteSpace(message.Error))
+            {
+                ImGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), $"Translation failed: {message.Error}");
+            }
+
+            ImGui.Spacing();
+        }
+
+        ImGui.EndChild();
+    }
+
+    private void DrawSimpleComposer()
+    {
+        var configuration = plugin.Configuration;
+        var changed = false;
+        if (activeConversationKey.StartsWith("dm:", StringComparison.OrdinalIgnoreCase) &&
+            configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+            string.IsNullOrWhiteSpace(configuration.TellTarget) &&
+            !string.IsNullOrWhiteSpace(activeConversationLabel) &&
+            !string.Equals(activeConversationLabel, "DM", StringComparison.OrdinalIgnoreCase))
+        {
+            configuration.TellTarget = activeConversationLabel;
+            configuration.Save();
+        }
+
+        if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
+        {
+            var tellTarget = configuration.TellTarget;
+            if (ImGui.InputTextWithHint("Tell target##Simple", "First Last@World", ref tellTarget, 128))
+            {
+                configuration.TellTarget = tellTarget;
+                changed = true;
+            }
+        }
+
+        if (ImGui.BeginTable("DhogGPTSimpleComposer", 3, ImGuiTableFlags.SizingStretchProp))
+        {
+            ImGui.TableSetupColumn("Channel", ImGuiTableColumnFlags.WidthFixed, 150f);
+            ImGui.TableSetupColumn("Entry", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Send", ImGuiTableColumnFlags.WidthFixed, 70f);
+            ImGui.TableNextRow();
+
+            ImGui.TableSetColumnIndex(0);
+            if (DrawOutgoingChannelCombo("Chat type##Simple"))
+                changed = true;
+
+            ImGui.TableSetColumnIndex(1);
+            var draft = configuration.OutgoingDraft;
+            var submitFromEnter = ImGui.InputTextWithHint(
+                "##SimpleChatEntry",
+                "Translate this text and press Enter to send",
+                ref draft,
+                2000,
+                ImGuiInputTextFlags.EnterReturnsTrue);
+            if (draft != configuration.OutgoingDraft)
+            {
+                configuration.OutgoingDraft = draft;
+                changed = true;
+            }
+
+            ImGui.TableSetColumnIndex(2);
+            if (ImGui.Button("Send##SimpleSend", new Vector2(-1f, 0f)))
+                submitFromEnter = true;
+
+            ImGui.EndTable();
+
+            if (submitFromEnter)
+                _ = SendSimpleChatAsync();
+        }
+
+        if (changed)
+            configuration.Save();
+
+        if (!string.IsNullOrWhiteSpace(simpleChatStatus))
+            ImGui.TextWrapped(simpleChatStatus);
     }
 
     private void DrawStatusPanel()
@@ -145,7 +367,7 @@ public sealed class MainWindow : Window, IDisposable
         changed |= DrawLanguageCombo("From", configuration.OutgoingSourceLanguage, value => configuration.OutgoingSourceLanguage = value, includeAuto: true);
         changed |= DrawLanguageCombo("To", configuration.OutgoingTargetLanguage, value => configuration.OutgoingTargetLanguage = value, includeAuto: false);
 
-        if (DrawOutgoingChannelCombo())
+        if (DrawOutgoingChannelCombo("Channel"))
             changed = true;
 
         if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
@@ -270,17 +492,7 @@ public sealed class MainWindow : Window, IDisposable
 
         try
         {
-            var configuration = plugin.Configuration;
-            var request = new TranslationRequest
-            {
-                Text = configuration.OutgoingDraft,
-                SourceLanguage = configuration.OutgoingSourceLanguage,
-                TargetLanguage = configuration.OutgoingTargetLanguage,
-                IsInbound = false,
-                ChannelLabel = ChatChannelMapper.GetOutgoingLabel(configuration),
-                Sender = Plugin.ObjectTable.LocalPlayer?.Name.TextValue ?? string.Empty,
-            };
-
+            var request = BuildOutgoingRequest(recordInHistory: sendAfterTranslate);
             var result = await translationCoordinator.TranslateImmediatelyAsync(request);
             if (!result.Success)
             {
@@ -300,7 +512,7 @@ public sealed class MainWindow : Window, IDisposable
             if (!sendAfterTranslate)
                 return;
 
-            if (!CommandHelper.TryBuildOutgoingCommand(configuration, result.TranslatedText, out var command, out var error))
+            if (!CommandHelper.TryBuildOutgoingCommand(plugin.Configuration, result.TranslatedText, out var command, out var error))
             {
                 await SetPreviewStateAsync(status: error);
                 return;
@@ -308,7 +520,7 @@ public sealed class MainWindow : Window, IDisposable
 
             var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
             await SetPreviewStateAsync(status: sent
-                ? $"Sent translated message to {ChatChannelMapper.GetOutgoingLabel(configuration)}."
+                ? $"Sent translated message to {ChatChannelMapper.GetOutgoingLabel(plugin.Configuration)}."
                 : "Translation succeeded, but sending the message failed.");
         }
         catch (OperationCanceledException)
@@ -326,6 +538,80 @@ public sealed class MainWindow : Window, IDisposable
         }
     }
 
+    private async Task SendSimpleChatAsync()
+    {
+        if (previewBusy)
+            return;
+
+        previewBusy = true;
+        simpleChatStatus = "Translating...";
+
+        try
+        {
+            var request = BuildOutgoingRequest(recordInHistory: true);
+            var result = await translationCoordinator.TranslateImmediatelyAsync(request);
+            if (!result.Success)
+            {
+                await SetSimpleChatStatusAsync($"Translation failed: {result.Error}");
+                return;
+            }
+
+            if (!CommandHelper.TryBuildOutgoingCommand(plugin.Configuration, result.TranslatedText, out var command, out var error))
+            {
+                await SetSimpleChatStatusAsync(error);
+                return;
+            }
+
+            var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
+            if (!sent)
+            {
+                await SetSimpleChatStatusAsync("Translation succeeded, but sending the message failed.");
+                return;
+            }
+
+            await Plugin.Framework.RunOnFrameworkThread(() =>
+            {
+                plugin.Configuration.OutgoingDraft = string.Empty;
+                plugin.Configuration.Save();
+            });
+
+            activeConversationKey = request.ConversationKey;
+            await SetSimpleChatStatusAsync($"Sent to {request.ConversationLabel}.");
+        }
+        catch (OperationCanceledException)
+        {
+            await SetSimpleChatStatusAsync("Translation was cancelled.");
+        }
+        catch (Exception ex)
+        {
+            await SetSimpleChatStatusAsync($"Unexpected error: {ex.Message}");
+            Plugin.Log.Error($"[DhogGPT] Simple chat send failed: {ex.Message}");
+        }
+        finally
+        {
+            previewBusy = false;
+        }
+    }
+
+    private TranslationRequest BuildOutgoingRequest(bool recordInHistory)
+    {
+        var configuration = plugin.Configuration;
+        var conversation = ChatChannelMapper.GetOutgoingConversation(configuration);
+
+        return new TranslationRequest
+        {
+            Text = configuration.OutgoingDraft,
+            SourceLanguage = configuration.OutgoingSourceLanguage,
+            TargetLanguage = configuration.OutgoingTargetLanguage,
+            IsInbound = false,
+            ChannelLabel = ChatChannelMapper.GetOutgoingLabel(configuration),
+            Sender = Plugin.ObjectTable.LocalPlayer?.Name.TextValue ?? "You",
+            ConversationKey = conversation.Key,
+            ConversationLabel = conversation.Label,
+            RecordInHistory = recordInHistory,
+        };
+    }
+
     private Task SetPreviewStateAsync(string? status = null, string? text = null, string? metadata = null, bool? busy = null)
         => Plugin.Framework.RunOnFrameworkThread(() =>
         {
@@ -339,18 +625,21 @@ public sealed class MainWindow : Window, IDisposable
                 previewMetadata = metadata;
         });
 
-    private bool DrawOutgoingChannelCombo()
+    private Task SetSimpleChatStatusAsync(string status)
+        => Plugin.Framework.RunOnFrameworkThread(() => simpleChatStatus = status);
+
+    private bool DrawOutgoingChannelCombo(string label)
     {
         var changed = false;
         var configuration = plugin.Configuration;
         var selectedLabel = ChatChannelMapper.GetOutgoingLabel(configuration);
 
-        if (!ImGui.BeginCombo("Channel", selectedLabel))
+        if (!ImGui.BeginCombo(label, selectedLabel))
             return false;
 
         foreach (var channel in Enum.GetValues<OutgoingChannel>())
         {
-            var label = channel switch
+            var channelLabel = channel switch
             {
                 OutgoingChannel.FreeCompany => "Free Company",
                 OutgoingChannel.CrossWorldLinkshell => "Cross-world Linkshell",
@@ -358,7 +647,7 @@ public sealed class MainWindow : Window, IDisposable
             };
 
             var isSelected = channel == configuration.SelectedOutgoingChannel;
-            if (ImGui.Selectable(label, isSelected))
+            if (ImGui.Selectable(channelLabel, isSelected))
             {
                 configuration.SelectedOutgoingChannel = channel;
                 changed = true;
@@ -398,4 +687,21 @@ public sealed class MainWindow : Window, IDisposable
 
         return changed;
     }
+
+    private static string GetDisplayName(TranslationHistoryItem message)
+    {
+        if (!string.IsNullOrWhiteSpace(message.Sender))
+            return message.Sender;
+
+        return message.IsInbound ? "Unknown" : "You";
+    }
+
+    private static string Normalize(string value)
+        => string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+    private sealed record ConversationTabState(
+        string Key,
+        string Label,
+        IReadOnlyList<TranslationHistoryItem> Messages,
+        DateTimeOffset LastMessageUtc);
 }

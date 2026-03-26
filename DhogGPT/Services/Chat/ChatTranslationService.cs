@@ -47,6 +47,7 @@ public sealed class ChatTranslationService : IDisposable
         if (!ShouldQueue(channelLabel, senderText, messageText))
             return;
 
+        var conversation = ChatChannelMapper.GetIncomingConversation(channelLabel, senderText);
         var request = new TranslationRequest
         {
             Text = messageText,
@@ -55,6 +56,8 @@ public sealed class ChatTranslationService : IDisposable
             IsInbound = true,
             Sender = senderText,
             ChannelLabel = channelLabel,
+            ConversationKey = conversation.Key,
+            ConversationLabel = conversation.Label,
         };
 
         _ = translationCoordinator.QueueIncomingAsync(request);

@@ -69,6 +69,31 @@ public static class ChatChannelMapper
         };
     }
 
+    public static (string Key, string Label) GetIncomingConversation(string channelLabel, string sender)
+    {
+        if (string.Equals(channelLabel, "DM", StringComparison.OrdinalIgnoreCase))
+        {
+            var label = string.IsNullOrWhiteSpace(sender) ? "DM" : sender.Trim();
+            return ($"dm:{NormalizeConversationToken(label)}", label);
+        }
+
+        return ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel);
+    }
+
+    public static (string Key, string Label) GetOutgoingConversation(Configuration configuration)
+    {
+        var channelLabel = GetOutgoingLabel(configuration);
+        if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
+        {
+            var label = string.IsNullOrWhiteSpace(configuration.TellTarget)
+                ? "DM"
+                : configuration.TellTarget.Trim();
+            return ($"dm:{NormalizeConversationToken(label)}", label);
+        }
+
+        return ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel);
+    }
+
     private static int GetLinkshellSlot(XivChatType chatType)
     {
         return chatType switch
@@ -99,5 +124,11 @@ public static class ChatChannelMapper
             XivChatType.CrossLinkShell8 => 8,
             _ => 1,
         };
+    }
+
+    private static string NormalizeConversationToken(string value)
+    {
+        return string.Join(" ", value.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .ToUpperInvariant();
     }
 }

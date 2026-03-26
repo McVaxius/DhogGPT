@@ -43,6 +43,7 @@ public sealed class Plugin : IDalamudPlugin
     public LibreTranslateProvider TranslationProvider { get; }
     public TranslationCoordinator TranslationCoordinator { get; }
     public ChatTranslationService ChatTranslationService { get; }
+    public ChatLogService ChatLogService { get; }
 
     private readonly MainWindow mainWindow;
     private readonly ConfigWindow configWindow;
@@ -57,9 +58,10 @@ public sealed class Plugin : IDalamudPlugin
         TranslationCache = new TranslationCacheService();
         TranslationProvider = new LibreTranslateProvider(Configuration);
         TranslationCoordinator = new TranslationCoordinator(Configuration, TranslationCache, TranslationProvider, SessionHealth);
+        ChatLogService = new ChatLogService(TranslationCoordinator);
         ChatTranslationService = new ChatTranslationService(Configuration, TranslationCoordinator);
 
-        mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth);
+        mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth, ChatLogService);
         configWindow = new ConfigWindow(this, LanguageRegistry);
         firstUseGuideWindow = new FirstUseGuideWindow(this);
 
@@ -102,6 +104,7 @@ public sealed class Plugin : IDalamudPlugin
         firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
+        ChatLogService.Dispose();
         ChatTranslationService.Dispose();
         TranslationCoordinator.Dispose();
         TranslationProvider.Dispose();
