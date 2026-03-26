@@ -62,15 +62,24 @@ public sealed class MainWindow : Window, IDisposable
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
         var configuration = plugin.Configuration;
         var headerText = $"{Plugin.DisplayName} v{version}";
-        var style = ImGui.GetStyle();
-        var buttonWidth = ImGui.CalcTextSize("Ko-fi").X + (style.FramePadding.X * 2f);
+        var koFiWidth = ImGui.CalcTextSize("Ko-fi").X + (ImGui.GetStyle().FramePadding.X * 2f);
 
-        ImGui.TextUnformatted(headerText);
-        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX(), ImGui.GetWindowContentRegionMax().X - buttonWidth));
-        if (ImGui.SmallButton("Ko-fi"))
-            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+        if (ImGui.BeginTable("DhogGPTHeaderTop", 2, ImGuiTableFlags.SizingStretchProp))
+        {
+            ImGui.TableSetupColumn("Info", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Support", ImGuiTableColumnFlags.WidthFixed, koFiWidth + 8f);
+            ImGui.TableNextRow();
 
-        ImGui.SameLine();
+            ImGui.TableSetColumnIndex(0);
+            ImGui.TextUnformatted(headerText);
+
+            ImGui.TableSetColumnIndex(1);
+            if (ImGui.SmallButton("Ko-fi"))
+                Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+
+            ImGui.EndTable();
+        }
+
         if (ImGui.SmallButton("Guide"))
             plugin.OpenFirstUseGuide();
 
