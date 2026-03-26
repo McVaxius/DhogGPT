@@ -25,12 +25,13 @@ public sealed class ChatLogService : IDisposable
     {
         this.translationCoordinator = translationCoordinator;
         this.translationCoordinator.TranslationCompleted += OnTranslationCompleted;
-        EnsureCurrentContextLoaded();
+        Plugin.Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
     {
         translationCoordinator.TranslationCompleted -= OnTranslationCompleted;
+        Plugin.Framework.Update -= OnFrameworkUpdate;
     }
 
     public IReadOnlyList<TranslationHistoryItem> GetEntriesSnapshot()
@@ -65,6 +66,14 @@ public sealed class ChatLogService : IDisposable
                 activeLogPath,
                 JsonSerializer.Serialize(entry, JsonOptions) + Environment.NewLine,
                 Encoding.UTF8);
+        }
+    }
+
+    private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework framework)
+    {
+        lock (syncRoot)
+        {
+            EnsureCurrentContextLoaded();
         }
     }
 
