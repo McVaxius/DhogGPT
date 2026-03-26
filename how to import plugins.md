@@ -44,7 +44,7 @@ The manifest and icon are already next to that build output.
 
 DhogGPT is now published via the custom repository entry below, so you can skip the dev-plugin flow once you're ready to use the release build.
 
-1. Launch FFXIV through XIVLauncher and open /xlplugins.
-2. In the installer, use the repository management controls to **Add** a new entry at https://raw.githubusercontent.com/McVaxius/DhogGPT/main/repo.json.
+1. Launch FFXIV through XIVLauncher and open `/xlplugins`.
+2. In the installer, use the repository management controls to **Add** a new entry at `https://raw.githubusercontent.com/McVaxius/DhogGPT/main/repo.json`.
 3. After the repo list refreshes, locate **DhogGPT** in the Available Plugins list and install it normally.
-4. Enable the plugin and confirm /dhoggpt and /dgpt work in-game just like the dev build.
+4. Enable the plugin and confirm `/dhoggpt` and `/dgpt` work in-game just like the dev build.
