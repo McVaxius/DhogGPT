@@ -61,9 +61,12 @@ public sealed class MainWindow : Window, IDisposable
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
         var configuration = plugin.Configuration;
+        var headerText = $"{Plugin.DisplayName} v{version}";
+        var style = ImGui.GetStyle();
+        var buttonWidth = ImGui.CalcTextSize("Ko-fi").X + (style.FramePadding.X * 2f);
 
-        ImGui.Text($"{Plugin.DisplayName} v{version}");
-        ImGui.SameLine(ImGui.GetWindowWidth() - 255f);
+        ImGui.TextUnformatted(headerText);
+        ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX(), ImGui.GetWindowContentRegionMax().X - buttonWidth));
         if (ImGui.SmallButton("Ko-fi"))
             Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
 
