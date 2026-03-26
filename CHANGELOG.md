@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-03-25 - First-Use UX and DTR Pass
+
+### Added
+
+- Added a first-use guide popup window with quick actions to open the main window and settings
+- Added standard DTR bar support with toggle-on-click behavior
+- Added DTR bar configuration options for visibility, display mode, and glyphs
+- Added a Ko-fi button to the main window
+- Added dynamic version display to the main window
+
+### Validation
+
+- Built `Debug x64` successfully from `z:\DhogGPT\DhogGPT.sln`
+- Build result: `0 warnings`, `0 errors`
+- Confirmed output file: `z:\DhogGPT\DhogGPT\bin\x64\Debug\DhogGPT.dll`
+- Release build was intentionally not run in this pass
+
+### Test Request For This Update
+
+- Load `z:\DhogGPT\DhogGPT\bin\x64\Debug\DhogGPT.dll`
+- Confirm the first-use guide appears on first load and can reopen from the main window or config window
+- Confirm the Ko-fi button opens the support page
+- Confirm the DTR entry appears, respects the config settings, and toggles DhogGPT on or off when clicked
+
 ## 2026-03-25 - Planning Bootstrap
 
 ### Added

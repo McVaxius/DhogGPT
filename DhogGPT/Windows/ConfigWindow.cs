@@ -7,6 +7,7 @@ namespace DhogGPT.Windows;
 
 public sealed class ConfigWindow : Window, IDisposable
 {
+    private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
 
@@ -30,6 +31,8 @@ public sealed class ConfigWindow : Window, IDisposable
     public override void Draw()
     {
         DrawGeneralSettings();
+        ImGui.Separator();
+        DrawDtrSettings();
         ImGui.Separator();
         DrawIncomingChannelSettings();
         ImGui.Separator();
@@ -68,6 +71,50 @@ public sealed class ConfigWindow : Window, IDisposable
 
         if (changed)
             configuration.Save();
+    }
+
+    private void DrawDtrSettings()
+    {
+        var configuration = plugin.Configuration;
+        var changed = false;
+
+        ImGui.TextUnformatted("DTR bar");
+        if (ImGui.Button("Open first-use guide"))
+            plugin.OpenFirstUseGuide();
+
+        var dtrBarEnabled = configuration.DtrBarEnabled;
+        if (ImGui.Checkbox("Show DTR bar entry", ref dtrBarEnabled))
+        {
+            configuration.DtrBarEnabled = dtrBarEnabled;
+            changed = true;
+        }
+
+        var dtrMode = configuration.DtrBarMode;
+        if (ImGui.Combo("DTR mode", ref dtrMode, DtrModes, DtrModes.Length))
+        {
+            configuration.DtrBarMode = dtrMode;
+            changed = true;
+        }
+
+        var enabledGlyph = configuration.DtrIconEnabled;
+        if (ImGui.InputText("DTR enabled glyph", ref enabledGlyph, 8))
+        {
+            configuration.DtrIconEnabled = enabledGlyph.Length <= 3 ? enabledGlyph : enabledGlyph[..3];
+            changed = true;
+        }
+
+        var disabledGlyph = configuration.DtrIconDisabled;
+        if (ImGui.InputText("DTR disabled glyph", ref disabledGlyph, 8))
+        {
+            configuration.DtrIconDisabled = disabledGlyph.Length <= 3 ? disabledGlyph : disabledGlyph[..3];
+            changed = true;
+        }
+
+        if (changed)
+        {
+            configuration.Save();
+            plugin.UpdateDtrBar();
+        }
     }
 
     private void DrawIncomingChannelSettings()

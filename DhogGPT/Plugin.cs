@@ -1,6 +1,9 @@
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.IoC;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -24,10 +27,13 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
     private const string CommandName = "/dhoggpt";
     private const string AliasCommandName = "/dgpt";
+    public const string DisplayName = "DhogGPT";
+    public const string SupportUrl = "https://ko-fi.com/mcvaxius";
 
     public Configuration Configuration { get; }
     public WindowSystem WindowSystem { get; } = new("DhogGPT");
@@ -40,6 +46,8 @@ public sealed class Plugin : IDalamudPlugin
 
     private readonly MainWindow mainWindow;
     private readonly ConfigWindow configWindow;
+    private readonly FirstUseGuideWindow firstUseGuideWindow;
+    private IDtrBarEntry? dtrEntry;
 
     public Plugin()
     {
@@ -53,9 +61,11 @@ public sealed class Plugin : IDalamudPlugin
 
         mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth);
         configWindow = new ConfigWindow(this, LanguageRegistry);
+        firstUseGuideWindow = new FirstUseGuideWindow(this);
 
         WindowSystem.AddWindow(mainWindow);
         WindowSystem.AddWindow(configWindow);
+        WindowSystem.AddWindow(firstUseGuideWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -71,6 +81,9 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
 
+        SetupDtrBar();
+        UpdateDtrBar();
+
         Log.Information("[DhogGPT] Plugin loaded.");
     }
 
@@ -85,6 +98,8 @@ public sealed class Plugin : IDalamudPlugin
 
         WindowSystem.RemoveAllWindows();
 
+        dtrEntry?.Remove();
+        firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
         ChatTranslationService.Dispose();
@@ -98,6 +113,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public void ToggleConfigUi() => configWindow.Toggle();
 
+    public void OpenFirstUseGuide() => firstUseGuideWindow.IsOpen = true;
+
     public void PrintStatus(string message)
     {
         ChatGui.Print(new XivChatEntry
@@ -105,6 +122,25 @@ public sealed class Plugin : IDalamudPlugin
             Type = XivChatType.Echo,
             Message = $"[DhogGPT] {message}",
         });
+    }
+
+    public void SetPluginEnabled(bool enabled, bool printStatus = false)
+    {
+        Configuration.PluginEnabled = enabled;
+        Configuration.Save();
+        UpdateDtrBar();
+
+        if (printStatus)
+            PrintStatus(enabled ? "Plugin enabled." : "Plugin disabled.");
+    }
+
+    public void MarkFirstUseGuideSeen()
+    {
+        if (Configuration.HasSeenFirstUseGuide)
+            return;
+
+        Configuration.HasSeenFirstUseGuide = true;
+        Configuration.Save();
     }
 
     private void OnCommand(string command, string arguments)
@@ -125,20 +161,43 @@ public sealed class Plugin : IDalamudPlugin
 
         if (trimmed.Equals("on", StringComparison.OrdinalIgnoreCase))
         {
-            Configuration.PluginEnabled = true;
-            Configuration.Save();
-            PrintStatus("Plugin enabled.");
+            SetPluginEnabled(true, printStatus: true);
             return;
         }
 
         if (trimmed.Equals("off", StringComparison.OrdinalIgnoreCase))
         {
-            Configuration.PluginEnabled = false;
-            Configuration.Save();
-            PrintStatus("Plugin disabled.");
+            SetPluginEnabled(false, printStatus: true);
             return;
         }
 
         ToggleMainUi();
+    }
+
+    private void SetupDtrBar()
+    {
+        dtrEntry = DtrBar.Get(DisplayName);
+        dtrEntry.OnClick = _ => SetPluginEnabled(!Configuration.PluginEnabled, printStatus: true);
+    }
+
+    public void UpdateDtrBar()
+    {
+        if (dtrEntry == null)
+            return;
+
+        dtrEntry.Shown = Configuration.DtrBarEnabled;
+        if (!Configuration.DtrBarEnabled)
+            return;
+
+        var glyph = Configuration.PluginEnabled ? Configuration.DtrIconEnabled : Configuration.DtrIconDisabled;
+        var state = Configuration.PluginEnabled ? "On" : "Off";
+
+        dtrEntry.Text = Configuration.DtrBarMode switch
+        {
+            1 => new SeString(new TextPayload($"{glyph} DGPT")),
+            2 => new SeString(new TextPayload(glyph)),
+            _ => new SeString(new TextPayload($"DGPT: {state}")),
+        };
+        dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to toggle translation on or off."));
     }
 }

@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Numerics;
+using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using DhogGPT.Models;
@@ -57,7 +59,18 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawHeader()
     {
-        ImGui.TextUnformatted("DhogGPT");
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+        var configuration = plugin.Configuration;
+
+        ImGui.Text($"{Plugin.DisplayName} v{version}");
+        ImGui.SameLine(ImGui.GetWindowWidth() - 255f);
+        if (ImGui.SmallButton("Ko-fi"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Guide"))
+            plugin.OpenFirstUseGuide();
+
         ImGui.SameLine();
         if (ImGui.SmallButton("Settings"))
             plugin.ToggleConfigUi();
@@ -65,6 +78,19 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.SmallButton("Status to chat"))
             plugin.PrintStatus("DhogGPT is loaded and ready.");
+
+        var enabled = configuration.PluginEnabled;
+        if (ImGui.Checkbox("Enabled", ref enabled))
+            plugin.SetPluginEnabled(enabled);
+
+        ImGui.SameLine();
+        var dtrEnabled = configuration.DtrBarEnabled;
+        if (ImGui.Checkbox("DTR Bar", ref dtrEnabled))
+        {
+            configuration.DtrBarEnabled = dtrEnabled;
+            configuration.Save();
+            plugin.UpdateDtrBar();
+        }
 
         ImGui.TextWrapped("Incoming chat is translated in the background and echoed back with labels. Outgoing translation uses the composer below so you stay in control of what gets sent.");
     }
@@ -75,6 +101,7 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
 
         ImGui.Text($"Plugin: {(configuration.PluginEnabled ? "Enabled" : "Disabled")}");
+        ImGui.Text($"DTR entry: {(configuration.DtrBarEnabled ? "Visible" : "Hidden")}");
         ImGui.Text($"Incoming translation: {(configuration.TranslateIncoming ? "On" : "Off")}");
         ImGui.Text($"Queued jobs: {snapshot.QueueDepth}");
         ImGui.Text($"Successes: {snapshot.SuccessCount}");

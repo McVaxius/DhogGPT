@@ -17,6 +17,9 @@ DhogGPT now has a clean `Debug x64` build.
 - `Autodetect` support for source language
 - `English` as the default destination language
 - Configurable channel toggles and provider endpoints
+- First-use guide popup with quick-start actions
+- Ko-fi button in the main window
+- Standard DTR entry with configurable display modes and glyphs
 - Translation queue, duplicate suppression, short-term cache, and recent-history UI
 
 ## Current Documents
