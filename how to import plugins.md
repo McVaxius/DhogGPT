@@ -40,6 +40,11 @@ The manifest and icon are already next to that build output.
 - In the main window, use the outgoing composer to preview a short message
 - Test `Translate and send` in `Say` before trying `Party`, `FC`, `LS`, `CWLS`, or `Tell`
 
-## Future Release Import Path
+## Release Repository Installation
 
-Once the plugin has a published repository feed, we will add a separate section for custom-repo installation. Right now the debug DLL path above is the correct first test route.
+DhogGPT is now published via the custom repository entry below, so you can skip the dev-plugin flow once you're ready to use the release build.
+
+1. Launch FFXIV through XIVLauncher and open /xlplugins.
+2. In the installer, use the repository management controls to **Add** a new entry at https://raw.githubusercontent.com/McVaxius/DhogGPT/main/repo.json.
+3. After the repo list refreshes, locate **DhogGPT** in the Available Plugins list and install it normally.
+4. Enable the plugin and confirm /dhoggpt and /dgpt work in-game just like the dev build.
