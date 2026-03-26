@@ -1,0 +1,98 @@
+using System.Text;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+
+namespace DhogGPT.Services.Chat;
+
+public static class CommandHelper
+{
+    public static bool TryBuildOutgoingCommand(Configuration configuration, string translatedText, out string command, out string error)
+    {
+        command = string.Empty;
+        error = string.Empty;
+
+        var trimmed = translatedText.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            error = "There is no translated text to send.";
+            return false;
+        }
+
+        string prefix;
+        switch (configuration.SelectedOutgoingChannel)
+        {
+            case OutgoingChannel.Say:
+                prefix = "/s ";
+                break;
+            case OutgoingChannel.Party:
+                prefix = "/p ";
+                break;
+            case OutgoingChannel.FreeCompany:
+                prefix = "/fc ";
+                break;
+            case OutgoingChannel.Linkshell:
+                prefix = $"/l{Math.Clamp(configuration.LinkshellSlot, 1, 8)} ";
+                break;
+            case OutgoingChannel.CrossWorldLinkshell:
+                prefix = $"/cwl{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)} ";
+                break;
+            case OutgoingChannel.Shout:
+                prefix = "/sh ";
+                break;
+            case OutgoingChannel.Yell:
+                prefix = "/y ";
+                break;
+            case OutgoingChannel.Tell:
+                if (string.IsNullOrWhiteSpace(configuration.TellTarget))
+                {
+                    error = "Tell target is required before sending a DM.";
+                    return false;
+                }
+
+                prefix = $"/tell {configuration.TellTarget.Trim()} ";
+                break;
+            default:
+                error = "Unsupported outgoing channel.";
+                return false;
+        }
+
+        command = prefix + trimmed;
+        if (Encoding.UTF8.GetByteCount(command) > 500)
+        {
+            error = "Translated message is too long for the game chat box.";
+            command = string.Empty;
+            return false;
+        }
+
+        return true;
+    }
+
+    public static unsafe bool SendCommand(string command)
+    {
+        try
+        {
+            var uiModule = UIModule.Instance();
+            if (uiModule == null)
+            {
+                Plugin.Log.Error("[DhogGPT] UIModule was null, command was not sent.");
+                return false;
+            }
+
+            var utf8 = Utf8String.FromString(command);
+            try
+            {
+                uiModule->ProcessChatBoxEntry(utf8, nint.Zero);
+                return true;
+            }
+            finally
+            {
+                utf8->Dtor(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"[DhogGPT] Failed to send command '{command}': {ex.Message}");
+            return false;
+        }
+    }
+}

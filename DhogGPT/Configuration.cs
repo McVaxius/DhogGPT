@@ -1,0 +1,48 @@
+using Dalamud.Configuration;
+
+namespace DhogGPT;
+
+[Serializable]
+public sealed class Configuration : IPluginConfiguration
+{
+    public int Version { get; set; } = 1;
+
+    public bool PluginEnabled { get; set; } = true;
+    public bool TranslateIncoming { get; set; } = true;
+    public bool SkipOwnMessages { get; set; } = true;
+    public bool IncludeSenderName { get; set; } = true;
+    public bool IncludeChannelLabel { get; set; } = true;
+    public bool EnableDebugLogging { get; set; }
+
+    public string IncomingSourceLanguage { get; set; } = "auto";
+    public string IncomingTargetLanguage { get; set; } = "en";
+    public string OutgoingSourceLanguage { get; set; } = "auto";
+    public string OutgoingTargetLanguage { get; set; } = "en";
+
+    public bool EnableParty { get; set; } = true;
+    public bool EnableFreeCompany { get; set; } = true;
+    public bool EnableLinkshells { get; set; } = true;
+    public bool EnableCrossWorldLinkshells { get; set; } = true;
+    public bool EnableSay { get; set; } = true;
+    public bool EnableShout { get; set; } = true;
+    public bool EnableYell { get; set; } = true;
+    public bool EnableTell { get; set; } = true;
+
+    public string ProviderEndpoints { get; set; } =
+        "https://translate.argosopentech.com" + Environment.NewLine +
+        "https://libretranslate.de";
+
+    public int RequestTimeoutSeconds { get; set; } = 20;
+    public int HistoryLimit { get; set; } = 30;
+
+    public OutgoingChannel SelectedOutgoingChannel { get; set; } = OutgoingChannel.Party;
+    public int LinkshellSlot { get; set; } = 1;
+    public int CrossWorldLinkshellSlot { get; set; } = 1;
+    public string TellTarget { get; set; } = string.Empty;
+    public string OutgoingDraft { get; set; } = string.Empty;
+
+    public void Save()
+    {
+        Plugin.PluginInterface.SavePluginConfig(this);
+    }
+}

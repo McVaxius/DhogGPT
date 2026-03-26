@@ -1,0 +1,98 @@
+## Ignore build outputs
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+## Ignore user specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore NuGet packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+## Ignore Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## Ignore Rider
+.idea/
+
+## Ignore Dalamud specific
+*.dll
+*.pdb
+!DhogGPT.json
+
+## Ignore backup folders
+Backup/
+backup/
+backups/
+
+## Ignore logs
+*.log
+logs/
+
+## Ignore configuration files (sensitive data)
+config.json
+settings.json
+*.config
+
+## Ignore temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+
+## Ignore documentation drafts
+draft-*.md
+WIP-*.md
+TODO-*.md
+
+## Ignore test outputs
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+## Ignore node modules (if any frontend tools)
+node_modules/
+
+## Ignore build artifacts
+artifacts/
+out/
+dist/
+
+## Ignore specific to DhogGPT development
+# API keys and secrets
+api-keys.txt
+secrets.txt
+.env
+.env.local
+
+# Translation cache
+cache/
+translation-cache/
+
+# Development notes not for end users
+dev-notes/
+research/
+experimental/
+
+# Performance profiling
+*.prof
+*.trace
