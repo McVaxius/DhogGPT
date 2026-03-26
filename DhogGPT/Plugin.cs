@@ -179,28 +179,47 @@ public sealed class Plugin : IDalamudPlugin
 
     private void SetupDtrBar()
     {
-        dtrEntry = DtrBar.Get(DisplayName);
-        dtrEntry.OnClick = _ => SetPluginEnabled(!Configuration.PluginEnabled, printStatus: true);
+        try
+        {
+            dtrEntry = DtrBar.Get(DisplayName);
+            dtrEntry.OnClick = _ => SetPluginEnabled(!Configuration.PluginEnabled, printStatus: true);
+        }
+        catch (Exception ex)
+        {
+            dtrEntry = null;
+            Log.Error(ex, "[DhogGPT] Failed to setup DTR bar.");
+        }
     }
 
     public void UpdateDtrBar()
     {
         if (dtrEntry == null)
-            return;
-
-        dtrEntry.Shown = Configuration.DtrBarEnabled;
-        if (!Configuration.DtrBarEnabled)
-            return;
-
-        var glyph = Configuration.PluginEnabled ? Configuration.DtrIconEnabled : Configuration.DtrIconDisabled;
-        var state = Configuration.PluginEnabled ? "On" : "Off";
-
-        dtrEntry.Text = Configuration.DtrBarMode switch
         {
-            1 => new SeString(new TextPayload($"{glyph} DGPT")),
-            2 => new SeString(new TextPayload(glyph)),
-            _ => new SeString(new TextPayload($"DGPT: {state}")),
-        };
-        dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to toggle translation on or off."));
+            SetupDtrBar();
+            if (dtrEntry == null)
+                return;
+        }
+
+        try
+        {
+            dtrEntry.Shown = Configuration.DtrBarEnabled;
+            if (!Configuration.DtrBarEnabled)
+                return;
+
+            var glyph = Configuration.PluginEnabled ? Configuration.DtrIconEnabled : Configuration.DtrIconDisabled;
+            var state = Configuration.PluginEnabled ? "On" : "Off";
+
+            dtrEntry.Text = Configuration.DtrBarMode switch
+            {
+                1 => new SeString(new TextPayload($"{glyph} DGPT")),
+                2 => new SeString(new TextPayload(glyph)),
+                _ => new SeString(new TextPayload($"DGPT: {state}")),
+            };
+            dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to toggle translation on or off."));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "[DhogGPT] Failed to update DTR bar.");
+        }
     }
 }
