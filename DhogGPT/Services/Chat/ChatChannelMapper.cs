@@ -65,6 +65,7 @@ public static class ChatChannelMapper
     {
         return configuration.SelectedOutgoingChannel switch
         {
+            OutgoingChannel.Echo => "Echo",
             OutgoingChannel.Say => "Say",
             OutgoingChannel.Party => "Party",
             OutgoingChannel.Alliance => "Alliance",

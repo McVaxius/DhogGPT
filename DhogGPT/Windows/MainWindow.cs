@@ -716,7 +716,7 @@ public sealed class MainWindow : Window, IDisposable
         try
         {
             var request = BuildOutgoingRequest(recordInHistory: false);
-            var result = await translationCoordinator.TranslateImmediatelyAsync(request);
+            var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
             {
                 await SetPreviewStateAsync(status: $"Translation failed: {result.Error}");
@@ -734,6 +734,22 @@ public sealed class MainWindow : Window, IDisposable
 
             if (!sendAfterTranslate)
                 return;
+
+            if (request.ChannelLabel.Equals("Echo", StringComparison.OrdinalIgnoreCase))
+            {
+                RecordSuccessfulSend(result);
+                await Plugin.Framework.RunOnFrameworkThread(() =>
+                {
+                    plugin.Configuration.OutgoingDraft = string.Empty;
+                    plugin.Configuration.Save();
+                });
+
+                activeConversationKey = request.ConversationKey;
+                activeConversationLabel = request.ConversationLabel;
+                forceActiveConversationSelection = true;
+                await SetPreviewStateAsync(status: "Saved to Echo.", text: result.TranslatedText);
+                return;
+            }
 
             if (!CommandHelper.TryBuildOutgoingCommand(plugin.Configuration, result.TranslatedText, out var command, out var error))
             {
@@ -781,10 +797,27 @@ public sealed class MainWindow : Window, IDisposable
         try
         {
             var request = BuildOutgoingRequest(recordInHistory: false);
-            var result = await translationCoordinator.TranslateImmediatelyAsync(request);
+            var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
             {
                 await SetSimpleChatStatusAsync($"Translation failed: {result.Error}");
+                return;
+            }
+
+            if (request.ChannelLabel.Equals("Echo", StringComparison.OrdinalIgnoreCase))
+            {
+                RecordSuccessfulSend(result);
+
+                await Plugin.Framework.RunOnFrameworkThread(() =>
+                {
+                    plugin.Configuration.OutgoingDraft = string.Empty;
+                    plugin.Configuration.Save();
+                });
+
+                activeConversationKey = request.ConversationKey;
+                activeConversationLabel = request.ConversationLabel;
+                forceActiveConversationSelection = true;
+                await SetSimpleChatStatusAsync(string.Empty);
                 return;
             }
 
@@ -856,6 +889,22 @@ public sealed class MainWindow : Window, IDisposable
             ConversationLabel = conversation.Label,
             RecordInHistory = recordInHistory,
         };
+    }
+
+    private Task<TranslationResult> TranslateOutgoingRequestAsync(TranslationRequest request)
+    {
+        if (!ShouldBypassOutgoingTranslation(request))
+            return translationCoordinator.TranslateImmediatelyAsync(request);
+
+        var passthroughText = request.Text.Trim();
+        return Task.FromResult(TranslationResult.Succeeded(
+            request,
+            passthroughText,
+            "NoTranslation",
+            "SameLanguageBypass",
+            request.SourceLanguage,
+            TimeSpan.Zero,
+            fromCache: true));
     }
 
     private Task SetPreviewStateAsync(string? status = null, string? text = null, string? metadata = null, bool? busy = null)
@@ -971,6 +1020,21 @@ public sealed class MainWindow : Window, IDisposable
 
         error = "Free trial accounts cannot send DMs.";
         return false;
+    }
+
+    private static bool ShouldBypassOutgoingTranslation(TranslationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Text))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(request.SourceLanguage) ||
+            string.IsNullOrWhiteSpace(request.TargetLanguage) ||
+            string.Equals(request.SourceLanguage, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return string.Equals(request.SourceLanguage, request.TargetLanguage, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool DrawOutgoingChannelCombo(string label)
@@ -1256,6 +1320,8 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         switch (conversationKey)
         {
+            case "channel:ECHO":
+                return SetOutgoingChannel(configuration, OutgoingChannel.Echo);
             case "channel:SAY":
                 return SetOutgoingChannel(configuration, OutgoingChannel.Say);
             case "channel:PARTY":
@@ -1328,6 +1394,7 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         return
         [
+            BuildPinnedConversation(OutgoingChannel.Echo, "Echo"),
             BuildPinnedConversation(OutgoingChannel.Say, "Say"),
             BuildPinnedConversation(OutgoingChannel.Party, "Party"),
             BuildPinnedConversation(OutgoingChannel.Alliance, "Alliance"),
@@ -1343,6 +1410,7 @@ public sealed class MainWindow : Window, IDisposable
     {
         var key = channel switch
         {
+            OutgoingChannel.Echo => "channel:ECHO",
             OutgoingChannel.Say => "channel:SAY",
             OutgoingChannel.Party => "channel:PARTY",
             OutgoingChannel.Alliance => "channel:ALLIANCE",

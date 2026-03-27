@@ -6,7 +6,7 @@
     "Punchline": "Translate selected FFXIV chat channels in real time.",
     "Description": "DhogGPT translates incoming chat from selected channels and gives you a translate-and-send composer for outgoing messages. Use /dhoggpt or /dgpt to open it.",
     "InternalName": "DhogGPT",
-    "AssemblyVersion": "0.0.1.0",
+    "AssemblyVersion": "0.0.1.1",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 14,
     "Tags": [

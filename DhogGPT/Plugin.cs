@@ -57,6 +57,15 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        if (!Configuration.HasInitializedEchoChannelVisibility)
+        {
+            if (!Configuration.HiddenGeneralConversationKeys.Any(hidden => string.Equals(hidden, "channel:ECHO", StringComparison.OrdinalIgnoreCase)))
+                Configuration.HiddenGeneralConversationKeys.Add("channel:ECHO");
+
+            Configuration.HasInitializedEchoChannelVisibility = true;
+            Configuration.Save();
+        }
+
         LanguageRegistry = new LanguageRegistryService();
         SessionHealth = new SessionHealthService();
         TranslationCache = new TranslationCacheService();

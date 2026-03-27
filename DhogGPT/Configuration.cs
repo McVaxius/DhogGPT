@@ -24,6 +24,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool KrangleChatNames { get; set; }
     public bool OpenMainWindowOnIncomingDirectMessage { get; set; } = true;
     public bool UseSuperCompactLanguageBar { get; set; } = true;
+    public bool HasInitializedEchoChannelVisibility { get; set; }
     public float WindowOpacity { get; set; } = 0.92f;
     public int CompactChatColorTheme { get; set; }
     public CompactChatCustomColors CompactChatCustomColors { get; set; } = new();
@@ -55,7 +56,7 @@ public sealed class Configuration : IPluginConfiguration
     public string TellTarget { get; set; } = string.Empty;
     public string OutgoingDraft { get; set; } = string.Empty;
     public List<string> PinnedDirectMessageTabs { get; set; } = [];
-    public List<string> HiddenGeneralConversationKeys { get; set; } = [];
+    public List<string> HiddenGeneralConversationKeys { get; set; } = ["channel:ECHO"];
 
     public void Save()
     {
