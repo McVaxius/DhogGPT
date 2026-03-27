@@ -805,6 +805,8 @@ public sealed class MainWindow : Window, IDisposable
             if (ImGui.Selectable(channelLabel, isSelected))
             {
                 configuration.SelectedOutgoingChannel = channel;
+                if (channel == OutgoingChannel.Tell)
+                    configuration.TellTarget = string.Empty;
                 changed = true;
             }
 
@@ -909,9 +911,10 @@ public sealed class MainWindow : Window, IDisposable
     private bool ShouldInsertConfiguredConversation((string Key, string Label) configuredConversation)
     {
         if (!IsDirectMessageConversation(configuredConversation.Key))
-            return true;
+            return !configuredConversation.Key.Equals(ChatChannelMapper.DirectMessageComposerKey, StringComparison.OrdinalIgnoreCase);
 
-        return plugin.Configuration.SelectedOutgoingChannel == OutgoingChannel.Tell;
+        return plugin.Configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+               !string.IsNullOrWhiteSpace(plugin.Configuration.TellTarget);
     }
 
     private bool IsConversationVisible(ConversationTabState conversation)
@@ -1000,6 +1003,19 @@ public sealed class MainWindow : Window, IDisposable
     private bool SyncOutgoingChannelToConversation(ConversationTabState conversation)
     {
         var configuration = plugin.Configuration;
+        if (conversation.Key.Equals(ChatChannelMapper.DirectMessageComposerKey, StringComparison.OrdinalIgnoreCase))
+        {
+            if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+                string.IsNullOrWhiteSpace(configuration.TellTarget))
+            {
+                return false;
+            }
+
+            configuration.SelectedOutgoingChannel = OutgoingChannel.Tell;
+            configuration.TellTarget = string.Empty;
+            return true;
+        }
+
         if (IsDirectMessageConversation(conversation.Key))
         {
             if (string.Equals(conversation.Label, "DM", StringComparison.OrdinalIgnoreCase))
@@ -1059,6 +1075,7 @@ public sealed class MainWindow : Window, IDisposable
             BuildPinnedConversation(OutgoingChannel.CrossWorldLinkshell, $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}"),
             BuildPinnedConversation(OutgoingChannel.Shout, "Shout"),
             BuildPinnedConversation(OutgoingChannel.Yell, "Yell"),
+            BuildPinnedConversation(OutgoingChannel.Tell, "DM"),
         ];
     }
 
@@ -1074,6 +1091,7 @@ public sealed class MainWindow : Window, IDisposable
             OutgoingChannel.CrossWorldLinkshell => $"channel:CWLS{Math.Clamp(plugin.Configuration.CrossWorldLinkshellSlot, 1, 8)}",
             OutgoingChannel.Shout => "channel:SHOUT",
             OutgoingChannel.Yell => "channel:YELL",
+            OutgoingChannel.Tell => ChatChannelMapper.DirectMessageComposerKey,
             _ => "channel:UNKNOWN",
         };
 

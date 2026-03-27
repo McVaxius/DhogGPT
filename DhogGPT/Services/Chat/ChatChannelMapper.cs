@@ -5,6 +5,8 @@ namespace DhogGPT.Services.Chat;
 
 public static class ChatChannelMapper
 {
+    public const string DirectMessageComposerKey = "channel:DM";
+
     public static bool TryGetIncomingChannelLabel(Configuration configuration, XivChatType chatType, out string label)
     {
         switch (chatType)
@@ -90,6 +92,9 @@ public static class ChatChannelMapper
         var channelLabel = GetOutgoingLabel(configuration);
         if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell)
         {
+            if (string.IsNullOrWhiteSpace(configuration.TellTarget))
+                return (DirectMessageComposerKey, "DM");
+
             var label = NormalizeDirectMessageLabel(configuration.TellTarget);
             return (GetDirectMessageConversationKey(label), label);
         }

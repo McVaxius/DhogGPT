@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -55,6 +56,9 @@ public sealed class ConfigWindow : Window, IDisposable
         var configuration = plugin.Configuration;
 
         ImGui.TextUnformatted("General");
+        if (ImGui.SmallButton("Ko-fi##Settings"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+
         changed |= DrawCheckbox("Plugin enabled", configuration.PluginEnabled, value => configuration.PluginEnabled = value);
         changed |= DrawCheckbox("Translate incoming chat", configuration.TranslateIncoming, value => configuration.TranslateIncoming = value);
         changed |= DrawCheckbox("Skip messages from my own character", configuration.SkipOwnMessages, value => configuration.SkipOwnMessages = value);
