@@ -119,11 +119,13 @@ public sealed class MainWindow : Window, IDisposable
     {
         var configuration = plugin.Configuration;
         var koFiWidth = ImGui.CalcTextSize("Ko-fi").X + (ImGui.GetStyle().FramePadding.X * 2f);
+        var discordWidth = ImGui.CalcTextSize("Discord").X + (ImGui.GetStyle().FramePadding.X * 2f);
+        var supportWidth = koFiWidth + discordWidth + ImGui.GetStyle().ItemSpacing.X + 8f;
 
         if (ImGui.BeginTable("DhogGPTHeaderTop", 2, ImGuiTableFlags.SizingStretchProp))
         {
             ImGui.TableSetupColumn("Info", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("Support", ImGuiTableColumnFlags.WidthFixed, koFiWidth + 8f);
+            ImGui.TableSetupColumn("Support", ImGuiTableColumnFlags.WidthFixed, supportWidth);
             ImGui.TableNextRow();
 
             ImGui.TableSetColumnIndex(0);
@@ -132,6 +134,9 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.TableSetColumnIndex(1);
             if (ImGui.SmallButton("Ko-fi"))
                 Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Discord"))
+                Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
 
             ImGui.EndTable();
         }
@@ -230,6 +235,9 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.SmallButton("Ko-fi"))
             Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Discord"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
     }
 
     private void DrawSimpleChatMode()

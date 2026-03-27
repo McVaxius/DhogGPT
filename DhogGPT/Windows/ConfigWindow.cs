@@ -59,6 +59,9 @@ public sealed class ConfigWindow : Window, IDisposable
         ImGui.TextUnformatted("General");
         if (ImGui.SmallButton("Ko-fi##Settings"))
             Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Discord##Settings"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
 
         changed |= DrawCheckbox("Plugin enabled", configuration.PluginEnabled, value => configuration.PluginEnabled = value);
         changed |= DrawCheckbox("Translate incoming chat", configuration.TranslateIncoming, value => configuration.TranslateIncoming = value);
@@ -120,6 +123,7 @@ public sealed class ConfigWindow : Window, IDisposable
         ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
         ImGui.TextDisabled("Compact simple chat hides the extra utility strip, while opacity gives the chat window a softer overlay look.");
         ImGui.TextDisabled("Color themes are configured here only, not from the main chat window.");
+        ImGui.TextDisabled(Plugin.DiscordFeedbackNote);
     }
 
     private void DrawDtrSettings()

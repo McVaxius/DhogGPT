@@ -38,6 +38,8 @@ public sealed class Plugin : IDalamudPlugin
     private const string AliasCommandName = "/dgpt";
     public const string DisplayName = "DhogGPT";
     public const string SupportUrl = "https://ko-fi.com/mcvaxius";
+    public const string DiscordUrl = "https://discord.gg/VsXqydsvpu";
+    public const string DiscordFeedbackNote = "Scroll down to \"The Dumpster Fire\" channel to discuss issues / suggestions for specific plugins.";
 
     public Configuration Configuration { get; }
     public WindowSystem WindowSystem { get; } = new("DhogGPT");
