@@ -57,6 +57,7 @@ public sealed class Configuration : IPluginConfiguration
     public string OutgoingDraft { get; set; } = string.Empty;
     public List<string> PinnedDirectMessageTabs { get; set; } = [];
     public List<string> HiddenGeneralConversationKeys { get; set; } = ["channel:ECHO"];
+    public List<string> TechnicalShellConversationKeys { get; set; } = [];
 
     public void Save()
     {

@@ -358,7 +358,7 @@ public sealed class MainWindow : Window, IDisposable
         foreach (var pinnedConversation in GetPinnedGeneralConversations())
         {
             if (remainingConversations.Remove(pinnedConversation.Key, out var existingConversation))
-                conversations.Add(existingConversation);
+                conversations.Add(existingConversation with { Label = pinnedConversation.Label });
             else
                 conversations.Add(pinnedConversation);
         }
@@ -404,7 +404,7 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         var selectedConversationApplied = false;
-        if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingFixedFit))
+        if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingStretchProp))
         {
             DrawHiddenChannelsPopup();
             DrawRecentDirectMessagesPopup(allDirectMessageConversations);
@@ -412,11 +412,11 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.TableSetupColumn("Tabs", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 86f);
+        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 74f);
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
-        if (!ImGui.BeginTabBar("DhogGPTConversationTabs"))
+        if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll))
         {
             ImGui.TableSetColumnIndex(1);
             DrawConversationToolbarButtons();
@@ -460,6 +460,8 @@ public sealed class MainWindow : Window, IDisposable
 
             if (isDirectMessage)
                 DrawDirectMessageTabContextMenu(conversation, isPinnedDirectMessage);
+            else
+                DrawGeneralConversationContextMenu(conversation);
 
             if (forceActiveConversationSelection && !isRequestedConversation)
             {
@@ -501,7 +503,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawConversationMessages(IReadOnlyList<TranslationHistoryItem> messages, float height)
     {
-        if (!ImGui.BeginChild("DhogGPTConversationBody", new Vector2(0f, height), true))
+        if (!ImGui.BeginChild("DhogGPTConversationBody", new Vector2(-1f, height), true))
         {
             ImGui.EndChild();
             return;
@@ -1049,8 +1051,7 @@ public sealed class MainWindow : Window, IDisposable
     private bool DrawOutgoingChannelCombo(string label)
     {
         var changed = false;
-        var configuration = plugin.Configuration;
-        var selectedLabel = ChatChannelMapper.GetOutgoingLabel(configuration);
+        var selectedLabel = GetOutgoingConversationDisplayLabel();
 
         if (!ImGui.BeginCombo(label, selectedLabel))
             return false;
@@ -1119,6 +1120,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private string GetConversationDisplayLabel(ConversationTabState conversation)
     {
+        if (!IsDirectMessageConversation(conversation.Key))
+            return ShellChannelDisplayService.GetDisplayLabel(plugin.Configuration, conversation.Key, conversation.Label);
+
         if (!plugin.Configuration.KrangleChatNames)
             return conversation.Label;
 
@@ -1402,39 +1406,36 @@ public sealed class MainWindow : Window, IDisposable
     private List<ConversationTabState> GetAllGeneralConversations()
     {
         var configuration = plugin.Configuration;
-        return
-        [
-            BuildPinnedConversation(OutgoingChannel.Echo, "Echo"),
-            BuildPinnedConversation(OutgoingChannel.Say, "Say"),
-            BuildPinnedConversation(OutgoingChannel.Party, "Party"),
-            BuildPinnedConversation(OutgoingChannel.Alliance, "Alliance"),
-            BuildPinnedConversation(OutgoingChannel.FreeCompany, "FC"),
-            BuildPinnedConversation(OutgoingChannel.Linkshell, $"LS{Math.Clamp(configuration.LinkshellSlot, 1, 8)}"),
-            BuildPinnedConversation(OutgoingChannel.CrossWorldLinkshell, $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}"),
-            BuildPinnedConversation(OutgoingChannel.Shout, "Shout"),
-            BuildPinnedConversation(OutgoingChannel.Yell, "Yell"),
-        ];
-    }
-
-    private ConversationTabState BuildPinnedConversation(OutgoingChannel channel, string label)
-    {
-        var key = channel switch
+        var conversations = new List<ConversationTabState>
         {
-            OutgoingChannel.Echo => "channel:ECHO",
-            OutgoingChannel.Say => "channel:SAY",
-            OutgoingChannel.Party => "channel:PARTY",
-            OutgoingChannel.Alliance => "channel:ALLIANCE",
-            OutgoingChannel.FreeCompany => "channel:FC",
-            OutgoingChannel.Linkshell => $"channel:LS{Math.Clamp(plugin.Configuration.LinkshellSlot, 1, 8)}",
-            OutgoingChannel.CrossWorldLinkshell => $"channel:CWLS{Math.Clamp(plugin.Configuration.CrossWorldLinkshellSlot, 1, 8)}",
-            OutgoingChannel.Shout => "channel:SHOUT",
-            OutgoingChannel.Yell => "channel:YELL",
-            OutgoingChannel.Tell => ChatChannelMapper.DirectMessageComposerKey,
-            _ => "channel:UNKNOWN",
+            BuildPinnedConversation("channel:ECHO", "Echo"),
+            BuildPinnedConversation("channel:SAY", "Say"),
+            BuildPinnedConversation("channel:PARTY", "Party"),
+            BuildPinnedConversation("channel:ALLIANCE", "Alliance"),
+            BuildPinnedConversation("channel:FC", "FC"),
+            BuildPinnedConversation("channel:SHOUT", "Shout"),
+            BuildPinnedConversation("channel:YELL", "Yell"),
         };
 
-        return new ConversationTabState(key, label, new List<TranslationHistoryItem>(), DateTimeOffset.MinValue);
+        if (configuration.EnableLinkshells)
+        {
+            conversations.AddRange(ShellChannelDisplayService
+                .GetLinkshellChannels()
+                .Select(channel => BuildPinnedConversation(channel.Key, channel.GetDisplayLabel(configuration))));
+        }
+
+        if (configuration.EnableCrossWorldLinkshells)
+        {
+            conversations.AddRange(ShellChannelDisplayService
+                .GetCrossWorldLinkshellChannels()
+                .Select(channel => BuildPinnedConversation(channel.Key, channel.GetDisplayLabel(configuration))));
+        }
+
+        return conversations;
     }
+
+    private static ConversationTabState BuildPinnedConversation(string key, string label)
+        => new(key, label, new List<TranslationHistoryItem>(), DateTimeOffset.MinValue);
 
     private bool IsGeneralConversationHidden(string conversationKey)
         => plugin.Configuration.HiddenGeneralConversationKeys.Any(hidden => string.Equals(hidden, conversationKey, StringComparison.OrdinalIgnoreCase));
@@ -1503,7 +1504,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawConversationToolbarButtons()
     {
-        var totalWidth = 78f;
+        var totalWidth = 70f;
         var currentX = ImGui.GetCursorPosX();
         var targetX = Math.Max(currentX, currentX + ImGui.GetContentRegionAvail().X - totalWidth);
         ImGui.SetCursorPosX(targetX);
@@ -1550,13 +1551,14 @@ public sealed class MainWindow : Window, IDisposable
 
         foreach (var conversation in hiddenConversations)
         {
-            if (!ImGui.Selectable(conversation.Label, false))
+            var displayLabel = GetConversationDisplayLabel(conversation);
+            if (!ImGui.Selectable(displayLabel, false))
                 continue;
 
             ClearTransientUiStatus();
             SetGeneralConversationHidden(conversation.Key, false);
             activeConversationKey = conversation.Key;
-            activeConversationLabel = conversation.Label;
+            activeConversationLabel = displayLabel;
             forceActiveConversationSelection = true;
             TryApplyConversationKeyToOutgoingChannel(conversation.Key);
             plugin.Configuration.Save();
@@ -1757,11 +1759,47 @@ public sealed class MainWindow : Window, IDisposable
     {
         var configuration = plugin.Configuration;
         var isSelected = conversation.Key.Equals(ChatChannelMapper.GetOutgoingConversation(configuration).Key, StringComparison.OrdinalIgnoreCase);
-        return DrawOutgoingChannelSelectable(conversation.Label, isSelected, () =>
+        return DrawOutgoingChannelSelectable(GetConversationDisplayLabel(conversation), isSelected, () =>
         {
             ClearTransientUiStatus();
             TryApplyConversationKeyToOutgoingChannel(conversation.Key);
         });
+    }
+
+    private string GetOutgoingConversationDisplayLabel()
+    {
+        var conversation = ChatChannelMapper.GetOutgoingConversation(plugin.Configuration);
+        if (conversation.Key.Equals(ChatChannelMapper.DirectMessageComposerKey, StringComparison.OrdinalIgnoreCase))
+            return "New DM";
+
+        return ShellChannelDisplayService.GetDisplayLabel(plugin.Configuration, conversation.Key, conversation.Label);
+    }
+
+    private void DrawGeneralConversationContextMenu(ConversationTabState conversation)
+    {
+        if (!ImGui.BeginPopupContextItem($"DhogGPTGeneralConversationContext##{conversation.Key}"))
+            return;
+
+        if (ShellChannelDisplayService.TryGetDescriptor(conversation.Key, out _))
+        {
+            var useTechnical = ShellChannelDisplayService.UsesTechnicalLabel(plugin.Configuration, conversation.Key);
+            if (ImGui.Selectable("Use in-game name", !useTechnical))
+            {
+                if (ShellChannelDisplayService.SetUseTechnicalLabel(plugin.Configuration, conversation.Key, false))
+                    plugin.Configuration.Save();
+            }
+
+            if (ImGui.Selectable("Use technical name", useTechnical))
+            {
+                if (ShellChannelDisplayService.SetUseTechnicalLabel(plugin.Configuration, conversation.Key, true))
+                    plugin.Configuration.Save();
+            }
+
+            ImGui.Separator();
+        }
+
+        ImGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
+        ImGui.EndPopup();
     }
 
     private bool IsPinnedDirectMessageConversation(string conversationKey)
