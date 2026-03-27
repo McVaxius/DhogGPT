@@ -19,7 +19,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool IncludeSenderName { get; set; } = true;
     public bool IncludeChannelLabel { get; set; } = true;
     public bool EnableDebugLogging { get; set; }
-    public bool UseSimpleChatMode { get; set; }
+    public bool UseSimpleChatMode { get; set; } = true;
     public bool CompactSimpleChatMode { get; set; } = true;
     public bool KrangleChatNames { get; set; }
     public float WindowOpacity { get; set; } = 0.92f;

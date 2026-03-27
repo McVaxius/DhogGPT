@@ -44,6 +44,15 @@ public sealed class ChatLogService : IDisposable
         }
     }
 
+    public string? GetCurrentLogIdentitySnapshot()
+    {
+        lock (syncRoot)
+        {
+            EnsureCurrentContextLoaded();
+            return activeLogPath;
+        }
+    }
+
     private void OnTranslationCompleted(TranslationResult result)
     {
         if (!result.Request.RecordInHistory)

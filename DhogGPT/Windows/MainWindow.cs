@@ -13,6 +13,8 @@ namespace DhogGPT.Windows;
 
 public sealed class MainWindow : Window, IDisposable
 {
+    private const int DefaultVisibleDirectMessageTabs = 3;
+
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
     private readonly TranslationCoordinator translationCoordinator;
@@ -27,6 +29,7 @@ public sealed class MainWindow : Window, IDisposable
     private string simpleChatStatus = string.Empty;
     private string activeConversationKey = string.Empty;
     private string activeConversationLabel = string.Empty;
+    private string restoredDirectMessageLogIdentity = string.Empty;
     private bool requestSimpleComposerFocus;
     private bool forceActiveConversationSelection;
 
@@ -252,6 +255,7 @@ public sealed class MainWindow : Window, IDisposable
     private void DrawTabbedConversationArea(float height)
     {
         var entries = chatLogService.GetEntriesSnapshot();
+        var currentLogIdentity = chatLogService.GetCurrentLogIdentitySnapshot() ?? string.Empty;
         var recordedConversations = entries
             .GroupBy(GetConversationGroupingKey)
             .Select(group =>
@@ -290,9 +294,14 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         var directMessageConversations = remainingConversations.Values
-            .Where(IsConversationVisible)
             .Where(conversation => IsDirectMessageConversation(conversation.Key))
             .OrderByDescending(conversation => conversation.LastMessageUtc)
+            .ToList();
+
+        ApplyDefaultDirectMessageVisibility(currentLogIdentity, directMessageConversations);
+
+        directMessageConversations = directMessageConversations
+            .Where(IsConversationVisible)
             .ToList();
 
         conversations.AddRange(directMessageConversations);
@@ -307,11 +316,13 @@ public sealed class MainWindow : Window, IDisposable
         if (!ImGui.BeginTabBar("DhogGPTConversationTabs"))
             return;
 
+        var selectedConversationApplied = false;
         foreach (var conversation in conversations)
         {
             var displayLabel = GetConversationDisplayLabel(conversation);
             var isDirectMessage = IsDirectMessageConversation(conversation.Key);
-            var tabFlags = conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase) && forceActiveConversationSelection
+            var isRequestedConversation = conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase);
+            var tabFlags = isRequestedConversation && forceActiveConversationSelection
                 ? ImGuiTabItemFlags.SetSelected
                 : ImGuiTabItemFlags.None;
             var tabOpen = true;
@@ -327,8 +338,19 @@ public sealed class MainWindow : Window, IDisposable
                 continue;
             }
 
+            if (forceActiveConversationSelection && !isRequestedConversation)
+            {
+                ImGui.EndTabItem();
+
+                if (isDirectMessage && !tabOpen)
+                    CloseConversation(conversation);
+
+                continue;
+            }
+
             activeConversationKey = conversation.Key;
             activeConversationLabel = conversation.Label;
+            selectedConversationApplied = true;
             if (SyncOutgoingChannelToConversation(conversation))
                 plugin.Configuration.Save();
             DrawConversationMessages(conversation.Messages, height);
@@ -339,7 +361,8 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.EndTabBar();
-        forceActiveConversationSelection = false;
+        if (selectedConversationApplied)
+            forceActiveConversationSelection = false;
     }
 
     private void DrawConversationMessages(IReadOnlyList<TranslationHistoryItem> messages, float height)
@@ -888,13 +911,18 @@ public sealed class MainWindow : Window, IDisposable
         if (!IsDirectMessageConversation(configuredConversation.Key))
             return true;
 
-        return plugin.Configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
-               !string.IsNullOrWhiteSpace(plugin.Configuration.TellTarget);
+        return plugin.Configuration.SelectedOutgoingChannel == OutgoingChannel.Tell;
     }
 
     private bool IsConversationVisible(ConversationTabState conversation)
     {
         if (!IsDirectMessageConversation(conversation.Key))
+        {
+            closedConversationCutoffs.Remove(conversation.Key);
+            return true;
+        }
+
+        if (conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase))
         {
             closedConversationCutoffs.Remove(conversation.Key);
             return true;
@@ -910,6 +938,23 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         return false;
+    }
+
+    private void ApplyDefaultDirectMessageVisibility(string logIdentity, IReadOnlyList<ConversationTabState> directMessageConversations)
+    {
+        if (string.IsNullOrWhiteSpace(logIdentity) ||
+            string.Equals(restoredDirectMessageLogIdentity, logIdentity, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        restoredDirectMessageLogIdentity = logIdentity;
+
+        foreach (var existingKey in closedConversationCutoffs.Keys.Where(IsDirectMessageConversation).ToList())
+            closedConversationCutoffs.Remove(existingKey);
+
+        foreach (var conversation in directMessageConversations.Skip(DefaultVisibleDirectMessageTabs))
+            closedConversationCutoffs[conversation.Key] = conversation.LastMessageUtc;
     }
 
     private void CloseConversation(ConversationTabState conversation)
@@ -957,6 +1002,19 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         if (IsDirectMessageConversation(conversation.Key))
         {
+            if (string.Equals(conversation.Label, "DM", StringComparison.OrdinalIgnoreCase))
+            {
+                if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
+                    string.IsNullOrWhiteSpace(configuration.TellTarget))
+                {
+                    return false;
+                }
+
+                configuration.SelectedOutgoingChannel = OutgoingChannel.Tell;
+                configuration.TellTarget = string.Empty;
+                return true;
+            }
+
             if (configuration.SelectedOutgoingChannel == OutgoingChannel.Tell &&
                 string.Equals(configuration.TellTarget, conversation.Label, StringComparison.OrdinalIgnoreCase))
             {
