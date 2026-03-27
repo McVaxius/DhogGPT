@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using Dalamud.Game.Text;
 
@@ -6,6 +7,7 @@ namespace DhogGPT.Services.Chat;
 public static class ChatChannelMapper
 {
     public const string DirectMessageComposerKey = "channel:DM";
+    private static readonly ConcurrentDictionary<string, string> KnownDirectMessageIdentities = new(StringComparer.OrdinalIgnoreCase);
 
     public static bool TryGetIncomingChannelLabel(Configuration configuration, XivChatType chatType, out string label)
     {
@@ -71,7 +73,7 @@ public static class ChatChannelMapper
             OutgoingChannel.CrossWorldLinkshell => $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}",
             OutgoingChannel.Shout => "Shout",
             OutgoingChannel.Yell => "Yell",
-            OutgoingChannel.Tell => "DM",
+            OutgoingChannel.Tell => string.IsNullOrWhiteSpace(configuration.TellTarget) ? "New DM" : "DM",
             _ => "Unknown",
         };
     }
@@ -105,10 +107,85 @@ public static class ChatChannelMapper
     public static string GetDirectMessageConversationKey(string value)
         => $"dm:{NormalizeDirectMessageToken(value)}";
 
+    public static string BuildDirectMessageIdentity(string playerName, string? worldName)
+    {
+        var cleanedName = CleanDirectMessageIdentity(playerName);
+        var cleanedWorld = CleanDirectMessageIdentity(worldName ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(cleanedName))
+            return string.Empty;
+
+        var identity = string.IsNullOrWhiteSpace(cleanedWorld)
+            ? cleanedName
+            : $"{cleanedName}@{cleanedWorld}";
+
+        RegisterKnownDirectMessageIdentity(identity);
+        return identity;
+    }
+
+    public static bool TryNormalizeDirectMessageIdentity(string value, out string normalized, out string error)
+    {
+        normalized = NormalizeDirectMessageLabel(value);
+        error = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            error = "A DM target is required.";
+            return false;
+        }
+
+        var atIndex = normalized.IndexOf('@');
+        if (atIndex <= 0 || atIndex == normalized.Length - 1)
+        {
+            error = "DM target must use First Last@World.";
+            return false;
+        }
+
+        var namePart = normalized[..atIndex];
+        var worldPart = normalized[(atIndex + 1)..];
+        if (namePart.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length < 2)
+        {
+            error = "DM target must include first and last name.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(worldPart))
+        {
+            error = "DM target must include a world name after @.";
+            return false;
+        }
+
+        RegisterKnownDirectMessageIdentity(normalized);
+        return true;
+    }
+
     public static string NormalizeDirectMessageLabel(string value)
     {
-        var cleaned = CleanDirectMessageIdentity(value);
-        return string.IsNullOrWhiteSpace(cleaned) ? "DM" : cleaned;
+        var normalized = NormalizeDirectMessageLabelCore(value);
+        if (string.IsNullOrWhiteSpace(normalized))
+            return "DM";
+
+        if (normalized.Contains('@'))
+        {
+            RegisterKnownDirectMessageIdentity(normalized);
+            return normalized;
+        }
+
+        var token = NormalizeConversationToken(normalized);
+        return KnownDirectMessageIdentities.TryGetValue(token, out var knownIdentity)
+            ? knownIdentity
+            : normalized;
+    }
+
+    public static void RegisterKnownDirectMessageIdentity(string value)
+    {
+        var normalized = NormalizeDirectMessageLabelCore(value);
+        var atIndex = normalized.IndexOf('@');
+        if (atIndex <= 0 || atIndex == normalized.Length - 1)
+            return;
+
+        var token = NormalizeConversationToken(normalized[..atIndex]);
+        if (!string.IsNullOrWhiteSpace(token))
+            KnownDirectMessageIdentities[token] = normalized;
     }
 
     private static int GetLinkshellSlot(XivChatType chatType)
@@ -152,11 +229,13 @@ public static class ChatChannelMapper
     private static string NormalizeDirectMessageToken(string value)
     {
         var label = NormalizeDirectMessageLabel(value);
-        var atIndex = label.IndexOf('@');
-        if (atIndex >= 0)
-            label = label[..atIndex];
-
         return NormalizeConversationToken(label);
+    }
+
+    private static string NormalizeDirectMessageLabelCore(string value)
+    {
+        var cleaned = CleanDirectMessageIdentity(value);
+        return string.IsNullOrWhiteSpace(cleaned) ? string.Empty : ApplyDisplayCase(cleaned);
     }
 
     private static string CleanDirectMessageIdentity(string value)
@@ -175,5 +254,39 @@ public static class ChatChannelMapper
         }
 
         return string.Join(" ", builder.ToString().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string ApplyDisplayCase(string value)
+    {
+        var atIndex = value.IndexOf('@');
+        if (atIndex <= 0 || atIndex == value.Length - 1)
+            return TitleCaseWords(value);
+
+        var namePart = TitleCaseWords(value[..atIndex]);
+        var worldPart = TitleCaseWords(value[(atIndex + 1)..]);
+        return $"{namePart}@{worldPart}";
+    }
+
+    private static string TitleCaseWords(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var builder = new StringBuilder(value.Length);
+        var startOfWord = true;
+        foreach (var character in value)
+        {
+            if (char.IsLetter(character))
+            {
+                builder.Append(startOfWord ? char.ToUpperInvariant(character) : char.ToLowerInvariant(character));
+                startOfWord = false;
+                continue;
+            }
+
+            builder.Append(character);
+            startOfWord = character is ' ' or '-';
+        }
+
+        return builder.ToString();
     }
 }

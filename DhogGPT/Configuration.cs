@@ -22,6 +22,8 @@ public sealed class Configuration : IPluginConfiguration
     public bool UseSimpleChatMode { get; set; } = true;
     public bool CompactSimpleChatMode { get; set; } = true;
     public bool KrangleChatNames { get; set; }
+    public bool OpenMainWindowOnIncomingDirectMessage { get; set; } = true;
+    public bool UseSuperCompactLanguageBar { get; set; } = true;
     public float WindowOpacity { get; set; } = 0.92f;
     public int CompactChatColorTheme { get; set; }
     public CompactChatCustomColors CompactChatCustomColors { get; set; } = new();
@@ -52,6 +54,8 @@ public sealed class Configuration : IPluginConfiguration
     public int CrossWorldLinkshellSlot { get; set; } = 1;
     public string TellTarget { get; set; } = string.Empty;
     public string OutgoingDraft { get; set; } = string.Empty;
+    public List<string> PinnedDirectMessageTabs { get; set; } = [];
+    public List<string> HiddenGeneralConversationKeys { get; set; } = [];
 
     public void Save()
     {

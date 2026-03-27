@@ -32,18 +32,18 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextWrapped("DhogGPT translates selected chat channels into Echo and gives you a send-confirmed composer for outgoing translated messages.");
+        ImGui.TextWrapped("DhogGPT works best in Simple + Compact mode: translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
         ImGui.Separator();
 
         ImGui.BulletText("Open the main window with /dhoggpt or /dgpt.");
-        ImGui.BulletText("Pick your incoming target language in Settings.");
-        ImGui.BulletText("Leave source language on Auto unless you know the source language.");
-        ImGui.BulletText("Choose which incoming channels should be translated.");
-        ImGui.BulletText("Use Preview translation before Translate and send the first time you test a new channel.");
+        ImGui.BulletText("Start in Simple chat mode with Compact enabled for the all-in-one tabbed chat view.");
+        ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, and Recent for older DM threads.");
+        ImGui.BulletText("Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it.");
+        ImGui.BulletText("Use Krangle if you want display-only name scrambling in the plugin window.");
         ImGui.BulletText("Click the DTR entry to quickly toggle the plugin on or off.");
 
         ImGui.Spacing();
-        ImGui.TextWrapped("If one web endpoint starts failing, DhogGPT will try the next fallback endpoint listed in Settings.");
+        ImGui.TextWrapped("There is still a fuller non-compact path in the main window, but Compact mode is the primary chat UX now. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
 
         if (ImGui.Button("Open main window"))
             plugin.ToggleMainUi();

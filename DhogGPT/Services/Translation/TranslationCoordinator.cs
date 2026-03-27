@@ -70,6 +70,14 @@ public sealed class TranslationCoordinator : IDisposable
         return result;
     }
 
+    public void RecordTranslationResult(TranslationResult result)
+    {
+        if (!result.Request.RecordInHistory)
+            return;
+
+        RecordCompletedTranslation(result);
+    }
+
     public void Dispose()
     {
         queue.Writer.TryComplete();

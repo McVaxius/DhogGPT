@@ -46,13 +46,13 @@ public static class CommandHelper
                 prefix = "/y ";
                 break;
             case OutgoingChannel.Tell:
-                if (string.IsNullOrWhiteSpace(configuration.TellTarget))
+                if (!ChatChannelMapper.TryNormalizeDirectMessageIdentity(configuration.TellTarget, out var normalizedIdentity, out var directMessageError))
                 {
-                    error = "Tell target is required before sending a DM.";
+                    error = directMessageError;
                     return false;
                 }
 
-                prefix = $"/tell {configuration.TellTarget.Trim()} ";
+                prefix = $"/tell {normalizedIdentity} ";
                 break;
             default:
                 error = "Unsupported outgoing channel.";

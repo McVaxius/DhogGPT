@@ -1,4 +1,6 @@
 using Dalamud.Game.Command;
+using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text;
@@ -24,10 +26,12 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IClientState ClientState { get; private set; } = null!;
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
     [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
+    [PluginService] internal static ICondition Condition { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
+    [PluginService] internal static IContextMenu ContextMenu { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
     private const string CommandName = "/dhoggpt";
@@ -85,6 +89,7 @@ public sealed class Plugin : IDalamudPlugin
 
         SetupDtrBar();
         UpdateDtrBar();
+        ContextMenu.OnMenuOpened += OnContextMenuOpened;
 
         Log.Information("[DhogGPT] Plugin loaded.");
     }
@@ -101,6 +106,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.RemoveAllWindows();
 
         dtrEntry?.Remove();
+        ContextMenu.OnMenuOpened -= OnContextMenuOpened;
         firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
@@ -221,5 +227,38 @@ public sealed class Plugin : IDalamudPlugin
         {
             Log.Error(ex, "[DhogGPT] Failed to update DTR bar.");
         }
+    }
+
+    private void OnContextMenuOpened(IMenuOpenedArgs args)
+    {
+        if (args.MenuType != ContextMenuType.Default)
+            return;
+
+        if (args.Target is not MenuTargetDefault target)
+            return;
+
+        var targetName = target.TargetName?.Trim() ?? string.Empty;
+        var worldName = target.TargetHomeWorld.Value.Name.ToString();
+        if (!ChatChannelMapper.TryNormalizeDirectMessageIdentity(
+                ChatChannelMapper.BuildDirectMessageIdentity(targetName, worldName),
+                out var normalizedIdentity,
+                out _))
+        {
+            return;
+        }
+
+        args.AddMenuItem(new MenuItem
+        {
+            Name = new SeString(new TextPayload("DhogGPT: Open DM")),
+            PrefixChar = 'D',
+            OnClicked = _args =>
+            {
+                _ = Framework.RunOnFrameworkThread(() =>
+                {
+                    ToggleMainUi();
+                    mainWindow.OpenDirectMessageConversation(normalizedIdentity);
+                });
+            },
+        });
     }
 }

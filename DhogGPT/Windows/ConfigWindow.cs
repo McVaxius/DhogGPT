@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -67,6 +68,7 @@ public sealed class ConfigWindow : Window, IDisposable
         changed |= DrawCheckbox("Use simple all-in-one chat mode", configuration.UseSimpleChatMode, value => configuration.UseSimpleChatMode = value);
         changed |= DrawCheckbox("Use compact simple chat header", configuration.CompactSimpleChatMode, value => configuration.CompactSimpleChatMode = value);
         changed |= DrawCheckbox("Krangle names in chat UI", configuration.KrangleChatNames, value => configuration.KrangleChatNames = value);
+        changed |= DrawCheckbox("Open main window when a DM arrives", configuration.OpenMainWindowOnIncomingDirectMessage, value => configuration.OpenMainWindowOnIncomingDirectMessage = value);
         changed |= DrawCheckbox("Enable debug logging", configuration.EnableDebugLogging, value => configuration.EnableDebugLogging = value);
 
         changed |= DrawLanguageCombo("Incoming source language", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
@@ -107,6 +109,13 @@ public sealed class ConfigWindow : Window, IDisposable
 
         if (changed)
             configuration.Save();
+
+        if (ImGui.SmallButton("Open chat log folder"))
+        {
+            var logDirectory = Path.Combine(Plugin.PluginInterface.ConfigDirectory.FullName, "Data", "ChatLogs");
+            Directory.CreateDirectory(logDirectory);
+            Process.Start(new ProcessStartInfo { FileName = logDirectory, UseShellExecute = true });
+        }
 
         ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
         ImGui.TextDisabled("Compact simple chat hides the extra utility strip, while opacity gives the chat window a softer overlay look.");
