@@ -602,6 +602,7 @@ public sealed class MainWindow : Window, IDisposable
         if (draft != configuration.OutgoingDraft)
         {
             configuration.OutgoingDraft = draft;
+            ClearTransientUiStatus();
             changed = true;
         }
 
@@ -923,6 +924,14 @@ public sealed class MainWindow : Window, IDisposable
     private Task SetSimpleChatStatusAsync(string status)
         => Plugin.Framework.RunOnFrameworkThread(() => simpleChatStatus = status);
 
+    private void ClearTransientUiStatus()
+    {
+        if (string.IsNullOrWhiteSpace(simpleChatStatus))
+            return;
+
+        simpleChatStatus = string.Empty;
+    }
+
     private void DrawSimpleChatStatusBanner()
     {
         if (string.IsNullOrWhiteSpace(simpleChatStatus))
@@ -1072,6 +1081,7 @@ public sealed class MainWindow : Window, IDisposable
                 var isSelected = option.Code.Equals(currentCode, StringComparison.OrdinalIgnoreCase);
                 if (ImGui.Selectable(option.Name, isSelected))
                 {
+                    ClearTransientUiStatus();
                     setter(option.Code);
                     changed = true;
                 }
@@ -1431,6 +1441,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void SetGeneralConversationHidden(string conversationKey, bool hidden)
     {
+        ClearTransientUiStatus();
         var hiddenKeys = plugin.Configuration.HiddenGeneralConversationKeys;
         hiddenKeys.RemoveAll(existing => string.Equals(existing, conversationKey, StringComparison.OrdinalIgnoreCase));
         if (hidden)
@@ -1444,6 +1455,7 @@ public sealed class MainWindow : Window, IDisposable
         if (!ChatChannelMapper.TryNormalizeDirectMessageIdentity(identity, out var normalizedIdentity, out _))
             return;
 
+        ClearTransientUiStatus();
         ChatChannelMapper.RegisterKnownDirectMessageIdentity(normalizedIdentity);
         plugin.Configuration.SelectedOutgoingChannel = OutgoingChannel.Tell;
         plugin.Configuration.TellTarget = normalizedIdentity;
@@ -1482,6 +1494,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void QueueOpenDirectMessagePopup(string? initialTarget = null)
     {
+        ClearTransientUiStatus();
         pendingDirectMessageTarget = initialTarget ?? string.Empty;
         directMessagePopupError = string.Empty;
         requestDirectMessageTargetFocus = true;
@@ -1496,13 +1509,19 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.SetCursorPosX(targetX);
 
         if (ImGui.SmallButton("H"))
+        {
+            ClearTransientUiStatus();
             requestOpenHiddenChannelsPopup = true;
+        }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Show hidden channel tabs.");
 
         ImGui.SameLine();
         if (ImGui.SmallButton("R"))
+        {
+            ClearTransientUiStatus();
             requestOpenRecentDirectMessagesPopup = true;
+        }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Reopen recent DM tabs.");
 
@@ -1534,6 +1553,7 @@ public sealed class MainWindow : Window, IDisposable
             if (!ImGui.Selectable(conversation.Label, false))
                 continue;
 
+            ClearTransientUiStatus();
             SetGeneralConversationHidden(conversation.Key, false);
             activeConversationKey = conversation.Key;
             activeConversationLabel = conversation.Label;
@@ -1575,13 +1595,17 @@ public sealed class MainWindow : Window, IDisposable
             var label = isPinned ? $"{GetConversationDisplayLabel(conversation)} [P]" : GetConversationDisplayLabel(conversation);
             if (ImGui.Selectable(label, false))
             {
+                ClearTransientUiStatus();
                 ReopenDirectMessageConversation(conversation);
                 ImGui.CloseCurrentPopup();
             }
 
             ImGui.SameLine();
             if (ImGui.SmallButton($"{(isPinned ? "Unpin" : "Pin")}##{conversation.Key}"))
+            {
+                ClearTransientUiStatus();
                 SetPinnedDirectMessageConversation(conversation.Key, conversation.Label, !isPinned);
+            }
         }
 
         ImGui.EndPopup();
@@ -1652,6 +1676,7 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         directMessagePopupError = string.Empty;
+        ClearTransientUiStatus();
         OpenDirectMessageConversation(normalizedIdentity);
         pendingDirectMessageTarget = string.Empty;
         return true;
@@ -1665,7 +1690,10 @@ public sealed class MainWindow : Window, IDisposable
         if (conversation.Messages.Count > 0)
         {
             if (ImGui.Selectable(isPinnedDirectMessage ? "Unpin conversation" : "Pin conversation"))
+            {
+                ClearTransientUiStatus();
                 SetPinnedDirectMessageConversation(conversation.Key, conversation.Label, !isPinnedDirectMessage);
+            }
         }
         else
         {
@@ -1678,7 +1706,10 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.SetClipboardText(conversation.Label);
 
         if (ImGui.Selectable(isPinnedDirectMessage ? "Close pinned DM (hold Ctrl + click x)" : "Close DM"))
+        {
+            ClearTransientUiStatus();
             CloseConversation(conversation, isPinnedDirectMessage);
+        }
 
         ImGui.EndPopup();
     }
@@ -1703,7 +1734,10 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.SetTooltip(isPinnedDirectMessage ? "Pinned DM tab. Click to unpin." : "Click to pin this DM tab.");
         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+        {
+            ClearTransientUiStatus();
             SetPinnedDirectMessageConversation(conversation.Key, conversation.Label, !isPinnedDirectMessage);
+        }
     }
 
     private static bool DrawOutgoingChannelSelectable(string label, bool isSelected, Action onSelected)
@@ -1725,6 +1759,7 @@ public sealed class MainWindow : Window, IDisposable
         var isSelected = conversation.Key.Equals(ChatChannelMapper.GetOutgoingConversation(configuration).Key, StringComparison.OrdinalIgnoreCase);
         return DrawOutgoingChannelSelectable(conversation.Label, isSelected, () =>
         {
+            ClearTransientUiStatus();
             TryApplyConversationKeyToOutgoingChannel(conversation.Key);
         });
     }
@@ -1734,6 +1769,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void SetPinnedDirectMessageConversation(string conversationKey, string label, bool shouldPin)
     {
+        ClearTransientUiStatus();
         var pinnedTabs = plugin.Configuration.PinnedDirectMessageTabs;
         pinnedTabs.RemoveAll(existing => string.Equals(existing, conversationKey, StringComparison.OrdinalIgnoreCase));
         if (shouldPin)
