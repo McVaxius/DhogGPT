@@ -59,6 +59,12 @@ public sealed class MainWindow : Window, IDisposable
     private bool simpleComposerEditSessionActive;
     private bool requestWindowFocus;
     private bool pendingSlashSeedFromHotkey;
+    private bool simpleComposerFocusedLastFrame;
+    private bool recentDirectMessageSearchFocusedLastFrame;
+    private bool newDirectMessageTargetFocusedLastFrame;
+    private bool anyPopupOpenLastFrame;
+    private bool windowHoveredLastFrame;
+    private bool windowFocusedLastFrame;
     private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
     private Vector2? lastSavedWindowPosition;
     private TrackedInputRect simpleComposerInputRect;
@@ -138,6 +144,7 @@ public sealed class MainWindow : Window, IDisposable
     {
         ResetTrackedInputRects();
         suppressSimpleComposerAutoFocusThisFrame = false;
+        anyPopupOpenLastFrame = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup);
 
         var drawCompactHeader = plugin.Configuration.UseSimpleChatMode &&
                                 plugin.Configuration.CompactSimpleChatMode &&
@@ -785,9 +792,11 @@ public sealed class MainWindow : Window, IDisposable
             ref draft,
             2000,
             ImGuiInputTextFlags.EnterReturnsTrue);
-        var composerIsActive = ImGui.IsItemActive() || ImGui.IsItemFocused();
+        var composerIsFocused = ImGui.IsItemFocused();
+        var composerIsActive = ImGui.IsItemActive() || composerIsFocused;
         var composerLostFocus = ImGui.IsItemDeactivated();
         simpleComposerInputRect = TrackedInputRect.CaptureCurrentItem();
+        simpleComposerFocusedLastFrame = composerIsFocused;
         ImGui.PopStyleColor(3);
         simpleComposerEditSessionActive = composerIsActive;
         if (draft != configuration.OutgoingDraft)
@@ -1839,6 +1848,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.SetNextItemWidth(280f);
         ImGui.InputTextWithHint("##RecentDmSearch", "Search recent DMs", ref recentDirectMessageSearch, 128);
         recentDirectMessageSearchInputRect = TrackedInputRect.CaptureCurrentItem();
+        recentDirectMessageSearchFocusedLastFrame = ImGui.IsItemFocused();
         ImGui.Separator();
 
         var filteredConversations = directMessageConversations
@@ -1915,6 +1925,7 @@ public sealed class MainWindow : Window, IDisposable
             128,
             ImGuiInputTextFlags.EnterReturnsTrue);
         newDirectMessageTargetInputRect = TrackedInputRect.CaptureCurrentItem();
+        newDirectMessageTargetFocusedLastFrame = ImGui.IsItemFocused();
 
         if (!string.IsNullOrWhiteSpace(directMessagePopupError))
             ImGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), directMessagePopupError);
@@ -2201,7 +2212,20 @@ public sealed class MainWindow : Window, IDisposable
         simpleComposerInputRect = default;
         recentDirectMessageSearchInputRect = default;
         newDirectMessageTargetInputRect = default;
+        simpleComposerFocusedLastFrame = false;
+        recentDirectMessageSearchFocusedLastFrame = false;
+        newDirectMessageTargetFocusedLastFrame = false;
     }
+
+    public bool ShouldAllowUltraCompactFocusHotkeyCapture()
+        => IsOpen &&
+           !simpleComposerFocusedLastFrame &&
+           !recentDirectMessageSearchFocusedLastFrame &&
+           !newDirectMessageTargetFocusedLastFrame &&
+           !anyPopupOpenLastFrame;
+
+    public string DescribeUltraCompactFocusHotkeyState()
+        => $"windowOpen={IsOpen}, windowHovered={windowHoveredLastFrame}, windowFocused={windowFocusedLastFrame}, composerFocused={simpleComposerFocusedLastFrame}, recentDmSearchFocused={recentDirectMessageSearchFocusedLastFrame}, newDmTargetFocused={newDirectMessageTargetFocusedLastFrame}, popupOpen={anyPopupOpenLastFrame}";
 
     private void DrawConversationScrollIndicators(bool canScrollUp, bool canScrollDown)
     {
@@ -2315,9 +2339,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private void UpdateWindowOpacityState()
     {
-        useFocusedWindowOpacity =
-            ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) ||
-            ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+        windowHoveredLastFrame = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
+        windowFocusedLastFrame = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+        useFocusedWindowOpacity = windowHoveredLastFrame || windowFocusedLastFrame;
     }
 
     private void HandleConversationTabWheelNavigation(IReadOnlyList<ConversationTabState> conversations)

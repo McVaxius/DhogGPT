@@ -493,7 +493,9 @@ public sealed class Plugin : IDalamudPlugin
 
     private void HandleUltraCompactFocusHotkeys()
     {
-        var slashDown = KeyState[VirtualKey.OEM_2] || KeyState[VirtualKey.DIVIDE];
+        var oemSlashDown = KeyState[VirtualKey.OEM_2];
+        var divideSlashDown = KeyState[VirtualKey.DIVIDE];
+        var slashDown = oemSlashDown || divideSlashDown;
         var enterDown = KeyState[VirtualKey.RETURN];
         var slashPressed = slashDown && !wasUltraCompactSlashDown;
         var enterPressed = enterDown && !wasUltraCompactEnterDown;
@@ -501,14 +503,25 @@ public sealed class Plugin : IDalamudPlugin
         wasUltraCompactSlashDown = slashDown;
         wasUltraCompactEnterDown = enterDown;
 
-        if (!ShouldCaptureUltraCompactFocusHotkeys())
+        if (!slashPressed && !enterPressed)
             return;
+
+        var hotkeyName = slashPressed
+            ? divideSlashDown && !oemSlashDown ? "NumpadSlash" : "Slash"
+            : "Enter";
+
+        if (!ShouldCaptureUltraCompactFocusHotkeys())
+        {
+            LogUltraCompactHotkeyAttempt(hotkeyName, captured: false);
+            return;
+        }
 
         if (slashPressed && Configuration.FocusUltraCompactOnSlash)
         {
             KeyState[VirtualKey.OEM_2] = false;
             KeyState[VirtualKey.DIVIDE] = false;
             mainWindow.OpenComposerFromHotkey(seedSlash: true);
+            LogUltraCompactHotkeyAttempt(hotkeyName, captured: true);
             return;
         }
 
@@ -516,7 +529,11 @@ public sealed class Plugin : IDalamudPlugin
         {
             KeyState[VirtualKey.RETURN] = false;
             mainWindow.OpenComposerFromHotkey(seedSlash: false);
+            LogUltraCompactHotkeyAttempt(hotkeyName, captured: true);
+            return;
         }
+
+        LogUltraCompactHotkeyAttempt(hotkeyName, captured: false);
     }
 
     private bool ShouldCaptureUltraCompactFocusHotkeys()
@@ -525,11 +542,11 @@ public sealed class Plugin : IDalamudPlugin
             !Configuration.UseSimpleChatMode ||
             !Configuration.CompactSimpleChatMode ||
             !mainWindow.IsOpen ||
-            mainWindow.IsFocused ||
             configWindow.IsFocused ||
             firstUseGuideWindow.IsFocused ||
             PlayerState.ContentId == 0 ||
-            ObjectTable.LocalPlayer == null)
+            ObjectTable.LocalPlayer == null ||
+            !mainWindow.ShouldAllowUltraCompactFocusHotkeyCapture())
         {
             return false;
         }
@@ -539,5 +556,33 @@ public sealed class Plugin : IDalamudPlugin
 
         return !Dalamud.Interface.Windowing.WindowSystem.HasAnyWindowSystemFocus ||
                string.Equals(Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
+    }
+
+    private void LogUltraCompactHotkeyAttempt(string hotkeyName, bool captured)
+    {
+        var hasAnyWindowSystemFocus = Dalamud.Interface.Windowing.WindowSystem.HasAnyWindowSystemFocus;
+        var focusedNamespace = Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace ?? "<null>";
+        var contentReady = PlayerState.ContentId != 0;
+        var localPlayerReady = ObjectTable.LocalPlayer != null;
+
+        Log.Information(
+            $"[DhogGPT] Ultra compact hotkey {(captured ? "accepted" : "blocked")}: " +
+            $"key={hotkeyName}, " +
+            $"slashEnabled={Configuration.FocusUltraCompactOnSlash}, " +
+            $"enterEnabled={Configuration.FocusUltraCompactOnEnter}, " +
+            $"suppressVanilla={Configuration.SuppressVanillaChatWindow}, " +
+            $"simpleMode={Configuration.UseSimpleChatMode}, " +
+            $"compactMode={Configuration.CompactSimpleChatMode}, " +
+            $"mainOpen={mainWindow.IsOpen}, " +
+            $"configFocused={configWindow.IsFocused}, " +
+            $"guideFocused={firstUseGuideWindow.IsFocused}, " +
+            $"contentReady={contentReady}, " +
+            $"localPlayerReady={localPlayerReady}, " +
+            $"shift={KeyState[VirtualKey.SHIFT]}, " +
+            $"ctrl={KeyState[VirtualKey.CONTROL]}, " +
+            $"alt={KeyState[VirtualKey.MENU]}, " +
+            $"hasAnyWindowSystemFocus={hasAnyWindowSystemFocus}, " +
+            $"focusedNamespace={focusedNamespace}, " +
+            $"mainWindowState={mainWindow.DescribeUltraCompactFocusHotkeyState()}");
     }
 }
