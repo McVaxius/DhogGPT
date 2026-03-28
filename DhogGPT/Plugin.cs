@@ -487,13 +487,13 @@ public sealed class Plugin : IDalamudPlugin
         pendingLoginWindowRestore = false;
         mainWindow.ApplySavedPositionForCurrentCharacter();
         configWindow.ApplySavedPositionForCurrentCharacter();
-        if (Configuration.OpenMainWindowOnCharacterLogin)
+        if (Configuration.OpenMainWindowOnCharacterLogin || IsUltraCompactModeConfigured())
             mainWindow.IsOpen = true;
     }
 
     private void HandleUltraCompactFocusHotkeys()
     {
-        var slashDown = KeyState[VirtualKey.OEM_2];
+        var slashDown = KeyState[VirtualKey.OEM_2] || KeyState[VirtualKey.DIVIDE];
         var enterDown = KeyState[VirtualKey.RETURN];
         var slashPressed = slashDown && !wasUltraCompactSlashDown;
         var enterPressed = enterDown && !wasUltraCompactEnterDown;
@@ -507,6 +507,7 @@ public sealed class Plugin : IDalamudPlugin
         if (slashPressed && Configuration.FocusUltraCompactOnSlash)
         {
             KeyState[VirtualKey.OEM_2] = false;
+            KeyState[VirtualKey.DIVIDE] = false;
             mainWindow.OpenComposerFromHotkey(seedSlash: true);
             return;
         }

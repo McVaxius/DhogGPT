@@ -512,6 +512,7 @@ public sealed class MainWindow : Window, IDisposable
 
         var selectedConversationApplied = false;
         ConversationTabState? selectedConversation = null;
+        var toolbarWidth = GetConversationToolbarWidth();
         var style = ImGui.GetStyle();
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(style.CellPadding.X, 0f));
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(style.ItemSpacing.X, 1f));
@@ -525,13 +526,15 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.TableSetupColumn("Tabs", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 74f);
+        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, toolbarWidth);
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
-        RouteVerticalMouseWheelToConversationTabBar(conversations);
+        HandleConversationTabWheelNavigation(conversations);
+        PushConversationTabStyleColors();
         if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
         {
+            ImGui.PopStyleColor(5);
             ImGui.TableSetColumnIndex(1);
             DrawConversationToolbarButtons();
             ImGui.EndTable();
@@ -607,6 +610,7 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.EndTabBar();
+        ImGui.PopStyleColor(5);
         ImGui.TableSetColumnIndex(1);
         DrawConversationToolbarButtons();
         ImGui.EndTable();
@@ -1761,10 +1765,8 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawConversationToolbarButtons()
     {
-        var totalWidth = 70f;
-        var currentX = ImGui.GetCursorPosX();
-        var targetX = Math.Max(currentX, currentX + ImGui.GetContentRegionAvail().X - totalWidth);
-        ImGui.SetCursorPosX(targetX);
+        var totalWidth = GetConversationToolbarWidth();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Math.Max(0f, ImGui.GetContentRegionAvail().X - totalWidth));
 
         if (ImGui.SmallButton("H"))
         {
@@ -2318,7 +2320,7 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
     }
 
-    private void RouteVerticalMouseWheelToConversationTabBar(IReadOnlyList<ConversationTabState> conversations)
+    private void HandleConversationTabWheelNavigation(IReadOnlyList<ConversationTabState> conversations)
     {
         var io = ImGui.GetIO();
         if (Math.Abs(io.MouseWheel) <= float.Epsilon ||
@@ -2338,8 +2340,27 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
-        io.MouseWheelH += io.MouseWheel;
+        SelectConversationRelativeToWheel(conversations, io.MouseWheel);
         io.MouseWheel = 0f;
+    }
+
+    private void SelectConversationRelativeToWheel(IReadOnlyList<ConversationTabState> conversations, float wheelDelta)
+    {
+        if (conversations.Count == 0)
+            return;
+
+        var currentIndex = conversations
+            .Select((conversation, index) => new { conversation.Key, Index = index })
+            .FirstOrDefault(item => item.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase))
+            ?.Index ?? 0;
+        var direction = wheelDelta < 0f ? 1 : -1;
+        var targetIndex = Math.Clamp(currentIndex + direction, 0, conversations.Count - 1);
+        if (targetIndex == currentIndex)
+            return;
+
+        activeConversationKey = conversations[targetIndex].Key;
+        activeConversationLabel = conversations[targetIndex].Label;
+        forceActiveConversationSelection = true;
     }
 
     private float EstimateConversationTabBarWidth(IReadOnlyList<ConversationTabState> conversations)
@@ -2363,6 +2384,29 @@ public sealed class MainWindow : Window, IDisposable
 
     private bool WillConversationTabBarOverflow(IReadOnlyList<ConversationTabState> conversations, float availableWidth)
         => availableWidth > 0f && EstimateConversationTabBarWidth(conversations) > availableWidth;
+
+    private float GetConversationToolbarWidth()
+    {
+        var style = ImGui.GetStyle();
+        var labels = new[] { "H", "R", "+" };
+        var totalWidth = 0f;
+
+        foreach (var label in labels)
+            totalWidth += ImGui.CalcTextSize(label).X + (style.FramePadding.X * 2f);
+
+        totalWidth += style.ItemSpacing.X * (labels.Length - 1);
+        return totalWidth + Math.Max(6f, style.CellPadding.X * 2f);
+    }
+
+    private void PushConversationTabStyleColors()
+    {
+        var (tab, tabHovered, tabActive, tabUnfocused, tabUnfocusedActive) = GetConversationTabPalette();
+        ImGui.PushStyleColor(ImGuiCol.Tab, tab);
+        ImGui.PushStyleColor(ImGuiCol.TabHovered, tabHovered);
+        ImGui.PushStyleColor(ImGuiCol.TabActive, tabActive);
+        ImGui.PushStyleColor(ImGuiCol.TabUnfocused, tabUnfocused);
+        ImGui.PushStyleColor(ImGuiCol.TabUnfocusedActive, tabUnfocusedActive);
+    }
 
     private static Vector4 WithMinimumAlpha(Vector4 color, float alpha)
         => new(color.X, color.Y, color.Z, Math.Clamp(alpha, 0f, 1f));
@@ -2434,6 +2478,39 @@ public sealed class MainWindow : Window, IDisposable
                 : (new Vector4(0.66f, 0.96f, 0.72f, 1.0f), new Vector4(0.86f, 1.0f, 0.90f, 1.0f), new Vector4(1.0f, 0.55f, 0.55f, 1.0f)),
         };
     }
+
+    private (Vector4 Tab, Vector4 TabHovered, Vector4 TabActive, Vector4 TabUnfocused, Vector4 TabUnfocusedActive) GetConversationTabPalette()
+    {
+        var inbound = GetMessagePalette(isInbound: true).Header;
+        var outbound = GetMessagePalette(isInbound: false).Header;
+        var accent = BlendColors(inbound, outbound, 0.5f);
+        var tab = WithAlpha(ScaleColorRgb(accent, 0.48f), 0.78f);
+        var hovered = WithAlpha(ScaleColorRgb(accent, 0.90f), 0.92f);
+        var active = WithAlpha(ScaleColorRgb(accent, 1.12f), 0.98f);
+        var unfocused = WithAlpha(ScaleColorRgb(accent, 0.36f), 0.55f);
+        var unfocusedActive = WithAlpha(ScaleColorRgb(accent, 0.72f), 0.78f);
+        return (tab, hovered, active, unfocused, unfocusedActive);
+    }
+
+    private static Vector4 BlendColors(Vector4 left, Vector4 right, float amount)
+    {
+        var t = Math.Clamp(amount, 0f, 1f);
+        return new Vector4(
+            left.X + ((right.X - left.X) * t),
+            left.Y + ((right.Y - left.Y) * t),
+            left.Z + ((right.Z - left.Z) * t),
+            left.W + ((right.W - left.W) * t));
+    }
+
+    private static Vector4 ScaleColorRgb(Vector4 color, float scale)
+        => new(
+            Math.Clamp(color.X * scale, 0f, 1f),
+            Math.Clamp(color.Y * scale, 0f, 1f),
+            Math.Clamp(color.Z * scale, 0f, 1f),
+            color.W);
+
+    private static Vector4 WithAlpha(Vector4 color, float alpha)
+        => new(color.X, color.Y, color.Z, Math.Clamp(alpha, 0f, 1f));
 
     private static bool IsDirectMessageConversation(string conversationKey)
         => conversationKey.StartsWith("dm:", StringComparison.OrdinalIgnoreCase);
