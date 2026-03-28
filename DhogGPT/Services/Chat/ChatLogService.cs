@@ -19,6 +19,7 @@ public sealed class ChatLogService : IDisposable
     private readonly TranslationCoordinator translationCoordinator;
     private readonly List<TranslationHistoryItem> entries = [];
     private readonly List<TranslationHistoryItem> pendingEntries = [];
+    private readonly List<TranslationHistoryItem> transientEntries = [];
 
     private string? activeLogPath;
 
@@ -40,7 +41,10 @@ public sealed class ChatLogService : IDisposable
         lock (syncRoot)
         {
             EnsureCurrentContextLoaded();
-            return entries.ToArray();
+            return entries
+                .Concat(transientEntries)
+                .OrderByDescending(entry => entry.TimestampUtc)
+                .ToArray();
         }
     }
 
@@ -50,6 +54,16 @@ public sealed class ChatLogService : IDisposable
         {
             EnsureCurrentContextLoaded();
             return activeLogPath;
+        }
+    }
+
+    public void AddTransientEntry(TranslationHistoryItem entry)
+    {
+        lock (syncRoot)
+        {
+            EnsureCurrentContextLoaded();
+            transientEntries.Insert(0, entry);
+            TrimEntries(transientEntries);
         }
     }
 
@@ -86,7 +100,12 @@ public sealed class ChatLogService : IDisposable
     {
         var logPath = BuildCurrentLogPath();
         if (logPath == null)
+        {
+            activeLogPath = null;
+            entries.Clear();
+            transientEntries.Clear();
             return;
+        }
 
         if (activeLogPath != null && string.Equals(activeLogPath, logPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -96,6 +115,7 @@ public sealed class ChatLogService : IDisposable
 
         activeLogPath = logPath;
         entries.Clear();
+        transientEntries.Clear();
 
         if (!File.Exists(activeLogPath))
         {
@@ -151,9 +171,12 @@ public sealed class ChatLogService : IDisposable
     }
 
     private void TrimEntries()
+        => TrimEntries(entries);
+
+    private static void TrimEntries(List<TranslationHistoryItem> collection)
     {
-        if (entries.Count > MaxInMemoryEntries)
-            entries.RemoveRange(MaxInMemoryEntries, entries.Count - MaxInMemoryEntries);
+        if (collection.Count > MaxInMemoryEntries)
+            collection.RemoveRange(MaxInMemoryEntries, collection.Count - MaxInMemoryEntries);
     }
 
     private static string? BuildCurrentLogPath()

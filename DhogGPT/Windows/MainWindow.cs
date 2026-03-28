@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
+using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Windowing;
@@ -18,6 +19,7 @@ public sealed class MainWindow : Window, IDisposable
     private const string NewDirectMessagePopupId = "New DM###DhogGPTNewDmPopup";
     private const string RecentDirectMessagesPopupId = "Recent DMs###DhogGPTRecentDmPopup";
     private const string HiddenChannelsPopupId = "Hidden Channels###DhogGPTHiddenChannelsPopup";
+    private const string MainWindowTitle = "###DhogGPTMain";
 
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
@@ -46,6 +48,13 @@ public sealed class MainWindow : Window, IDisposable
     private bool requestOpenRecentDirectMessagesPopup;
     private bool requestDirectMessageTargetFocus;
     private string lastRenderedConversationBodyKey = string.Empty;
+    private bool pendingSavedPositionApply;
+    private bool useFocusedWindowOpacity = true;
+    private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
+    private Vector2? lastSavedWindowPosition;
+    private TrackedInputRect simpleComposerInputRect;
+    private TrackedInputRect recentDirectMessageSearchInputRect;
+    private TrackedInputRect newDirectMessageTargetInputRect;
 
     public MainWindow(
         Plugin plugin,
@@ -53,7 +62,7 @@ public sealed class MainWindow : Window, IDisposable
         TranslationCoordinator translationCoordinator,
         SessionHealthService sessionHealth,
         ChatLogService chatLogService)
-        : base($"DhogGPT v{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0"}###DhogGPTMain")
+        : base(MainWindowTitle)
     {
         this.plugin = plugin;
         this.languageRegistry = languageRegistry;
@@ -81,7 +90,7 @@ public sealed class MainWindow : Window, IDisposable
         SizeConstraints = plugin.Configuration.UseSimpleChatMode && plugin.Configuration.CompactSimpleChatMode
             ? new WindowSizeConstraints
             {
-                MinimumSize = new Vector2(460f, 260f),
+                MinimumSize = new Vector2(460f, 220f),
                 MaximumSize = new Vector2(1400f, 1000f),
             }
             : new WindowSizeConstraints
@@ -90,31 +99,42 @@ public sealed class MainWindow : Window, IDisposable
                 MaximumSize = new Vector2(1400f, 1000f),
             };
 
-        ImGui.SetNextWindowBgAlpha(Math.Clamp(plugin.Configuration.WindowOpacity, 0.35f, 1.0f));
+        ImGui.SetNextWindowBgAlpha(GetActiveWindowOpacity());
     }
 
     public override void Draw()
     {
-        if (plugin.Configuration.UseSimpleChatMode && plugin.Configuration.CompactSimpleChatMode)
+        ResetTrackedInputRects();
+
+        var drawCompactHeader = plugin.Configuration.UseSimpleChatMode &&
+                                plugin.Configuration.CompactSimpleChatMode &&
+                                !IsUltraCompactMode();
+
+        if (drawCompactHeader)
         {
             DrawCompactHeader();
+            ImGui.Separator();
         }
-        else
+        else if (!plugin.Configuration.UseSimpleChatMode || !plugin.Configuration.CompactSimpleChatMode)
         {
             DrawHeader();
+            ImGui.Separator();
         }
-
-        ImGui.Separator();
 
         if (plugin.Configuration.UseSimpleChatMode)
         {
             DrawSimpleChatMode();
+            HandleSimpleComposerAutoFocusFromClick();
+            UpdateWindowOpacityState();
+            TrackWindowPosition();
             return;
         }
 
         DrawStatusPanel();
         ImGui.Separator();
         DrawComposer();
+        UpdateWindowOpacityState();
+        TrackWindowPosition();
     }
 
     private void DrawHeader()
@@ -247,11 +267,10 @@ public sealed class MainWindow : Window, IDisposable
         HandlePendingPopups();
         DrawSimpleChatStatusBanner();
         DrawSimpleLanguageBar();
-        ImGui.Separator();
 
-        var composerHeight = Math.Max(92f, ImGui.GetFrameHeightWithSpacing() * 3.6f);
-        var conversationHeaderHeight = ImGui.GetFrameHeightWithSpacing() + 10f;
-        var chatBodyHeight = Math.Max(160f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
+        var composerHeight = ImGui.GetFrameHeightWithSpacing() + 10f;
+        var conversationHeaderHeight = ImGui.GetFrameHeightWithSpacing() + 2f;
+        var chatBodyHeight = Math.Max(72f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
         DrawTabbedConversationArea(chatBodyHeight);
 
         ImGui.Separator();
@@ -264,17 +283,44 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         var changed = false;
 
-        if (configuration.UseSuperCompactLanguageBar)
+        var useInlineCompactBar = configuration.UseSuperCompactLanguageBar || IsUltraCompactMode();
+        if (useInlineCompactBar)
         {
             EnsureSuperCompactLanguageDefaults();
             var originalSpacing = ImGui.GetStyle().ItemSpacing;
-            var compactSpacing = new Vector2(Math.Max(6f, originalSpacing.X * 0.7f), 2f);
+            var originalFramePadding = ImGui.GetStyle().FramePadding;
+            var compactSpacing = new Vector2(Math.Max(2f, originalSpacing.X * 0.40f), 0f);
+            var compactFramePadding = new Vector2(Math.Max(2f, originalFramePadding.X * 0.60f), 0f);
             var labelWidth = Math.Max(ImGui.CalcTextSize("Them").X, ImGui.CalcTextSize("Me").X);
+            var utilityWidth = IsUltraCompactMode()
+                ? (ImGui.CalcTextSize("K").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
+                  (ImGui.CalcTextSize("S").X + (compactFramePadding.X * 2f) + compactSpacing.X)
+                : 0f;
             var comboWidth = Math.Max(
                 120f,
-                (ImGui.GetContentRegionAvail().X - labelWidth - compactSpacing.X - labelWidth - compactSpacing.X) * 0.5f);
+                (ImGui.GetContentRegionAvail().X - utilityWidth - labelWidth - compactSpacing.X - labelWidth - compactSpacing.X) * 0.5f);
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, compactSpacing);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, compactFramePadding);
+            if (IsUltraCompactMode())
+            {
+                if (ImGui.SmallButton("K##UltraCompactKrangle"))
+                {
+                    configuration.KrangleChatNames = !configuration.KrangleChatNames;
+                    changed = true;
+                }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
+
+                ImGui.SameLine();
+                if (ImGui.SmallButton("S##UltraCompactSettings"))
+                    plugin.ToggleConfigUi();
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Open DhogGPT settings.");
+
+                ImGui.SameLine();
+            }
+
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted("Me");
             ImGui.SameLine();
@@ -300,7 +346,7 @@ public sealed class MainWindow : Window, IDisposable
                 configuration.OutgoingTargetLanguage,
                 value => configuration.OutgoingTargetLanguage = value,
                 includeAuto: false);
-            ImGui.PopStyleVar();
+            ImGui.PopStyleVar(2);
 
             if (changed)
                 configuration.Save();
@@ -416,8 +462,13 @@ public sealed class MainWindow : Window, IDisposable
 
         var selectedConversationApplied = false;
         ConversationTabState? selectedConversation = null;
+        var style = ImGui.GetStyle();
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(style.CellPadding.X, 0f));
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(style.ItemSpacing.X, 1f));
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(style.FramePadding.X, Math.Min(style.FramePadding.Y, 2f)));
         if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingStretchProp))
         {
+            ImGui.PopStyleVar(3);
             DrawHiddenChannelsPopup();
             DrawRecentDirectMessagesPopup(allDirectMessageConversations);
             return;
@@ -428,11 +479,12 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
-        if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll))
+        if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
         {
             ImGui.TableSetColumnIndex(1);
             DrawConversationToolbarButtons();
             ImGui.EndTable();
+            ImGui.PopStyleVar(3);
             DrawHiddenChannelsPopup();
             DrawRecentDirectMessagesPopup(allDirectMessageConversations);
             return;
@@ -507,6 +559,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.TableSetColumnIndex(1);
         DrawConversationToolbarButtons();
         ImGui.EndTable();
+        ImGui.PopStyleVar(3);
         DrawHiddenChannelsPopup();
         DrawRecentDirectMessagesPopup(allDirectMessageConversations);
         if (selectedConversationApplied)
@@ -517,7 +570,11 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawConversationMessages(string conversationKey, IReadOnlyList<TranslationHistoryItem> messages, float height)
     {
-        if (!ImGui.BeginChild("DhogGPTConversationBody", new Vector2(-1f, height), true))
+        if (!ImGui.BeginChild(
+                "DhogGPTConversationBody",
+                new Vector2(-1f, height),
+                true,
+                ImGuiWindowFlags.NoScrollbar))
         {
             ImGui.EndChild();
             return;
@@ -527,9 +584,8 @@ public sealed class MainWindow : Window, IDisposable
         var currentLastMessageTicks = messages.Count > 0 ? messages[^1].TimestampUtc.UtcTicks : 0L;
         conversationScrollStates.TryGetValue(conversationKey, out var existingScrollState);
         var conversationChanged = !string.Equals(lastRenderedConversationBodyKey, conversationKey, StringComparison.OrdinalIgnoreCase);
-        var wasNearBottom = ImGui.GetScrollMaxY() <= 0f || ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 24f;
         var messagesChanged = existingScrollState.MessageCount != messages.Count || existingScrollState.LastMessageTicks != currentLastMessageTicks;
-        var shouldAutoScroll = conversationChanged || (messagesChanged && wasNearBottom);
+        var shouldAutoScroll = conversationChanged || messagesChanged;
 
         if (messages.Count == 0)
         {
@@ -589,7 +645,11 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.PopStyleVar();
         ImGui.Dummy(Vector2.Zero);
         if (shouldAutoScroll)
-            ImGui.SetScrollHereY(1.0f);
+            ImGui.SetScrollY(ImGui.GetScrollMaxY());
+
+        var canScrollUp = ImGui.GetScrollY() > 1f;
+        var canScrollDown = ImGui.GetScrollY() < ImGui.GetScrollMaxY() - 1f;
+        DrawConversationScrollIndicators(canScrollUp, canScrollDown);
 
         conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
         lastRenderedConversationBodyKey = conversationKey;
@@ -602,13 +662,18 @@ public sealed class MainWindow : Window, IDisposable
         var changed = SyncSimpleComposerToActiveConversation();
 
         var comboWidth = 150f;
-        var sendWidth = 70f;
+        var framePadding = ImGui.GetStyle().FramePadding;
+        var composerFramePadding = IsUltraCompactMode()
+            ? new Vector2(Math.Max(2f, framePadding.X * 0.55f), Math.Max(4f, framePadding.Y))
+            : new Vector2(framePadding.X, Math.Max(framePadding.Y, 6f));
+        var sendWidth = IsUltraCompactMode()
+            ? ImGui.CalcTextSize("Send").X + (composerFramePadding.X * 2f)
+            : 70f;
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - comboWidth - sendWidth - (spacing * 2f));
         var submitFromEnter = false;
-        var framePadding = ImGui.GetStyle().FramePadding;
 
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(framePadding.X, Math.Max(framePadding.Y, 6f)));
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, composerFramePadding);
         ImGui.SetNextItemWidth(comboWidth);
         if (DrawOutgoingChannelCombo("##SimpleChannel"))
         {
@@ -631,6 +696,7 @@ public sealed class MainWindow : Window, IDisposable
             ref draft,
             2000,
             ImGuiInputTextFlags.EnterReturnsTrue);
+        simpleComposerInputRect = TrackedInputRect.CaptureCurrentItem();
         if (draft != configuration.OutgoingDraft)
         {
             configuration.OutgoingDraft = draft;
@@ -748,6 +814,18 @@ public sealed class MainWindow : Window, IDisposable
 
         try
         {
+            if (TryExtractRawSlashCommand(plugin.Configuration.OutgoingDraft, out _))
+            {
+                if (!sendAfterTranslate)
+                {
+                    await SetPreviewStateAsync(status: "Slash commands are sent directly and are not translated or logged.");
+                    return;
+                }
+
+                await TryHandleRawSlashCommandAsync(simpleChatMode: false);
+                return;
+            }
+
             var request = BuildOutgoingRequest(recordInHistory: false);
             var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
@@ -829,6 +907,9 @@ public sealed class MainWindow : Window, IDisposable
 
         try
         {
+            if (await TryHandleRawSlashCommandAsync(simpleChatMode: true))
+                return;
+
             var request = BuildOutgoingRequest(recordInHistory: false);
             var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
@@ -922,6 +1003,36 @@ public sealed class MainWindow : Window, IDisposable
             ConversationLabel = conversation.Label,
             RecordInHistory = recordInHistory,
         };
+    }
+
+    private static bool TryExtractRawSlashCommand(string draft, out string command)
+    {
+        command = draft.Trim();
+        return !string.IsNullOrWhiteSpace(command) &&
+               command.StartsWith("/", StringComparison.Ordinal);
+    }
+
+    private async Task<bool> TryHandleRawSlashCommandAsync(bool simpleChatMode)
+    {
+        if (!TryExtractRawSlashCommand(plugin.Configuration.OutgoingDraft, out var command))
+            return false;
+
+        var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
+        if (sent)
+        {
+            await Plugin.Framework.RunOnFrameworkThread(() =>
+            {
+                plugin.Configuration.OutgoingDraft = string.Empty;
+                plugin.Configuration.Save();
+            });
+        }
+
+        if (simpleChatMode)
+            await SetSimpleChatStatusAsync(sent ? string.Empty : "Slash command failed to send.");
+        else
+            await SetPreviewStateAsync(status: sent ? "Slash command sent directly." : "Slash command failed to send.");
+
+        return true;
     }
 
     private Task<TranslationResult> TranslateOutgoingRequestAsync(TranslationRequest request)
@@ -1439,6 +1550,8 @@ public sealed class MainWindow : Window, IDisposable
         var conversations = new List<ConversationTabState>
         {
             BuildPinnedConversation("channel:ECHO", "Echo"),
+            BuildPinnedConversation("channel:PROGRESS", "Progress"),
+            BuildPinnedConversation("channel:COMBAT", "Combat"),
             BuildPinnedConversation("channel:SAY", "Say"),
             BuildPinnedConversation("channel:PARTY", "Party"),
             BuildPinnedConversation("channel:ALLIANCE", "Alliance"),
@@ -1499,6 +1612,7 @@ public sealed class MainWindow : Window, IDisposable
         activeConversationLabel = normalizedIdentity;
         forceActiveConversationSelection = true;
         requestSimpleComposerFocus = true;
+        ApplySavedPositionForCurrentCharacter();
         IsOpen = true;
     }
 
@@ -1605,6 +1719,7 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.SetNextItemWidth(280f);
         ImGui.InputTextWithHint("##RecentDmSearch", "Search recent DMs", ref recentDirectMessageSearch, 128);
+        recentDirectMessageSearchInputRect = TrackedInputRect.CaptureCurrentItem();
         ImGui.Separator();
 
         var filteredConversations = directMessageConversations
@@ -1657,6 +1772,7 @@ public sealed class MainWindow : Window, IDisposable
         activeConversationLabel = conversation.Label;
         forceActiveConversationSelection = true;
         requestSimpleComposerFocus = true;
+        ApplySavedPositionForCurrentCharacter();
         IsOpen = true;
     }
 
@@ -1678,6 +1794,7 @@ public sealed class MainWindow : Window, IDisposable
             ref pendingDirectMessageTarget,
             128,
             ImGuiInputTextFlags.EnterReturnsTrue);
+        newDirectMessageTargetInputRect = TrackedInputRect.CaptureCurrentItem();
 
         if (!string.IsNullOrWhiteSpace(directMessagePopupError))
             ImGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), directMessagePopupError);
@@ -1879,6 +1996,143 @@ public sealed class MainWindow : Window, IDisposable
         return !string.Equals(Normalize(message.OriginalText), Normalize(message.TranslatedText), StringComparison.OrdinalIgnoreCase);
     }
 
+    public void ApplySavedPositionForCurrentCharacter()
+    {
+        if (!plugin.TryGetSavedWindowPosition(false, out var position))
+            return;
+
+        Position = position.ToVector2();
+        PositionCondition = ImGuiCond.Always;
+        pendingSavedPositionApply = true;
+    }
+
+    public void RequestSimpleComposerFocus()
+        => requestSimpleComposerFocus = true;
+
+    private bool IsUltraCompactMode()
+        => plugin.Configuration.SuppressVanillaChatWindow &&
+           plugin.Configuration.UseSimpleChatMode &&
+           plugin.Configuration.CompactSimpleChatMode;
+
+    private void ResetTrackedInputRects()
+    {
+        simpleComposerInputRect = default;
+        recentDirectMessageSearchInputRect = default;
+        newDirectMessageTargetInputRect = default;
+    }
+
+    private void DrawConversationScrollIndicators(bool canScrollUp, bool canScrollDown)
+    {
+        if (!canScrollUp && !canScrollDown)
+            return;
+
+        var drawList = ImGui.GetWindowDrawList();
+        var windowPos = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetWindowSize();
+        var availableWidth = Math.Max(120f, windowSize.X - 18f);
+
+        if (canScrollUp)
+            DrawConversationScrollIndicator(drawList, windowPos, windowSize, BuildScrollIndicator('↑', availableWidth), top: true);
+
+        if (canScrollDown)
+            DrawConversationScrollIndicator(drawList, windowPos, windowSize, BuildScrollIndicator('↓', availableWidth), top: false);
+    }
+
+    private static void DrawConversationScrollIndicator(ImDrawListPtr drawList, Vector2 windowPos, Vector2 windowSize, string indicator, bool top)
+    {
+        var textSize = ImGui.CalcTextSize(indicator);
+        var position = new Vector2(
+            windowPos.X + Math.Max(8f, (windowSize.X - textSize.X) * 0.5f),
+            top
+                ? windowPos.Y + 2f
+                : windowPos.Y + windowSize.Y - textSize.Y - 2f);
+        var padding = new Vector2(6f, 2f);
+        drawList.AddRectFilled(
+            position - padding,
+            position + textSize + padding,
+            ImGui.GetColorU32(new Vector4(0.08f, 0.08f, 0.08f, 0.55f)),
+            4f);
+        drawList.AddText(position, ImGui.GetColorU32(new Vector4(0.78f, 0.78f, 0.78f, 0.95f)), indicator);
+    }
+
+    private static string BuildScrollIndicator(char direction, float width)
+    {
+        var segment = $"{direction} ";
+        var segmentWidth = Math.Max(1f, ImGui.CalcTextSize(segment).X);
+        var repeatCount = Math.Max(8, (int)MathF.Ceiling(width / segmentWidth));
+        var builder = new StringBuilder(repeatCount * segment.Length);
+        for (var index = 0; index < repeatCount; index++)
+        {
+            if (index > 0)
+                builder.Append(' ');
+
+            builder.Append(direction);
+        }
+
+        return builder.ToString();
+    }
+
+    private float GetActiveWindowOpacity()
+    {
+        var focusedOpacity = Math.Clamp(plugin.Configuration.FocusedWindowOpacity, 0.20f, 1.0f);
+        var backgroundOpacity = Math.Clamp(plugin.Configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
+        return useFocusedWindowOpacity
+            ? Math.Max(focusedOpacity, backgroundOpacity)
+            : Math.Min(backgroundOpacity, focusedOpacity);
+    }
+
+    private void UpdateWindowOpacityState()
+    {
+        useFocusedWindowOpacity =
+            ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) ||
+            ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+    }
+
+    private void HandleSimpleComposerAutoFocusFromClick()
+    {
+        if (!ImGui.IsMouseReleased(ImGuiMouseButton.Left) ||
+            !ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) ||
+            ImGui.IsAnyItemActive() ||
+            ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup))
+        {
+            return;
+        }
+
+        var mousePosition = ImGui.GetIO().MousePos;
+        if (simpleComposerInputRect.Contains(mousePosition) ||
+            recentDirectMessageSearchInputRect.Contains(mousePosition) ||
+            newDirectMessageTargetInputRect.Contains(mousePosition))
+        {
+            return;
+        }
+
+        requestSimpleComposerFocus = true;
+    }
+
+    private void TrackWindowPosition()
+    {
+        var currentPosition = ImGui.GetWindowPos();
+        if (pendingSavedPositionApply)
+        {
+            pendingSavedPositionApply = false;
+            Position = null;
+            PositionCondition = ImGuiCond.None;
+        }
+
+        if (DateTimeOffset.UtcNow < nextWindowPositionSaveUtc)
+            return;
+
+        if (lastSavedWindowPosition.HasValue &&
+            Vector2.DistanceSquared(lastSavedWindowPosition.Value, currentPosition) < 0.25f)
+        {
+            return;
+        }
+
+        lastSavedWindowPosition = currentPosition;
+        nextWindowPositionSaveUtc = DateTimeOffset.UtcNow.AddMilliseconds(250);
+        plugin.SaveCurrentWindowPosition(false, currentPosition);
+    }
+
     private (Vector4 Header, Vector4 Translation, Vector4 Error) GetMessagePalette(bool isInbound)
     {
         return plugin.Configuration.CompactChatColorTheme switch
@@ -1913,4 +2167,17 @@ public sealed class MainWindow : Window, IDisposable
     private readonly record struct ConversationScrollState(
         int MessageCount,
         long LastMessageTicks);
+
+    private readonly record struct TrackedInputRect(
+        Vector2 Min,
+        Vector2 Max)
+    {
+        public bool Contains(Vector2 point)
+            => Max.X > Min.X && Max.Y > Min.Y &&
+               point.X >= Min.X && point.X <= Max.X &&
+               point.Y >= Min.Y && point.Y <= Max.Y;
+
+        public static TrackedInputRect CaptureCurrentItem()
+            => new(ImGui.GetItemRectMin(), ImGui.GetItemRectMax());
+    }
 }

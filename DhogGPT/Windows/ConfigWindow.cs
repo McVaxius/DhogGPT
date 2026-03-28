@@ -11,6 +11,7 @@ namespace DhogGPT.Windows;
 public sealed class ConfigWindow : Window, IDisposable
 {
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
+    private static readonly string VersionedWindowTitle = $"DhogGPT Settings v{typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "0.0.0.0"}###DhogGPTConfig";
     private static readonly string[] CompactChatColorThemes =
     {
         "Soft contrast",
@@ -22,9 +23,12 @@ public sealed class ConfigWindow : Window, IDisposable
 
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
+    private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
+    private Vector2? lastSavedWindowPosition;
+    private bool pendingSavedPositionApply;
 
     public ConfigWindow(Plugin plugin, LanguageRegistryService languageRegistry)
-        : base("DhogGPT Settings###DhogGPTConfig")
+        : base(VersionedWindowTitle)
     {
         this.plugin = plugin;
         this.languageRegistry = languageRegistry;
@@ -49,6 +53,7 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawIncomingChannelSettings();
         ImGui.Separator();
         DrawProviderSettings();
+        TrackWindowPosition();
     }
 
     private void DrawGeneralSettings()
@@ -72,15 +77,24 @@ public sealed class ConfigWindow : Window, IDisposable
         changed |= DrawCheckbox("Use compact simple chat header", configuration.CompactSimpleChatMode, value => configuration.CompactSimpleChatMode = value);
         changed |= DrawCheckbox("Krangle names in chat UI", configuration.KrangleChatNames, value => configuration.KrangleChatNames = value);
         changed |= DrawCheckbox("Open main window when a DM arrives", configuration.OpenMainWindowOnIncomingDirectMessage, value => configuration.OpenMainWindowOnIncomingDirectMessage = value);
+        changed |= DrawCheckbox("Open main window when a character loads", configuration.OpenMainWindowOnCharacterLogin, value => configuration.OpenMainWindowOnCharacterLogin = value);
+        changed |= DrawCheckbox("Suppress vanilla chat window", configuration.SuppressVanillaChatWindow, value => configuration.SuppressVanillaChatWindow = value);
         changed |= DrawCheckbox("Enable debug logging", configuration.EnableDebugLogging, value => configuration.EnableDebugLogging = value);
 
         changed |= DrawLanguageCombo("Incoming source language", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
         changed |= DrawLanguageCombo("Incoming target language", configuration.IncomingTargetLanguage, value => configuration.IncomingTargetLanguage = value, includeAuto: false);
 
-        var windowOpacity = Math.Clamp(configuration.WindowOpacity, 0.35f, 1.0f);
-        if (ImGui.SliderFloat("Window opacity", ref windowOpacity, 0.35f, 1.0f, "%.2f"))
+        var focusedOpacity = Math.Clamp(configuration.FocusedWindowOpacity, 0.20f, 1.0f);
+        if (ImGui.SliderFloat("Focused or hovered opacity", ref focusedOpacity, 0.20f, 1.0f, "%.2f"))
         {
-            configuration.WindowOpacity = windowOpacity;
+            configuration.FocusedWindowOpacity = focusedOpacity;
+            changed = true;
+        }
+
+        var backgroundOpacity = Math.Clamp(configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
+        if (ImGui.SliderFloat("Background opacity", ref backgroundOpacity, 0.20f, 1.0f, "%.2f"))
+        {
+            configuration.BackgroundWindowOpacity = backgroundOpacity;
             changed = true;
         }
 
@@ -121,9 +135,44 @@ public sealed class ConfigWindow : Window, IDisposable
         }
 
         ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
-        ImGui.TextDisabled("Compact simple chat hides the extra utility strip, while opacity gives the chat window a softer overlay look.");
+        ImGui.TextDisabled("Focused or hovered opacity applies while the DhogGPT chat window is active. Background opacity applies after you click away and stop hovering it.");
+        ImGui.TextDisabled("Suppressing the vanilla chat window enables DhogGPT's ultra-compact chrome while simple compact mode is active.");
         ImGui.TextDisabled("Color themes are configured here only, not from the main chat window.");
         ImGui.TextDisabled(Plugin.DiscordFeedbackNote);
+    }
+
+    public void ApplySavedPositionForCurrentCharacter()
+    {
+        if (!plugin.TryGetSavedWindowPosition(true, out var position))
+            return;
+
+        Position = position.ToVector2();
+        PositionCondition = ImGuiCond.Always;
+        pendingSavedPositionApply = true;
+    }
+
+    private void TrackWindowPosition()
+    {
+        var currentPosition = ImGui.GetWindowPos();
+        if (pendingSavedPositionApply)
+        {
+            pendingSavedPositionApply = false;
+            Position = null;
+            PositionCondition = ImGuiCond.None;
+        }
+
+        if (DateTimeOffset.UtcNow < nextWindowPositionSaveUtc)
+            return;
+
+        if (lastSavedWindowPosition.HasValue &&
+            Vector2.DistanceSquared(lastSavedWindowPosition.Value, currentPosition) < 0.25f)
+        {
+            return;
+        }
+
+        lastSavedWindowPosition = currentPosition;
+        nextWindowPositionSaveUtc = DateTimeOffset.UtcNow.AddMilliseconds(250);
+        plugin.SaveCurrentWindowPosition(true, currentPosition);
     }
 
     private void DrawDtrSettings()

@@ -23,9 +23,14 @@ public sealed class Configuration : IPluginConfiguration
     public bool CompactSimpleChatMode { get; set; } = true;
     public bool KrangleChatNames { get; set; }
     public bool OpenMainWindowOnIncomingDirectMessage { get; set; } = true;
+    public bool OpenMainWindowOnCharacterLogin { get; set; }
+    public bool SuppressVanillaChatWindow { get; set; }
     public bool UseSuperCompactLanguageBar { get; set; } = true;
     public bool HasInitializedEchoChannelVisibility { get; set; }
+    public bool HasInitializedSupplementalChannelVisibility { get; set; }
     public float WindowOpacity { get; set; } = 0.92f;
+    public float FocusedWindowOpacity { get; set; } = 0.75f;
+    public float BackgroundWindowOpacity { get; set; } = 0.50f;
     public int CompactChatColorTheme { get; set; }
     public CompactChatCustomColors CompactChatCustomColors { get; set; } = new();
 
@@ -58,6 +63,7 @@ public sealed class Configuration : IPluginConfiguration
     public List<string> PinnedDirectMessageTabs { get; set; } = [];
     public List<string> HiddenGeneralConversationKeys { get; set; } = ["channel:ECHO"];
     public List<string> TechnicalShellConversationKeys { get; set; } = [];
+    public Dictionary<string, CharacterWindowState> CharacterWindowStates { get; set; } = [];
 
     public void Save()
     {

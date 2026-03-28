@@ -1,8 +1,10 @@
+using System.Numerics;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -10,6 +12,7 @@ using Dalamud.IoC;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using DhogGPT.Models;
 using DhogGPT.Services;
 using DhogGPT.Services.Chat;
 using DhogGPT.Services.Diagnostics;
@@ -32,6 +35,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IContextMenu ContextMenu { get; private set; } = null!;
+    [PluginService] internal static ISeStringEvaluator SeStringEvaluator { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
     private const string CommandName = "/dhoggpt";
@@ -50,23 +54,20 @@ public sealed class Plugin : IDalamudPlugin
     public TranslationCoordinator TranslationCoordinator { get; }
     public ChatTranslationService ChatTranslationService { get; }
     public ChatLogService ChatLogService { get; }
+    public SupplementalLogChannelService SupplementalLogChannelService { get; }
+    public VanillaChatWindowService VanillaChatWindowService { get; }
 
     private readonly MainWindow mainWindow;
     private readonly ConfigWindow configWindow;
     private readonly FirstUseGuideWindow firstUseGuideWindow;
     private IDtrBarEntry? dtrEntry;
+    private bool pendingLoginWindowRestore;
+    private bool restoreLoginWindowStateWhenCharacterReady = true;
 
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        if (!Configuration.HasInitializedEchoChannelVisibility)
-        {
-            if (!Configuration.HiddenGeneralConversationKeys.Any(hidden => string.Equals(hidden, "channel:ECHO", StringComparison.OrdinalIgnoreCase)))
-                Configuration.HiddenGeneralConversationKeys.Add("channel:ECHO");
-
-            Configuration.HasInitializedEchoChannelVisibility = true;
-            Configuration.Save();
-        }
+        InitializeConversationVisibilityDefaults();
 
         LanguageRegistry = new LanguageRegistryService();
         SessionHealth = new SessionHealthService();
@@ -75,10 +76,16 @@ public sealed class Plugin : IDalamudPlugin
         TranslationCoordinator = new TranslationCoordinator(Configuration, TranslationCache, TranslationProvider, SessionHealth);
         ChatLogService = new ChatLogService(TranslationCoordinator);
         ChatTranslationService = new ChatTranslationService(Configuration, TranslationCoordinator);
+        SupplementalLogChannelService = new SupplementalLogChannelService(ChatLogService);
 
         mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth, ChatLogService);
         configWindow = new ConfigWindow(this, LanguageRegistry);
         firstUseGuideWindow = new FirstUseGuideWindow(this);
+        VanillaChatWindowService = new VanillaChatWindowService(() =>
+            Configuration.SuppressVanillaChatWindow &&
+            Configuration.UseSimpleChatMode &&
+            Configuration.CompactSimpleChatMode &&
+            mainWindow.IsOpen);
 
         WindowSystem.AddWindow(mainWindow);
         WindowSystem.AddWindow(configWindow);
@@ -95,12 +102,15 @@ public sealed class Plugin : IDalamudPlugin
         });
 
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
-        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
+        PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
 
         SetupDtrBar();
         UpdateDtrBar();
         ContextMenu.OnMenuOpened += OnContextMenuOpened;
+        ClientState.Login += OnLogin;
+        Framework.Update += OnFrameworkUpdate;
+        pendingLoginWindowRestore = false;
 
         Log.Information("[DhogGPT] Plugin loaded.");
     }
@@ -108,12 +118,14 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
-        PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
+        PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
 
         CommandManager.RemoveHandler(AliasCommandName);
         CommandManager.RemoveHandler(CommandName);
 
+        Framework.Update -= OnFrameworkUpdate;
+        ClientState.Login -= OnLogin;
         WindowSystem.RemoveAllWindows();
 
         dtrEntry?.Remove();
@@ -121,6 +133,8 @@ public sealed class Plugin : IDalamudPlugin
         firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
+        VanillaChatWindowService.Dispose();
+        SupplementalLogChannelService.Dispose();
         ChatLogService.Dispose();
         ChatTranslationService.Dispose();
         TranslationCoordinator.Dispose();
@@ -129,9 +143,38 @@ public sealed class Plugin : IDalamudPlugin
         Log.Information("[DhogGPT] Plugin unloaded.");
     }
 
-    public void ToggleMainUi() => mainWindow.Toggle();
+    public void ToggleMainUi()
+    {
+        if (!mainWindow.IsOpen)
+            mainWindow.ApplySavedPositionForCurrentCharacter();
 
-    public void ToggleConfigUi() => configWindow.Toggle();
+        mainWindow.Toggle();
+    }
+
+    public void OpenMainUi()
+    {
+        if (!mainWindow.IsOpen)
+            mainWindow.ApplySavedPositionForCurrentCharacter();
+
+        mainWindow.IsOpen = true;
+        mainWindow.RequestSimpleComposerFocus();
+    }
+
+    public void ToggleConfigUi()
+    {
+        if (!configWindow.IsOpen)
+            configWindow.ApplySavedPositionForCurrentCharacter();
+
+        configWindow.Toggle();
+    }
+
+    public void OpenConfigUi()
+    {
+        if (!configWindow.IsOpen)
+            configWindow.ApplySavedPositionForCurrentCharacter();
+
+        configWindow.IsOpen = true;
+    }
 
     public void OpenFirstUseGuide() => firstUseGuideWindow.IsOpen = true;
 
@@ -179,6 +222,12 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
+        if (trimmed.Equals("ws", StringComparison.OrdinalIgnoreCase))
+        {
+            ResetCurrentWindowPositions();
+            return;
+        }
+
         if (trimmed.Equals("on", StringComparison.OrdinalIgnoreCase))
         {
             SetPluginEnabled(true, printStatus: true);
@@ -194,12 +243,73 @@ public sealed class Plugin : IDalamudPlugin
         ToggleMainUi();
     }
 
+    public bool TryGetCurrentCharacterStateKey(out string key)
+    {
+        var contentId = PlayerState.ContentId;
+        if (contentId == 0)
+        {
+            key = string.Empty;
+            return false;
+        }
+
+        key = contentId.ToString("X16");
+        return true;
+    }
+
+    public bool TryGetSavedWindowPosition(bool settingsWindow, out SavedWindowPosition position)
+    {
+        if (TryGetCurrentCharacterStateKey(out var key) &&
+            Configuration.CharacterWindowStates.TryGetValue(key, out var state))
+        {
+            position = settingsWindow ? state.SettingsWindow : state.MainWindow;
+            return position.HasValue;
+        }
+
+        position = new SavedWindowPosition();
+        return false;
+    }
+
+    public void SaveCurrentWindowPosition(bool settingsWindow, Vector2 position)
+    {
+        if (!TryGetCurrentCharacterStateKey(out var key))
+            return;
+
+        var state = GetOrCreateCharacterWindowState(key);
+        var savedPosition = settingsWindow ? state.SettingsWindow : state.MainWindow;
+        if (savedPosition.HasValue &&
+            Vector2.DistanceSquared(savedPosition.ToVector2(), position) < 0.25f)
+        {
+            return;
+        }
+
+        savedPosition.Set(position);
+        Configuration.Save();
+    }
+
+    public void ResetCurrentWindowPositions()
+    {
+        if (!TryGetCurrentCharacterStateKey(out var key))
+        {
+            PrintStatus("Window positions could not be reset because no character is active.");
+            return;
+        }
+
+        var state = GetOrCreateCharacterWindowState(key);
+        state.MainWindow.Reset();
+        state.SettingsWindow.Reset();
+        Configuration.Save();
+
+        mainWindow.ApplySavedPositionForCurrentCharacter();
+        configWindow.ApplySavedPositionForCurrentCharacter();
+        PrintStatus("Reset DhogGPT window positions to 1,1 for this character.");
+    }
+
     private void SetupDtrBar()
     {
         try
         {
             dtrEntry = DtrBar.Get(DisplayName);
-            dtrEntry.OnClick = _ => SetPluginEnabled(!Configuration.PluginEnabled, printStatus: true);
+            dtrEntry.OnClick = _ => OpenMainUi();
         }
         catch (Exception ex)
         {
@@ -232,7 +342,7 @@ public sealed class Plugin : IDalamudPlugin
                 2 => new SeString(new TextPayload(glyph)),
                 _ => new SeString(new TextPayload($"DGPT: {state}")),
             };
-            dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to toggle translation on or off."));
+            dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to open the main window."));
         }
         catch (Exception ex)
         {
@@ -266,10 +376,78 @@ public sealed class Plugin : IDalamudPlugin
             {
                 _ = Framework.RunOnFrameworkThread(() =>
                 {
-                    ToggleMainUi();
                     mainWindow.OpenDirectMessageConversation(normalizedIdentity);
                 });
             },
         });
+    }
+
+    private void InitializeConversationVisibilityDefaults()
+    {
+        var changed = false;
+
+        if (!Configuration.HasInitializedEchoChannelVisibility)
+        {
+            changed |= EnsureHiddenConversation("channel:ECHO");
+            Configuration.HasInitializedEchoChannelVisibility = true;
+        }
+
+        if (!Configuration.HasInitializedSupplementalChannelVisibility)
+        {
+            changed |= EnsureHiddenConversation("channel:PROGRESS");
+            changed |= EnsureHiddenConversation("channel:COMBAT");
+            Configuration.HasInitializedSupplementalChannelVisibility = true;
+        }
+
+        if (changed)
+            Configuration.Save();
+    }
+
+    private bool EnsureHiddenConversation(string conversationKey)
+    {
+        if (Configuration.HiddenGeneralConversationKeys.Any(hidden =>
+                string.Equals(hidden, conversationKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        Configuration.HiddenGeneralConversationKeys.Add(conversationKey);
+        return true;
+    }
+
+    private CharacterWindowState GetOrCreateCharacterWindowState(string key)
+    {
+        if (Configuration.CharacterWindowStates.TryGetValue(key, out var existingState))
+            return existingState;
+
+        var state = new CharacterWindowState();
+        Configuration.CharacterWindowStates[key] = state;
+        return state;
+    }
+
+    private void OnLogin()
+    {
+        restoreLoginWindowStateWhenCharacterReady = false;
+        pendingLoginWindowRestore = true;
+    }
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        if (restoreLoginWindowStateWhenCharacterReady &&
+            PlayerState.ContentId != 0 &&
+            ObjectTable.LocalPlayer != null)
+        {
+            restoreLoginWindowStateWhenCharacterReady = false;
+            pendingLoginWindowRestore = true;
+        }
+
+        if (!pendingLoginWindowRestore || PlayerState.ContentId == 0 || ObjectTable.LocalPlayer == null)
+            return;
+
+        pendingLoginWindowRestore = false;
+        mainWindow.ApplySavedPositionForCurrentCharacter();
+        configWindow.ApplySavedPositionForCurrentCharacter();
+        if (Configuration.OpenMainWindowOnCharacterLogin)
+            mainWindow.IsOpen = true;
     }
 }
