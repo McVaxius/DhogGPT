@@ -554,8 +554,9 @@ public sealed class Plugin : IDalamudPlugin
         if (KeyState[VirtualKey.SHIFT] || KeyState[VirtualKey.CONTROL] || KeyState[VirtualKey.MENU])
             return false;
 
-        return !Dalamud.Interface.Windowing.WindowSystem.HasAnyWindowSystemFocus ||
-               string.Equals(Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
+        var focusedNamespace = Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace;
+        return string.IsNullOrEmpty(focusedNamespace) ||
+               string.Equals(focusedNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
     }
 
     private void LogUltraCompactHotkeyAttempt(string hotkeyName, bool captured)
@@ -564,6 +565,8 @@ public sealed class Plugin : IDalamudPlugin
         var focusedNamespace = Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace ?? "<null>";
         var contentReady = PlayerState.ContentId != 0;
         var localPlayerReady = ObjectTable.LocalPlayer != null;
+        var focusedNamespaceAllowsCapture = focusedNamespace == "<null>" ||
+                                           string.Equals(focusedNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
 
         Log.Information(
             $"[DhogGPT] Ultra compact hotkey {(captured ? "accepted" : "blocked")}: " +
@@ -583,6 +586,7 @@ public sealed class Plugin : IDalamudPlugin
             $"alt={KeyState[VirtualKey.MENU]}, " +
             $"hasAnyWindowSystemFocus={hasAnyWindowSystemFocus}, " +
             $"focusedNamespace={focusedNamespace}, " +
+            $"focusedNamespaceAllowsCapture={focusedNamespaceAllowsCapture}, " +
             $"mainWindowState={mainWindow.DescribeUltraCompactFocusHotkeyState()}");
     }
 }
