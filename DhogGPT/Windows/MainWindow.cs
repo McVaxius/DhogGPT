@@ -529,6 +529,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.TableNextRow();
 
         ImGui.TableSetColumnIndex(0);
+        RouteVerticalMouseWheelToConversationTabBar(conversations);
         if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
         {
             ImGui.TableSetColumnIndex(1);
@@ -780,14 +781,15 @@ public sealed class MainWindow : Window, IDisposable
             ref draft,
             2000,
             ImGuiInputTextFlags.EnterReturnsTrue);
+        var composerIsActive = ImGui.IsItemActive() || ImGui.IsItemFocused();
         var composerLostFocus = ImGui.IsItemDeactivated();
         simpleComposerInputRect = TrackedInputRect.CaptureCurrentItem();
         ImGui.PopStyleColor(3);
+        simpleComposerEditSessionActive = composerIsActive;
         if (draft != configuration.OutgoingDraft)
         {
             configuration.OutgoingDraft = draft;
             ClearTransientUiStatus();
-            simpleComposerEditSessionActive = true;
             changed = true;
         }
 
@@ -2316,8 +2318,54 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
     }
 
+    private void RouteVerticalMouseWheelToConversationTabBar(IReadOnlyList<ConversationTabState> conversations)
+    {
+        var io = ImGui.GetIO();
+        if (Math.Abs(io.MouseWheel) <= float.Epsilon ||
+            Math.Abs(io.MouseWheelH) > float.Epsilon ||
+            conversations.Count < 2)
+        {
+            return;
+        }
+
+        var tabBarMin = ImGui.GetCursorScreenPos();
+        var tabBarSize = new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetFrameHeight());
+        if (tabBarSize.X <= 0f ||
+            tabBarSize.Y <= 0f ||
+            !new TrackedInputRect(tabBarMin, tabBarMin + tabBarSize).Contains(io.MousePos) ||
+            !WillConversationTabBarOverflow(conversations, tabBarSize.X))
+        {
+            return;
+        }
+
+        io.MouseWheelH += io.MouseWheel;
+        io.MouseWheel = 0f;
+    }
+
+    private float EstimateConversationTabBarWidth(IReadOnlyList<ConversationTabState> conversations)
+    {
+        var style = ImGui.GetStyle();
+        var closeButtonWidth = ImGui.GetFontSize();
+        var totalWidth = 0f;
+
+        foreach (var conversation in conversations)
+        {
+            var label = GetConversationDisplayLabel(conversation);
+            if (IsDirectMessageConversation(conversation.Key))
+                label = $"   {label}";
+
+            totalWidth += ImGui.CalcTextSize(label).X;
+            totalWidth += (style.FramePadding.X * 2f) + closeButtonWidth + style.ItemInnerSpacing.X + style.ItemSpacing.X;
+        }
+
+        return totalWidth;
+    }
+
+    private bool WillConversationTabBarOverflow(IReadOnlyList<ConversationTabState> conversations, float availableWidth)
+        => availableWidth > 0f && EstimateConversationTabBarWidth(conversations) > availableWidth;
+
     private static Vector4 WithMinimumAlpha(Vector4 color, float alpha)
-        => new(color.X, color.Y, color.Z, Math.Clamp(Math.Max(color.W, alpha), 0f, 1f));
+        => new(color.X, color.Y, color.Z, Math.Clamp(alpha, 0f, 1f));
 
     private void HandleSimpleComposerAutoFocusFromClick()
     {
