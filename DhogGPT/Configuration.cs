@@ -19,12 +19,13 @@ public sealed class Configuration : IPluginConfiguration
     public bool IncludeSenderName { get; set; } = true;
     public bool IncludeChannelLabel { get; set; } = true;
     public bool EnableDebugLogging { get; set; }
+    // Legacy mode flags are kept so older configs can be normalized into the supported ultra compact path.
     public bool UseSimpleChatMode { get; set; } = true;
     public bool CompactSimpleChatMode { get; set; } = true;
     public bool KrangleChatNames { get; set; }
     public bool OpenMainWindowOnIncomingDirectMessage { get; set; } = true;
     public bool OpenMainWindowOnCharacterLogin { get; set; }
-    public bool SuppressVanillaChatWindow { get; set; }
+    public bool SuppressVanillaChatWindow { get; set; } = true;
     public bool UseSuperCompactLanguageBar { get; set; } = true;
     public bool FocusUltraCompactOnSlash { get; set; } = true;
     public bool FocusUltraCompactOnEnter { get; set; } = true;

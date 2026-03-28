@@ -112,7 +112,7 @@ public sealed class ConfigWindow : Window, IDisposable
         var ultraCompactMode = plugin.IsUltraCompactModeConfigured();
         if (ImGui.Checkbox("Ultra compact mode (replace vanilla chat window)", ref ultraCompactMode))
             plugin.SetUltraCompactMode(ultraCompactMode);
-        DrawTooltipOnLastItem("Turns on simple mode, compact mode, and vanilla-chat suppression together. Disabling it restores vanilla chat replacement while keeping your other layout choices intact.");
+        DrawTooltipOnLastItem("Switch between regular mode and the supported ultra compact chat-window replacement path.");
 
         changed |= DrawCheckbox(
             "Plugin enabled",
@@ -134,16 +134,6 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.OpenMainWindowOnCharacterLogin,
             value => configuration.OpenMainWindowOnCharacterLogin = value,
             "Reopens the DhogGPT main window automatically on character login.");
-        changed |= DrawCheckbox(
-            "Use simple all-in-one chat mode",
-            configuration.UseSimpleChatMode,
-            value => configuration.UseSimpleChatMode = value,
-            "Uses the tabbed chat layout with the inline composer instead of the older separate preview flow.");
-        changed |= DrawCheckbox(
-            "Use compact simple chat header",
-            configuration.CompactSimpleChatMode,
-            value => configuration.CompactSimpleChatMode = value,
-            "Tightens the simple-mode header and layout for a denser chat-window presentation.");
         changed |= DrawCheckbox(
             "Ultra compact: focus chat on /",
             configuration.FocusUltraCompactOnSlash,
@@ -198,12 +188,12 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque.");
 
         var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
-        if (ImGui.Combo("Compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
+        if (ImGui.Combo("Ultra compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
         {
             configuration.CompactChatColorTheme = compactChatColorTheme;
             changed = true;
         }
-        DrawTooltipOnLastItem("Controls header and translation colors in compact and ultra compact chat.");
+        DrawTooltipOnLastItem("Controls header and translation colors in the ultra compact chat view.");
 
         var scrollIndicatorStyle = Math.Clamp(configuration.ScrollIndicatorStyle, 0, ScrollIndicatorStyles.Length - 1);
         if (ImGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
@@ -220,7 +210,8 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.Separator();
-        ImGui.TextDisabled("Ultra compact mode is the main chat-window replacement path. The / and Enter focus shortcuts only apply while DhogGPT is already open.");
+        ImGui.TextDisabled("Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode.");
+        ImGui.TextDisabled("The / and Enter focus shortcuts only apply while the ultra compact window is already open.");
         ImGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave an Echo breadcrumb.");
     }
 
@@ -445,7 +436,7 @@ public sealed class ConfigWindow : Window, IDisposable
     {
         var changed = false;
         ImGui.Separator();
-        ImGui.TextUnformatted("Custom compact chat colors");
+        ImGui.TextUnformatted("Custom ultra compact chat colors");
         changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader, "Color used for inbound message header lines.");
         changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation, "Color used for inbound translated lines.");
         changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader, "Color used for outbound message header lines.");

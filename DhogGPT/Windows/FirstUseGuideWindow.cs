@@ -32,11 +32,11 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextWrapped("DhogGPT works best in Simple + Compact mode, and ultra compact mode is the intended vanilla-chat replacement path. Translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
+        ImGui.TextWrapped("DhogGPT now defaults to ultra compact mode, which is the supported vanilla-chat replacement path. Translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
         ImGui.Separator();
 
         ImGui.BulletText("Open the main window with /dhoggpt, /dgpt, or /dog.");
-        ImGui.BulletText("Use /dgpt ultra to toggle ultra compact mode, which replaces the vanilla chat window while DhogGPT is open.");
+        ImGui.BulletText("Use /dgpt ultra to toggle between regular mode and ultra compact mode.");
         ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
         ImGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");
         ImGui.BulletText("Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there.");
@@ -46,7 +46,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
         ImGui.BulletText("Click the DTR entry to open the DhogGPT main window.");
 
         ImGui.Spacing();
-        ImGui.TextWrapped("There is still a fuller non-compact path in the main window, but compact and ultra compact mode are the primary chat UX now. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
+        ImGui.TextWrapped("Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
 
         if (ImGui.Button("Open main window"))
             plugin.OpenMainUi();

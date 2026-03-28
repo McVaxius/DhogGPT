@@ -118,7 +118,7 @@ public sealed class MainWindow : Window, IDisposable
 
         lockTitleBarButton.Icon = plugin.Configuration.LockMainWindowPosition ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen;
 
-        SizeConstraints = plugin.Configuration.UseSimpleChatMode && plugin.Configuration.CompactSimpleChatMode
+        SizeConstraints = IsUltraCompactMode()
             ? new WindowSizeConstraints
             {
                 MinimumSize = new Vector2(460f, 220f),
@@ -145,22 +145,13 @@ public sealed class MainWindow : Window, IDisposable
         suppressSimpleComposerAutoFocusThisFrame = false;
         anyPopupOpenLastFrame = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup);
 
-        var drawCompactHeader = plugin.Configuration.UseSimpleChatMode &&
-                                plugin.Configuration.CompactSimpleChatMode &&
-                                !IsUltraCompactMode();
-
-        if (drawCompactHeader)
-        {
-            DrawCompactHeader();
-            ImGui.Separator();
-        }
-        else if (!plugin.Configuration.UseSimpleChatMode || !plugin.Configuration.CompactSimpleChatMode)
+        if (!IsUltraCompactMode())
         {
             DrawHeader();
             ImGui.Separator();
         }
 
-        if (plugin.Configuration.UseSimpleChatMode)
+        if (IsUltraCompactMode())
         {
             DrawSimpleChatMode();
             HandleSimpleComposerAutoFocusFromClick();
@@ -227,28 +218,10 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.SameLine();
-        var simpleChatMode = configuration.UseSimpleChatMode;
-        if (ImGui.Checkbox("Simple chat mode", ref simpleChatMode))
-        {
-            configuration.UseSimpleChatMode = simpleChatMode;
-            configuration.Save();
-        }
-
-        if (configuration.UseSimpleChatMode)
-        {
-            ImGui.SameLine();
-            var compactSimpleChat = configuration.CompactSimpleChatMode;
-            if (ImGui.Checkbox("Compact", ref compactSimpleChat))
-            {
-                configuration.CompactSimpleChatMode = compactSimpleChat;
-                configuration.Save();
-            }
-
-            ImGui.SameLine();
-            var superCompact = configuration.UseSuperCompactLanguageBar;
-            if (ImGui.Checkbox("Super Compact", ref superCompact))
-                SetSuperCompactLanguageBar(superCompact);
-        }
+        if (ImGui.SmallButton("Turn on ultra compact"))
+            plugin.SetUltraCompactMode(true);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Switch from regular mode to ultra compact mode.");
 
         ImGui.SameLine();
         if (ImGui.SmallButton(configuration.KrangleChatNames ? "Krangle Names: On" : "Krangle Names: Off"))
@@ -257,48 +230,7 @@ public sealed class MainWindow : Window, IDisposable
             configuration.Save();
         }
 
-        ImGui.TextWrapped(configuration.UseSimpleChatMode
-            ? "Simple chat mode keeps translated conversations in tabs by channel or DM, with a compact composer at the bottom."
-            : "Incoming chat is translated in the background and echoed back with labels. Outgoing translation uses the composer below so you stay in control of what gets sent.");
-    }
-
-    private void DrawCompactHeader()
-    {
-        var configuration = plugin.Configuration;
-        var enabled = configuration.PluginEnabled;
-        if (ImGui.Checkbox("Enabled##CompactHeader", ref enabled))
-            plugin.SetPluginEnabled(enabled);
-
-        ImGui.SameLine();
-        var compact = configuration.CompactSimpleChatMode;
-        if (ImGui.Checkbox("Compact##CompactHeader", ref compact))
-        {
-            configuration.CompactSimpleChatMode = compact;
-            configuration.Save();
-        }
-
-        ImGui.SameLine();
-        var superCompact = configuration.UseSuperCompactLanguageBar;
-        if (ImGui.Checkbox("Super Compact##CompactHeader", ref superCompact))
-            SetSuperCompactLanguageBar(superCompact);
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton(configuration.KrangleChatNames ? "Krangle: On" : "Krangle: Off"))
-        {
-            configuration.KrangleChatNames = !configuration.KrangleChatNames;
-            configuration.Save();
-        }
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Settings"))
-            plugin.ToggleConfigUi();
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Ko-fi"))
-            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Discord"))
-            Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
+        ImGui.TextWrapped("Regular mode keeps the fuller translator surface available. Use the button above if you want DhogGPT to replace vanilla chat with ultra compact mode.");
     }
 
     private void DrawSimpleChatMode()
@@ -322,10 +254,10 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         var changed = false;
 
-        var useInlineCompactBar = configuration.UseSuperCompactLanguageBar || IsUltraCompactMode();
+        var useInlineCompactBar = IsUltraCompactMode();
         if (useInlineCompactBar)
         {
-            EnsureSuperCompactLanguageDefaults();
+            EnsureUltraCompactLanguageDefaults();
             var originalSpacing = ImGui.GetStyle().ItemSpacing;
             var originalFramePadding = ImGui.GetStyle().FramePadding;
             var compactSpacing = new Vector2(Math.Max(2f, originalSpacing.X * 0.40f), 0f);
@@ -1198,16 +1130,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.Spacing();
     }
 
-    private void SetSuperCompactLanguageBar(bool enabled)
-    {
-        plugin.Configuration.UseSuperCompactLanguageBar = enabled;
-        if (enabled)
-            EnsureSuperCompactLanguageDefaults();
-
-        plugin.Configuration.Save();
-    }
-
-    private void EnsureSuperCompactLanguageDefaults()
+    private void EnsureUltraCompactLanguageDefaults()
     {
         var configuration = plugin.Configuration;
         if (string.Equals(configuration.OutgoingSourceLanguage, "auto", StringComparison.OrdinalIgnoreCase))

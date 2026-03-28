@@ -72,6 +72,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        NormalizeChatModeConfiguration();
         InitializeConversationVisibilityDefaults();
 
         LanguageRegistry = new LanguageRegistryService();
@@ -86,11 +87,7 @@ public sealed class Plugin : IDalamudPlugin
         mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth, ChatLogService);
         configWindow = new ConfigWindow(this, LanguageRegistry);
         firstUseGuideWindow = new FirstUseGuideWindow(this);
-        VanillaChatWindowService = new VanillaChatWindowService(() =>
-            Configuration.SuppressVanillaChatWindow &&
-            Configuration.UseSimpleChatMode &&
-            Configuration.CompactSimpleChatMode &&
-            mainWindow.IsOpen);
+        VanillaChatWindowService = new VanillaChatWindowService(() => IsUltraCompactModeConfigured() && mainWindow.IsOpen);
 
         WindowSystem.AddWindow(mainWindow);
         WindowSystem.AddWindow(configWindow);
@@ -216,15 +213,9 @@ public sealed class Plugin : IDalamudPlugin
     public void SetUltraCompactMode(bool enabled, bool printStatus = false)
     {
         if (enabled)
-        {
-            Configuration.UseSimpleChatMode = true;
-            Configuration.CompactSimpleChatMode = true;
-            Configuration.SuppressVanillaChatWindow = true;
-        }
+            ApplyUltraCompactConfiguration();
         else
-        {
-            Configuration.SuppressVanillaChatWindow = false;
-        }
+            ApplyRegularModeConfiguration();
 
         Configuration.Save();
         if (enabled)
@@ -243,6 +234,45 @@ public sealed class Plugin : IDalamudPlugin
 
         Configuration.HasSeenFirstUseGuide = true;
         Configuration.Save();
+    }
+
+    private void NormalizeChatModeConfiguration()
+    {
+        if (IsUltraCompactModeConfigured())
+        {
+            if (!Configuration.UseSuperCompactLanguageBar)
+            {
+                Configuration.UseSuperCompactLanguageBar = true;
+                Configuration.Save();
+            }
+
+            return;
+        }
+
+        if (Configuration.SuppressVanillaChatWindow ||
+            Configuration.UseSimpleChatMode ||
+            Configuration.CompactSimpleChatMode ||
+            Configuration.UseSuperCompactLanguageBar)
+        {
+            ApplyUltraCompactConfiguration();
+            Configuration.Save();
+        }
+    }
+
+    private void ApplyUltraCompactConfiguration()
+    {
+        Configuration.UseSimpleChatMode = true;
+        Configuration.CompactSimpleChatMode = true;
+        Configuration.UseSuperCompactLanguageBar = true;
+        Configuration.SuppressVanillaChatWindow = true;
+    }
+
+    private void ApplyRegularModeConfiguration()
+    {
+        Configuration.UseSimpleChatMode = false;
+        Configuration.CompactSimpleChatMode = false;
+        Configuration.UseSuperCompactLanguageBar = false;
+        Configuration.SuppressVanillaChatWindow = false;
     }
 
     private void OnCommand(string command, string arguments)
@@ -545,9 +575,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private bool ShouldCaptureUltraCompactFocusHotkeys()
     {
-        if (!Configuration.SuppressVanillaChatWindow ||
-            !Configuration.UseSimpleChatMode ||
-            !Configuration.CompactSimpleChatMode ||
+        if (!IsUltraCompactModeConfigured() ||
             !mainWindow.IsOpen ||
             configWindow.IsFocused ||
             firstUseGuideWindow.IsFocused ||
