@@ -26,6 +26,7 @@ public sealed class MainWindow : Window, IDisposable
     private readonly ChatLogService chatLogService;
     private readonly Dictionary<string, DateTimeOffset> closedConversationCutoffs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> pendingDirectMessageTabs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ConversationScrollState> conversationScrollStates = new(StringComparer.OrdinalIgnoreCase);
 
     private bool previewBusy;
     private string previewStatus = string.Empty;
@@ -44,6 +45,7 @@ public sealed class MainWindow : Window, IDisposable
     private bool requestOpenHiddenChannelsPopup;
     private bool requestOpenRecentDirectMessagesPopup;
     private bool requestDirectMessageTargetFocus;
+    private string lastRenderedConversationBodyKey = string.Empty;
 
     public MainWindow(
         Plugin plugin,
@@ -248,7 +250,8 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.Separator();
 
         var composerHeight = Math.Max(92f, ImGui.GetFrameHeightWithSpacing() * 3.6f);
-        var chatBodyHeight = Math.Max(220f, ImGui.GetContentRegionAvail().Y - composerHeight);
+        var conversationHeaderHeight = ImGui.GetFrameHeightWithSpacing() + 10f;
+        var chatBodyHeight = Math.Max(160f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
         DrawTabbedConversationArea(chatBodyHeight);
 
         ImGui.Separator();
@@ -412,6 +415,7 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         var selectedConversationApplied = false;
+        ConversationTabState? selectedConversation = null;
         if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingStretchProp))
         {
             DrawHiddenChannelsPopup();
@@ -487,9 +491,9 @@ public sealed class MainWindow : Window, IDisposable
             activeConversationKey = conversation.Key;
             activeConversationLabel = conversation.Label;
             selectedConversationApplied = true;
+            selectedConversation = conversation;
             if (SyncOutgoingChannelToConversation(conversation))
                 plugin.Configuration.Save();
-            DrawConversationMessages(conversation.Messages, height);
             ImGui.EndTabItem();
 
             if (isGeneralConversation && !tabOpen)
@@ -507,9 +511,11 @@ public sealed class MainWindow : Window, IDisposable
         DrawRecentDirectMessagesPopup(allDirectMessageConversations);
         if (selectedConversationApplied)
             forceActiveConversationSelection = false;
+
+        DrawConversationMessages(selectedConversation?.Key ?? activeConversationKey, selectedConversation?.Messages ?? Array.Empty<TranslationHistoryItem>(), height);
     }
 
-    private void DrawConversationMessages(IReadOnlyList<TranslationHistoryItem> messages, float height)
+    private void DrawConversationMessages(string conversationKey, IReadOnlyList<TranslationHistoryItem> messages, float height)
     {
         if (!ImGui.BeginChild("DhogGPTConversationBody", new Vector2(-1f, height), true))
         {
@@ -517,9 +523,19 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
+        conversationKey ??= string.Empty;
+        var currentLastMessageTicks = messages.Count > 0 ? messages[^1].TimestampUtc.UtcTicks : 0L;
+        conversationScrollStates.TryGetValue(conversationKey, out var existingScrollState);
+        var conversationChanged = !string.Equals(lastRenderedConversationBodyKey, conversationKey, StringComparison.OrdinalIgnoreCase);
+        var wasNearBottom = ImGui.GetScrollMaxY() <= 0f || ImGui.GetScrollY() >= ImGui.GetScrollMaxY() - 24f;
+        var messagesChanged = existingScrollState.MessageCount != messages.Count || existingScrollState.LastMessageTicks != currentLastMessageTicks;
+        var shouldAutoScroll = conversationChanged || (messagesChanged && wasNearBottom);
+
         if (messages.Count == 0)
         {
             ImGui.TextDisabled("No translated chat has been logged for this tab yet.");
+            conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
+            lastRenderedConversationBodyKey = conversationKey;
             ImGui.EndChild();
             return;
         }
@@ -571,6 +587,12 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.PopStyleVar();
+        ImGui.Dummy(Vector2.Zero);
+        if (shouldAutoScroll)
+            ImGui.SetScrollHereY(1.0f);
+
+        conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
+        lastRenderedConversationBodyKey = conversationKey;
         ImGui.EndChild();
     }
 
@@ -1887,4 +1909,8 @@ public sealed class MainWindow : Window, IDisposable
         string Label,
         IReadOnlyList<TranslationHistoryItem> Messages,
         DateTimeOffset LastMessageUtc);
+
+    private readonly record struct ConversationScrollState(
+        int MessageCount,
+        long LastMessageTicks);
 }
