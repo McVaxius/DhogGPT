@@ -42,6 +42,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string CommandName = "/dhoggpt";
     private const string AliasCommandName = "/dgpt";
+    private const string ShortAliasCommandName = "/dog";
     public const string DisplayName = "DhogGPT";
     public const string SupportUrl = "https://ko-fi.com/mcvaxius";
     public const string DiscordUrl = "https://discord.gg/VsXqydsvpu";
@@ -105,6 +106,11 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Alias for /dhoggpt.",
         });
 
+        CommandManager.AddHandler(ShortAliasCommandName, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Short alias for /dhoggpt.",
+        });
+
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
@@ -126,6 +132,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
 
         CommandManager.RemoveHandler(AliasCommandName);
+        CommandManager.RemoveHandler(ShortAliasCommandName);
         CommandManager.RemoveHandler(CommandName);
 
         Framework.Update -= OnFrameworkUpdate;

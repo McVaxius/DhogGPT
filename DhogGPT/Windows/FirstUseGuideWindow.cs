@@ -35,7 +35,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
         ImGui.TextWrapped("DhogGPT works best in Simple + Compact mode, and ultra compact mode is the intended vanilla-chat replacement path. Translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
         ImGui.Separator();
 
-        ImGui.BulletText("Open the main window with /dhoggpt or /dgpt.");
+        ImGui.BulletText("Open the main window with /dhoggpt, /dgpt, or /dog.");
         ImGui.BulletText("Use /dgpt ultra to toggle ultra compact mode, which replaces the vanilla chat window while DhogGPT is open.");
         ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
         ImGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");

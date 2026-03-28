@@ -58,7 +58,6 @@ public sealed class MainWindow : Window, IDisposable
     private bool suppressSimpleComposerAutoFocusThisFrame;
     private bool simpleComposerEditSessionActive;
     private bool requestWindowFocus;
-    private bool pendingSlashSeedFromHotkey;
     private bool simpleComposerFocusedLastFrame;
     private bool recentDirectMessageSearchFocusedLastFrame;
     private bool newDirectMessageTargetFocusedLastFrame;
@@ -750,8 +749,7 @@ public sealed class MainWindow : Window, IDisposable
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - comboWidth - sendWidth - (spacing * 2f));
         var submitFromEnter = false;
-        var queueSlashSeed = pendingSlashSeedFromHotkey && string.IsNullOrWhiteSpace(configuration.OutgoingDraft);
-        var composerFrameOpacity = (simpleComposerEditSessionActive || queueSlashSeed)
+        var composerFrameOpacity = simpleComposerEditSessionActive
             ? 1.0f
             : GetInactiveSimpleComposerOpacity();
 
@@ -772,12 +770,6 @@ public sealed class MainWindow : Window, IDisposable
         {
             ImGui.SetKeyboardFocusHere();
             requestSimpleComposerFocus = false;
-        }
-
-        if (queueSlashSeed)
-        {
-            ImGui.GetIO().AddInputCharacter('/');
-            pendingSlashSeedFromHotkey = false;
         }
 
         ImGui.SetNextItemWidth(ultraCompactMode ? -1f : entryWidth);
@@ -822,7 +814,6 @@ public sealed class MainWindow : Window, IDisposable
             if (string.IsNullOrWhiteSpace(configuration.OutgoingDraft))
             {
                 requestSimpleComposerFocus = false;
-                pendingSlashSeedFromHotkey = false;
                 suppressSimpleComposerAutoFocusThisFrame = true;
                 ImGui.SetWindowFocus((string?)null);
             }
@@ -2146,12 +2137,15 @@ public sealed class MainWindow : Window, IDisposable
             ApplySavedPositionForCurrentCharacter();
 
         if (seedSlash)
-            OpenSlashCommandConversation();
+        {
+            var draft = plugin.Configuration.OutgoingDraft;
+            if (!draft.StartsWith("/", StringComparison.Ordinal))
+                plugin.Configuration.OutgoingDraft = "/";
+        }
 
         IsOpen = true;
         requestWindowFocus = true;
         requestSimpleComposerFocus = true;
-        pendingSlashSeedFromHotkey = seedSlash && string.IsNullOrWhiteSpace(plugin.Configuration.OutgoingDraft);
     }
 
     private bool IsUltraCompactMode()

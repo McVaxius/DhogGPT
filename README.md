@@ -8,7 +8,7 @@ DhogGPT now has a clean `Debug x64` build.
 
 - DLL: `z:\DhogGPT\DhogGPT\bin\x64\Debug\DhogGPT.dll`
 - Solution: `z:\DhogGPT\DhogGPT.sln`
-- Commands: `/dhoggpt` and `/dgpt`
+- Commands: `/dhoggpt`, `/dgpt`, and `/dog`
 
 ## Current Feature Set
 

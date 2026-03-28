@@ -148,7 +148,7 @@ public sealed class ConfigWindow : Window, IDisposable
             "Ultra compact: focus chat on /",
             configuration.FocusUltraCompactOnSlash,
             value => configuration.FocusUltraCompactOnSlash = value,
-            "When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and seeds slash-command entry.");
+            "When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately.");
         changed |= DrawCheckbox(
             "Ultra compact: focus chat on Enter",
             configuration.FocusUltraCompactOnEnter,
