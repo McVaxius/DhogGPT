@@ -56,6 +56,7 @@ public sealed class MainWindow : Window, IDisposable
     private bool pendingSavedPositionApply;
     private bool useFocusedWindowOpacity = true;
     private bool suppressSimpleComposerAutoFocusThisFrame;
+    private bool simpleComposerEditSessionActive;
     private bool requestWindowFocus;
     private bool pendingSlashSeedFromHotkey;
     private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
@@ -738,6 +739,9 @@ public sealed class MainWindow : Window, IDisposable
         var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - comboWidth - sendWidth - (spacing * 2f));
         var submitFromEnter = false;
         var queueSlashSeed = pendingSlashSeedFromHotkey && string.IsNullOrWhiteSpace(configuration.OutgoingDraft);
+        var composerFrameOpacity = (simpleComposerEditSessionActive || queueSlashSeed)
+            ? 1.0f
+            : GetInactiveSimpleComposerOpacity();
 
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, composerFramePadding);
         if (!ultraCompactMode)
@@ -765,6 +769,10 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.SetNextItemWidth(ultraCompactMode ? -1f : entryWidth);
+        var styleColors = ImGui.GetStyle().Colors;
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBg], composerFrameOpacity));
+        ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBgHovered], composerFrameOpacity));
+        ImGui.PushStyleColor(ImGuiCol.FrameBgActive, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBgActive], composerFrameOpacity));
         var draft = configuration.OutgoingDraft;
         submitFromEnter = ImGui.InputTextWithHint(
             "##SimpleChatEntry",
@@ -772,13 +780,19 @@ public sealed class MainWindow : Window, IDisposable
             ref draft,
             2000,
             ImGuiInputTextFlags.EnterReturnsTrue);
+        var composerLostFocus = ImGui.IsItemDeactivated();
         simpleComposerInputRect = TrackedInputRect.CaptureCurrentItem();
+        ImGui.PopStyleColor(3);
         if (draft != configuration.OutgoingDraft)
         {
             configuration.OutgoingDraft = draft;
             ClearTransientUiStatus();
+            simpleComposerEditSessionActive = true;
             changed = true;
         }
+
+        if (submitFromEnter || composerLostFocus)
+            simpleComposerEditSessionActive = false;
 
         if (!ultraCompactMode)
         {
@@ -2292,12 +2306,18 @@ public sealed class MainWindow : Window, IDisposable
             : Math.Min(backgroundOpacity, focusedOpacity);
     }
 
+    private float GetInactiveSimpleComposerOpacity()
+        => Math.Clamp(plugin.Configuration.WindowOpacity, 0.20f, 1.0f);
+
     private void UpdateWindowOpacityState()
     {
         useFocusedWindowOpacity =
             ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) ||
             ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
     }
+
+    private static Vector4 WithMinimumAlpha(Vector4 color, float alpha)
+        => new(color.X, color.Y, color.Z, Math.Clamp(Math.Max(color.W, alpha), 0f, 1f));
 
     private void HandleSimpleComposerAutoFocusFromClick()
     {

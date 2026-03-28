@@ -189,6 +189,14 @@ public sealed class ConfigWindow : Window, IDisposable
         }
         DrawTooltipOnLastItem("Opacity after you click away from the DhogGPT main window.");
 
+        var fadedComposerOpacity = Math.Clamp(configuration.WindowOpacity, 0.20f, 1.0f);
+        if (ImGui.SliderFloat("Faded chatbox edit opacity", ref fadedComposerOpacity, 0.20f, 1.0f, "%.2f"))
+        {
+            configuration.WindowOpacity = fadedComposerOpacity;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque.");
+
         var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
         if (ImGui.Combo("Compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
         {
