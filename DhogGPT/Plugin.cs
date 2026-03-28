@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.ClientState.Objects;
@@ -33,6 +34,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IKeyState KeyState { get; private set; } = null!;
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IContextMenu ContextMenu { get; private set; } = null!;
     [PluginService] internal static ISeStringEvaluator SeStringEvaluator { get; private set; } = null!;
@@ -63,6 +65,8 @@ public sealed class Plugin : IDalamudPlugin
     private IDtrBarEntry? dtrEntry;
     private bool pendingLoginWindowRestore;
     private bool restoreLoginWindowStateWhenCharacterReady = true;
+    private bool wasUltraCompactSlashDown;
+    private bool wasUltraCompactEnterDown;
 
     public Plugin()
     {
@@ -93,7 +97,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open DhogGPT. Use /dhoggpt config to open settings.",
+            HelpMessage = "Open DhogGPT. Use /dhoggpt config for settings, /dhoggpt ultra for ultra compact mode, or /dhoggpt ws to reset window positions.",
         });
 
         CommandManager.AddHandler(AliasCommandName, new CommandInfo(OnCommand)
@@ -197,6 +201,31 @@ public sealed class Plugin : IDalamudPlugin
             PrintStatus(enabled ? "Plugin enabled." : "Plugin disabled.");
     }
 
+    public bool IsUltraCompactModeConfigured()
+        => Configuration.UseSimpleChatMode &&
+           Configuration.CompactSimpleChatMode &&
+           Configuration.SuppressVanillaChatWindow;
+
+    public void SetUltraCompactMode(bool enabled, bool printStatus = false)
+    {
+        if (enabled)
+        {
+            Configuration.UseSimpleChatMode = true;
+            Configuration.CompactSimpleChatMode = true;
+            Configuration.SuppressVanillaChatWindow = true;
+        }
+        else
+        {
+            Configuration.SuppressVanillaChatWindow = false;
+        }
+
+        Configuration.Save();
+        if (printStatus)
+            PrintStatus(enabled
+                ? "Ultra compact mode enabled."
+                : "Ultra compact mode disabled.");
+    }
+
     public void MarkFirstUseGuideSeen()
     {
         if (Configuration.HasSeenFirstUseGuide)
@@ -225,6 +254,12 @@ public sealed class Plugin : IDalamudPlugin
         if (trimmed.Equals("ws", StringComparison.OrdinalIgnoreCase))
         {
             ResetCurrentWindowPositions();
+            return;
+        }
+
+        if (trimmed.Equals("ultra", StringComparison.OrdinalIgnoreCase))
+        {
+            SetUltraCompactMode(!IsUltraCompactModeConfigured(), printStatus: true);
             return;
         }
 
@@ -433,6 +468,8 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnFrameworkUpdate(IFramework framework)
     {
+        HandleUltraCompactFocusHotkeys();
+
         if (restoreLoginWindowStateWhenCharacterReady &&
             PlayerState.ContentId != 0 &&
             ObjectTable.LocalPlayer != null)
@@ -449,5 +486,54 @@ public sealed class Plugin : IDalamudPlugin
         configWindow.ApplySavedPositionForCurrentCharacter();
         if (Configuration.OpenMainWindowOnCharacterLogin)
             mainWindow.IsOpen = true;
+    }
+
+    private void HandleUltraCompactFocusHotkeys()
+    {
+        var slashDown = KeyState[VirtualKey.OEM_2];
+        var enterDown = KeyState[VirtualKey.RETURN];
+        var slashPressed = slashDown && !wasUltraCompactSlashDown;
+        var enterPressed = enterDown && !wasUltraCompactEnterDown;
+
+        wasUltraCompactSlashDown = slashDown;
+        wasUltraCompactEnterDown = enterDown;
+
+        if (!ShouldCaptureUltraCompactFocusHotkeys())
+            return;
+
+        if (slashPressed && Configuration.FocusUltraCompactOnSlash)
+        {
+            KeyState[VirtualKey.OEM_2] = false;
+            mainWindow.OpenComposerFromHotkey(seedSlash: true);
+            return;
+        }
+
+        if (enterPressed && Configuration.FocusUltraCompactOnEnter)
+        {
+            KeyState[VirtualKey.RETURN] = false;
+            mainWindow.OpenComposerFromHotkey(seedSlash: false);
+        }
+    }
+
+    private bool ShouldCaptureUltraCompactFocusHotkeys()
+    {
+        if (!Configuration.SuppressVanillaChatWindow ||
+            !Configuration.UseSimpleChatMode ||
+            !Configuration.CompactSimpleChatMode ||
+            !mainWindow.IsOpen ||
+            mainWindow.IsFocused ||
+            configWindow.IsFocused ||
+            firstUseGuideWindow.IsFocused ||
+            PlayerState.ContentId == 0 ||
+            ObjectTable.LocalPlayer == null)
+        {
+            return false;
+        }
+
+        if (KeyState[VirtualKey.SHIFT] || KeyState[VirtualKey.CONTROL] || KeyState[VirtualKey.MENU])
+            return false;
+
+        return !Dalamud.Interface.Windowing.WindowSystem.HasAnyWindowSystemFocus ||
+               string.Equals(Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
     }
 }

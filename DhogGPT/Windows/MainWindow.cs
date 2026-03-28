@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using DhogGPT.Models;
 using DhogGPT.Services;
@@ -15,6 +17,7 @@ namespace DhogGPT.Windows;
 
 public sealed class MainWindow : Window, IDisposable
 {
+    private const int AutoScrollSettleFrames = 2;
     private const int DefaultVisibleDirectMessageTabs = 3;
     private const string NewDirectMessagePopupId = "New DM###DhogGPTNewDmPopup";
     private const string RecentDirectMessagesPopupId = "Recent DMs###DhogGPTRecentDmPopup";
@@ -29,6 +32,8 @@ public sealed class MainWindow : Window, IDisposable
     private readonly Dictionary<string, DateTimeOffset> closedConversationCutoffs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> pendingDirectMessageTabs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ConversationScrollState> conversationScrollStates = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> pendingConversationBottomScrolls = new(StringComparer.OrdinalIgnoreCase);
+    private readonly TitleBarButton lockTitleBarButton;
 
     private bool previewBusy;
     private string previewStatus = string.Empty;
@@ -50,6 +55,9 @@ public sealed class MainWindow : Window, IDisposable
     private string lastRenderedConversationBodyKey = string.Empty;
     private bool pendingSavedPositionApply;
     private bool useFocusedWindowOpacity = true;
+    private bool suppressSimpleComposerAutoFocusThisFrame;
+    private bool requestWindowFocus;
+    private bool pendingSlashSeedFromHotkey;
     private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
     private Vector2? lastSavedWindowPosition;
     private TrackedInputRect simpleComposerInputRect;
@@ -71,6 +79,16 @@ public sealed class MainWindow : Window, IDisposable
         this.chatLogService = chatLogService;
         this.translationCoordinator.TranslationCompleted += OnTranslationCompleted;
         this.plugin.ChatTranslationService.IncomingDirectMessageObserved += OnIncomingDirectMessageObserved;
+        lockTitleBarButton = new TitleBarButton
+        {
+            Click = OnLockTitleBarButtonClick,
+            Icon = plugin.Configuration.LockMainWindowPosition ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen,
+            IconOffset = new Vector2(2f, 1f),
+            ShowTooltip = () => ImGui.SetTooltip(plugin.Configuration.LockMainWindowPosition
+                ? "Unlock main window position"
+                : "Lock main window position"),
+        };
+        TitleBarButtons.Add(lockTitleBarButton);
 
         SizeConstraints = new WindowSizeConstraints
         {
@@ -87,6 +105,13 @@ public sealed class MainWindow : Window, IDisposable
 
     public override void PreDraw()
     {
+        if (plugin.Configuration.LockMainWindowPosition)
+            Flags |= ImGuiWindowFlags.NoMove;
+        else
+            Flags &= ~ImGuiWindowFlags.NoMove;
+
+        lockTitleBarButton.Icon = plugin.Configuration.LockMainWindowPosition ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen;
+
         SizeConstraints = plugin.Configuration.UseSimpleChatMode && plugin.Configuration.CompactSimpleChatMode
             ? new WindowSizeConstraints
             {
@@ -99,12 +124,19 @@ public sealed class MainWindow : Window, IDisposable
                 MaximumSize = new Vector2(1400f, 1000f),
             };
 
+        if (requestWindowFocus)
+        {
+            ImGui.SetNextWindowFocus();
+            requestWindowFocus = false;
+        }
+
         ImGui.SetNextWindowBgAlpha(GetActiveWindowOpacity());
     }
 
     public override void Draw()
     {
         ResetTrackedInputRects();
+        suppressSimpleComposerAutoFocusThisFrame = false;
 
         var drawCompactHeader = plugin.Configuration.UseSimpleChatMode &&
                                 plugin.Configuration.CompactSimpleChatMode &&
@@ -304,11 +336,19 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, compactFramePadding);
             if (IsUltraCompactMode())
             {
+                if (configuration.KrangleChatNames)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.28f, 0.56f, 0.32f, 0.95f));
+                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.66f, 0.38f, 0.95f));
+                    ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.24f, 0.48f, 0.28f, 0.95f));
+                }
                 if (ImGui.SmallButton("K##UltraCompactKrangle"))
                 {
                     configuration.KrangleChatNames = !configuration.KrangleChatNames;
                     changed = true;
                 }
+                if (configuration.KrangleChatNames)
+                    ImGui.PopStyleColor(3);
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
 
@@ -323,6 +363,8 @@ public sealed class MainWindow : Window, IDisposable
 
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted("Me");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Your typed language before DhogGPT translates it.");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(comboWidth);
             changed |= DrawLanguageCombo(
@@ -335,10 +377,14 @@ public sealed class MainWindow : Window, IDisposable
                     configuration.IncomingTargetLanguage = value;
                 },
                 includeAuto: false);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set the language you are writing in.");
 
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted("Them");
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("The language DhogGPT should translate your outgoing text into.");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(comboWidth);
             changed |= DrawLanguageCombo(
@@ -346,6 +392,8 @@ public sealed class MainWindow : Window, IDisposable
                 configuration.OutgoingTargetLanguage,
                 value => configuration.OutgoingTargetLanguage = value,
                 includeAuto: false);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set the language your messages should be translated to.");
             ImGui.PopStyleVar(2);
 
             if (changed)
@@ -570,6 +618,14 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawConversationMessages(string conversationKey, IReadOnlyList<TranslationHistoryItem> messages, float height)
     {
+        conversationKey ??= string.Empty;
+        var currentLastMessageTicks = messages.Count > 0 ? messages[^1].TimestampUtc.UtcTicks : 0L;
+        conversationScrollStates.TryGetValue(conversationKey, out var existingScrollState);
+        var conversationChanged = !string.Equals(lastRenderedConversationBodyKey, conversationKey, StringComparison.OrdinalIgnoreCase);
+        var messagesChanged = existingScrollState.MessageCount != messages.Count || existingScrollState.LastMessageTicks != currentLastMessageTicks;
+        if (conversationChanged || messagesChanged)
+            pendingConversationBottomScrolls[conversationKey] = AutoScrollSettleFrames;
+
         if (!ImGui.BeginChild(
                 "DhogGPTConversationBody",
                 new Vector2(-1f, height),
@@ -580,18 +636,15 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
-        conversationKey ??= string.Empty;
-        var currentLastMessageTicks = messages.Count > 0 ? messages[^1].TimestampUtc.UtcTicks : 0L;
-        conversationScrollStates.TryGetValue(conversationKey, out var existingScrollState);
-        var conversationChanged = !string.Equals(lastRenderedConversationBodyKey, conversationKey, StringComparison.OrdinalIgnoreCase);
-        var messagesChanged = existingScrollState.MessageCount != messages.Count || existingScrollState.LastMessageTicks != currentLastMessageTicks;
-        var shouldAutoScroll = conversationChanged || messagesChanged;
+        pendingConversationBottomScrolls.TryGetValue(conversationKey, out var pendingBottomScrollFrames);
+        var shouldAutoScrollThisFrame = pendingBottomScrollFrames > 0;
 
         if (messages.Count == 0)
         {
             ImGui.TextDisabled("No translated chat has been logged for this tab yet.");
             conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
             lastRenderedConversationBodyKey = conversationKey;
+            pendingConversationBottomScrolls.Remove(conversationKey);
             ImGui.EndChild();
             return;
         }
@@ -599,8 +652,10 @@ public sealed class MainWindow : Window, IDisposable
         var originalSpacing = ImGui.GetStyle().ItemSpacing;
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(originalSpacing.X, 1f));
 
-        foreach (var message in messages.OrderBy(entry => entry.TimestampUtc))
+        var orderedMessages = messages.OrderBy(entry => entry.TimestampUtc).ToList();
+        for (var messageIndex = 0; messageIndex < orderedMessages.Count; messageIndex++)
         {
+            var message = orderedMessages[messageIndex];
             var (headerColor, translatedColor, errorColor) = GetMessagePalette(message.IsInbound);
             var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm");
             var displayName = GetDisplayName(message);
@@ -640,16 +695,24 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             ImGui.Dummy(new Vector2(0f, 2f));
+
+            if (shouldAutoScrollThisFrame && messageIndex == orderedMessages.Count - 1)
+                ImGui.SetScrollHereY(1f);
         }
 
         ImGui.PopStyleVar();
         ImGui.Dummy(Vector2.Zero);
-        if (shouldAutoScroll)
-            ImGui.SetScrollY(ImGui.GetScrollMaxY());
-
         var canScrollUp = ImGui.GetScrollY() > 1f;
         var canScrollDown = ImGui.GetScrollY() < ImGui.GetScrollMaxY() - 1f;
         DrawConversationScrollIndicators(canScrollUp, canScrollDown);
+
+        if (shouldAutoScrollThisFrame)
+        {
+            if (pendingBottomScrollFrames <= 1)
+                pendingConversationBottomScrolls.Remove(conversationKey);
+            else
+                pendingConversationBottomScrolls[conversationKey] = pendingBottomScrollFrames - 1;
+        }
 
         conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
         lastRenderedConversationBodyKey = conversationKey;
@@ -660,6 +723,13 @@ public sealed class MainWindow : Window, IDisposable
     {
         var configuration = plugin.Configuration;
         var changed = SyncSimpleComposerToActiveConversation();
+
+        if (pendingSlashSeedFromHotkey && string.IsNullOrWhiteSpace(configuration.OutgoingDraft))
+        {
+            configuration.OutgoingDraft = "/";
+            pendingSlashSeedFromHotkey = false;
+            changed = true;
+        }
 
         var comboWidth = 150f;
         var framePadding = ImGui.GetStyle().FramePadding;
@@ -710,7 +780,19 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.PopStyleVar();
 
         if (submitFromEnter)
-            _ = SendSimpleChatAsync();
+        {
+            if (string.IsNullOrWhiteSpace(configuration.OutgoingDraft))
+            {
+                requestSimpleComposerFocus = false;
+                pendingSlashSeedFromHotkey = false;
+                suppressSimpleComposerAutoFocusThisFrame = true;
+                ImGui.SetWindowFocus((string?)null);
+            }
+            else
+            {
+                _ = SendSimpleChatAsync();
+            }
+        }
 
         if (changed)
             configuration.Save();
@@ -1022,6 +1104,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             await Plugin.Framework.RunOnFrameworkThread(() =>
             {
+                RecordSlashCommandEcho(command);
                 plugin.Configuration.OutgoingDraft = string.Empty;
                 plugin.Configuration.Save();
             });
@@ -1197,6 +1280,8 @@ public sealed class MainWindow : Window, IDisposable
         if (!ImGui.BeginCombo(label, selectedLabel))
             return false;
 
+        suppressSimpleComposerAutoFocusThisFrame = true;
+
         foreach (var conversation in GetPinnedGeneralConversations())
             changed |= DrawOutgoingConversationSelectable(conversation);
 
@@ -1218,6 +1303,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (ImGui.BeginCombo(label, displayName))
         {
+            suppressSimpleComposerAutoFocusThisFrame = true;
             foreach (var option in options)
             {
                 var isSelected = option.Code.Equals(currentCode, StringComparison.OrdinalIgnoreCase);
@@ -1611,6 +1697,7 @@ public sealed class MainWindow : Window, IDisposable
         activeConversationKey = conversationKey;
         activeConversationLabel = normalizedIdentity;
         forceActiveConversationSelection = true;
+        requestWindowFocus = true;
         requestSimpleComposerFocus = true;
         ApplySavedPositionForCurrentCharacter();
         IsOpen = true;
@@ -1640,6 +1727,7 @@ public sealed class MainWindow : Window, IDisposable
     private void QueueOpenDirectMessagePopup(string? initialTarget = null)
     {
         ClearTransientUiStatus();
+        suppressSimpleComposerAutoFocusThisFrame = true;
         pendingDirectMessageTarget = initialTarget ?? string.Empty;
         directMessagePopupError = string.Empty;
         requestDirectMessageTargetFocus = true;
@@ -1656,6 +1744,7 @@ public sealed class MainWindow : Window, IDisposable
         if (ImGui.SmallButton("H"))
         {
             ClearTransientUiStatus();
+            suppressSimpleComposerAutoFocusThisFrame = true;
             requestOpenHiddenChannelsPopup = true;
         }
         if (ImGui.IsItemHovered())
@@ -1665,6 +1754,7 @@ public sealed class MainWindow : Window, IDisposable
         if (ImGui.SmallButton("R"))
         {
             ClearTransientUiStatus();
+            suppressSimpleComposerAutoFocusThisFrame = true;
             requestOpenRecentDirectMessagesPopup = true;
         }
         if (ImGui.IsItemHovered())
@@ -1704,6 +1794,8 @@ public sealed class MainWindow : Window, IDisposable
             activeConversationKey = conversation.Key;
             activeConversationLabel = displayLabel;
             forceActiveConversationSelection = true;
+            requestWindowFocus = true;
+            requestSimpleComposerFocus = true;
             TryApplyConversationKeyToOutgoingChannel(conversation.Key);
             plugin.Configuration.Save();
             ImGui.CloseCurrentPopup();
@@ -1771,6 +1863,7 @@ public sealed class MainWindow : Window, IDisposable
         activeConversationKey = conversation.Key;
         activeConversationLabel = conversation.Label;
         forceActiveConversationSelection = true;
+        requestWindowFocus = true;
         requestSimpleComposerFocus = true;
         ApplySavedPositionForCurrentCharacter();
         IsOpen = true;
@@ -2009,10 +2102,72 @@ public sealed class MainWindow : Window, IDisposable
     public void RequestSimpleComposerFocus()
         => requestSimpleComposerFocus = true;
 
+    public void OpenComposerFromHotkey(bool seedSlash)
+    {
+        if (!IsOpen)
+            ApplySavedPositionForCurrentCharacter();
+
+        if (seedSlash)
+            OpenSlashCommandConversation();
+
+        IsOpen = true;
+        requestWindowFocus = true;
+        requestSimpleComposerFocus = true;
+        pendingSlashSeedFromHotkey = seedSlash && string.IsNullOrWhiteSpace(plugin.Configuration.OutgoingDraft);
+    }
+
     private bool IsUltraCompactMode()
         => plugin.Configuration.SuppressVanillaChatWindow &&
            plugin.Configuration.UseSimpleChatMode &&
            plugin.Configuration.CompactSimpleChatMode;
+
+    private void OnLockTitleBarButtonClick(ImGuiMouseButton mouseButton)
+    {
+        if (mouseButton != ImGuiMouseButton.Left)
+            return;
+
+        plugin.Configuration.LockMainWindowPosition = !plugin.Configuration.LockMainWindowPosition;
+        plugin.Configuration.Save();
+        lockTitleBarButton.Icon = plugin.Configuration.LockMainWindowPosition ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen;
+    }
+
+    private void RecordSlashCommandEcho(string command)
+    {
+        var sender = Plugin.ObjectTable.LocalPlayer?.Name.TextValue ?? "You";
+        chatLogService.AddTransientEntry(new TranslationHistoryItem
+        {
+            TimestampUtc = DateTimeOffset.UtcNow,
+            IsInbound = false,
+            Success = true,
+            ChannelLabel = "Echo",
+            Sender = sender,
+            ConversationKey = "channel:ECHO",
+            ConversationLabel = "Echo",
+            OriginalText = command,
+            ProviderName = "SlashCommand",
+        });
+
+        Plugin.ChatGui.Print(new XivChatEntry
+        {
+            Type = XivChatType.Echo,
+            Message = $"[DhogGPT] Slash command sent: {command}",
+        });
+    }
+
+    private void OpenSlashCommandConversation()
+    {
+        ClearTransientUiStatus();
+        var changed = plugin.Configuration.HiddenGeneralConversationKeys.RemoveAll(hidden =>
+            string.Equals(hidden, "channel:ECHO", StringComparison.OrdinalIgnoreCase)) > 0;
+
+        activeConversationKey = "channel:ECHO";
+        activeConversationLabel = "Echo";
+        forceActiveConversationSelection = true;
+        changed |= TryApplyConversationKeyToOutgoingChannel("channel:ECHO");
+
+        if (changed)
+            plugin.Configuration.Save();
+    }
 
     private void ResetTrackedInputRects()
     {
@@ -2026,6 +2181,21 @@ public sealed class MainWindow : Window, IDisposable
         if (!canScrollUp && !canScrollDown)
             return;
 
+        if (plugin.Configuration.ScrollIndicatorStyle == 0)
+        {
+            var wedgeDrawList = ImGui.GetWindowDrawList();
+            var wedgeWindowPos = ImGui.GetWindowPos();
+            var wedgeWindowSize = ImGui.GetWindowSize();
+
+            if (canScrollUp)
+                DrawConversationScrollWedge(wedgeDrawList, wedgeWindowPos, wedgeWindowSize, top: true);
+
+            if (canScrollDown)
+                DrawConversationScrollWedge(wedgeDrawList, wedgeWindowPos, wedgeWindowSize, top: false);
+
+            return;
+        }
+
         var drawList = ImGui.GetWindowDrawList();
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
@@ -2036,6 +2206,38 @@ public sealed class MainWindow : Window, IDisposable
 
         if (canScrollDown)
             DrawConversationScrollIndicator(drawList, windowPos, windowSize, BuildScrollIndicator('↓', availableWidth), top: false);
+    }
+
+    private static void DrawConversationScrollWedge(ImDrawListPtr drawList, Vector2 windowPos, Vector2 windowSize, bool top)
+    {
+        var wedgeHeight = Math.Max(ImGui.GetTextLineHeight(), 14f);
+        var wedgeWidth = Math.Max(72f, Math.Min(windowSize.X / 3f, windowSize.X - 24f));
+        var centerX = windowPos.X + (windowSize.X * 0.5f);
+        var originY = top
+            ? windowPos.Y + 4f
+            : windowPos.Y + windowSize.Y - wedgeHeight - 4f;
+
+        var left = top
+            ? new Vector2(centerX - (wedgeWidth * 0.5f), originY + wedgeHeight)
+            : new Vector2(centerX - (wedgeWidth * 0.5f), originY);
+        var right = top
+            ? new Vector2(centerX + (wedgeWidth * 0.5f), originY + wedgeHeight)
+            : new Vector2(centerX + (wedgeWidth * 0.5f), originY);
+        var apex = top
+            ? new Vector2(centerX, originY)
+            : new Vector2(centerX, originY + wedgeHeight);
+
+        drawList.AddTriangleFilled(
+            left,
+            apex,
+            right,
+            ImGui.GetColorU32(new Vector4(0.86f, 0.86f, 0.86f, 0.70f)));
+        drawList.AddTriangle(
+            left,
+            apex,
+            right,
+            ImGui.GetColorU32(new Vector4(0.08f, 0.08f, 0.08f, 0.75f)),
+            1.5f);
     }
 
     private static void DrawConversationScrollIndicator(ImDrawListPtr drawList, Vector2 windowPos, Vector2 windowSize, string indicator, bool top)
@@ -2092,6 +2294,7 @@ public sealed class MainWindow : Window, IDisposable
     {
         if (!ImGui.IsMouseReleased(ImGuiMouseButton.Left) ||
             !ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows) ||
+            suppressSimpleComposerAutoFocusThisFrame ||
             ImGui.IsAnyItemActive() ||
             ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup))
         {

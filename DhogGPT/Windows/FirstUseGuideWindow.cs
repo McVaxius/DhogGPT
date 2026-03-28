@@ -32,25 +32,31 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextWrapped("DhogGPT works best in Simple + Compact mode: translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
+        ImGui.TextWrapped("DhogGPT works best in Simple + Compact mode, and ultra compact mode is the intended vanilla-chat replacement path. Translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
         ImGui.Separator();
 
         ImGui.BulletText("Open the main window with /dhoggpt or /dgpt.");
-        ImGui.BulletText("Start in Simple chat mode with Compact enabled for the all-in-one tabbed chat view.");
-        ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, and Recent for older DM threads.");
+        ImGui.BulletText("Use /dgpt ultra to toggle ultra compact mode, which replaces the vanilla chat window while DhogGPT is open.");
+        ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
+        ImGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");
+        ImGui.BulletText("Raw slash commands typed into DhogGPT send directly and leave an Echo breadcrumb instead of going through translation.");
         ImGui.BulletText("Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it.");
         ImGui.BulletText("Use Krangle if you want display-only name scrambling in the plugin window.");
         ImGui.BulletText("Click the DTR entry to open the DhogGPT main window.");
 
         ImGui.Spacing();
-        ImGui.TextWrapped("There is still a fuller non-compact path in the main window, but Compact mode is the primary chat UX now. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
+        ImGui.TextWrapped("There is still a fuller non-compact path in the main window, but compact and ultra compact mode are the primary chat UX now. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
 
         if (ImGui.Button("Open main window"))
             plugin.OpenMainUi();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open the DhogGPT main chat window.");
 
         ImGui.SameLine();
         if (ImGui.Button("Open settings"))
             plugin.OpenConfigUi();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open the DhogGPT settings window.");
 
         ImGui.SameLine();
         if (ImGui.Button("Got it"))
@@ -58,5 +64,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
             plugin.MarkFirstUseGuideSeen();
             IsOpen = false;
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Close this guide and mark it as seen.");
     }
 }

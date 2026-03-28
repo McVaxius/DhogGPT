@@ -21,6 +21,9 @@ public static class CommandHelper
         string prefix;
         switch (configuration.SelectedOutgoingChannel)
         {
+            case OutgoingChannel.Echo:
+                prefix = "/echo ";
+                break;
             case OutgoingChannel.Say:
                 prefix = "/s ";
                 break;

@@ -26,6 +26,10 @@ public sealed class Configuration : IPluginConfiguration
     public bool OpenMainWindowOnCharacterLogin { get; set; }
     public bool SuppressVanillaChatWindow { get; set; }
     public bool UseSuperCompactLanguageBar { get; set; } = true;
+    public bool FocusUltraCompactOnSlash { get; set; } = true;
+    public bool FocusUltraCompactOnEnter { get; set; } = true;
+    public bool LockMainWindowPosition { get; set; }
+    public int ScrollIndicatorStyle { get; set; }
     public bool HasInitializedEchoChannelVisibility { get; set; }
     public bool HasInitializedSupplementalChannelVisibility { get; set; }
     public float WindowOpacity { get; set; } = 0.92f;

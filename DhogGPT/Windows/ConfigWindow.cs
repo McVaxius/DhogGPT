@@ -11,6 +11,7 @@ namespace DhogGPT.Windows;
 public sealed class ConfigWindow : Window, IDisposable
 {
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
+    private static readonly string[] ScrollIndicatorStyles = { "Centered wedges", "Legacy arrows" };
     private static readonly string VersionedWindowTitle = $"DhogGPT Settings v{typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "0.0.0.0"}###DhogGPTConfig";
     private static readonly string[] CompactChatColorThemes =
     {
@@ -35,7 +36,7 @@ public sealed class ConfigWindow : Window, IDisposable
 
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(500f, 420f),
+            MinimumSize = new Vector2(560f, 460f),
             MaximumSize = new Vector2(1100f, 900f),
         };
     }
@@ -46,99 +47,36 @@ public sealed class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
-        DrawGeneralSettings();
-        ImGui.Separator();
-        DrawDtrSettings();
-        ImGui.Separator();
-        DrawIncomingChannelSettings();
-        ImGui.Separator();
-        DrawProviderSettings();
+        if (ImGui.BeginTabBar("DhogGPTSettingsTabs"))
+        {
+            if (ImGui.BeginTabItem("Everyday"))
+            {
+                DrawEverydaySettings();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Channels"))
+            {
+                DrawIncomingChannelSettings();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Providers"))
+            {
+                DrawProviderSettings();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Advanced"))
+            {
+                DrawAdvancedSettings();
+                ImGui.EndTabItem();
+            }
+
+            ImGui.EndTabBar();
+        }
+
         TrackWindowPosition();
-    }
-
-    private void DrawGeneralSettings()
-    {
-        var changed = false;
-        var configuration = plugin.Configuration;
-
-        ImGui.TextUnformatted("General");
-        if (ImGui.SmallButton("Ko-fi##Settings"))
-            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Discord##Settings"))
-            Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
-
-        changed |= DrawCheckbox("Plugin enabled", configuration.PluginEnabled, value => configuration.PluginEnabled = value);
-        changed |= DrawCheckbox("Translate incoming chat", configuration.TranslateIncoming, value => configuration.TranslateIncoming = value);
-        changed |= DrawCheckbox("Skip messages from my own character", configuration.SkipOwnMessages, value => configuration.SkipOwnMessages = value);
-        changed |= DrawCheckbox("Include sender name in translated Echo output", configuration.IncludeSenderName, value => configuration.IncludeSenderName = value);
-        changed |= DrawCheckbox("Include channel label in translated Echo output", configuration.IncludeChannelLabel, value => configuration.IncludeChannelLabel = value);
-        changed |= DrawCheckbox("Use simple all-in-one chat mode", configuration.UseSimpleChatMode, value => configuration.UseSimpleChatMode = value);
-        changed |= DrawCheckbox("Use compact simple chat header", configuration.CompactSimpleChatMode, value => configuration.CompactSimpleChatMode = value);
-        changed |= DrawCheckbox("Krangle names in chat UI", configuration.KrangleChatNames, value => configuration.KrangleChatNames = value);
-        changed |= DrawCheckbox("Open main window when a DM arrives", configuration.OpenMainWindowOnIncomingDirectMessage, value => configuration.OpenMainWindowOnIncomingDirectMessage = value);
-        changed |= DrawCheckbox("Open main window when a character loads", configuration.OpenMainWindowOnCharacterLogin, value => configuration.OpenMainWindowOnCharacterLogin = value);
-        changed |= DrawCheckbox("Suppress vanilla chat window", configuration.SuppressVanillaChatWindow, value => configuration.SuppressVanillaChatWindow = value);
-        changed |= DrawCheckbox("Enable debug logging", configuration.EnableDebugLogging, value => configuration.EnableDebugLogging = value);
-
-        changed |= DrawLanguageCombo("Incoming source language", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
-        changed |= DrawLanguageCombo("Incoming target language", configuration.IncomingTargetLanguage, value => configuration.IncomingTargetLanguage = value, includeAuto: false);
-
-        var focusedOpacity = Math.Clamp(configuration.FocusedWindowOpacity, 0.20f, 1.0f);
-        if (ImGui.SliderFloat("Focused or hovered opacity", ref focusedOpacity, 0.20f, 1.0f, "%.2f"))
-        {
-            configuration.FocusedWindowOpacity = focusedOpacity;
-            changed = true;
-        }
-
-        var backgroundOpacity = Math.Clamp(configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
-        if (ImGui.SliderFloat("Background opacity", ref backgroundOpacity, 0.20f, 1.0f, "%.2f"))
-        {
-            configuration.BackgroundWindowOpacity = backgroundOpacity;
-            changed = true;
-        }
-
-        var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
-        if (ImGui.Combo("Compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
-        {
-            configuration.CompactChatColorTheme = compactChatColorTheme;
-            changed = true;
-        }
-
-        if (configuration.CompactChatColorTheme == CompactChatColorThemes.Length - 1)
-        {
-            changed |= DrawCustomColorEditor(configuration.CompactChatCustomColors);
-        }
-
-        var requestTimeoutSeconds = configuration.RequestTimeoutSeconds;
-        if (ImGui.SliderInt("Request timeout seconds", ref requestTimeoutSeconds, 5, 60))
-        {
-            configuration.RequestTimeoutSeconds = requestTimeoutSeconds;
-            changed = true;
-        }
-
-        var historyLimit = configuration.HistoryLimit;
-        if (ImGui.SliderInt("History entries to keep", ref historyLimit, 5, 200))
-        {
-            configuration.HistoryLimit = historyLimit;
-            changed = true;
-        }
-
-        if (changed)
-            configuration.Save();
-
-        if (ImGui.SmallButton("Open chat log folder"))
-        {
-            var logDirectory = Path.Combine(Plugin.PluginInterface.ConfigDirectory.FullName, "Data", "ChatLogs");
-            Directory.CreateDirectory(logDirectory);
-            Process.Start(new ProcessStartInfo { FileName = logDirectory, UseShellExecute = true });
-        }
-
-        ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
-        ImGui.TextDisabled("Focused or hovered opacity applies while the DhogGPT chat window is active. Background opacity applies after you click away and stop hovering it.");
-        ImGui.TextDisabled("Suppressing the vanilla chat window enables DhogGPT's ultra-compact chrome while simple compact mode is active.");
-        ImGui.TextDisabled("Color themes are configured here only, not from the main chat window.");
-        ImGui.TextDisabled(Plugin.DiscordFeedbackNote);
     }
 
     public void ApplySavedPositionForCurrentCharacter()
@@ -149,6 +87,286 @@ public sealed class ConfigWindow : Window, IDisposable
         Position = position.ToVector2();
         PositionCondition = ImGuiCond.Always;
         pendingSavedPositionApply = true;
+    }
+
+    private void DrawEverydaySettings()
+    {
+        var configuration = plugin.Configuration;
+        var changed = false;
+
+        ImGui.TextUnformatted("Common DhogGPT settings");
+        if (ImGui.SmallButton("Ko-fi##Settings"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+        DrawTooltipOnLastItem("Open the DhogGPT support page.");
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Discord##Settings"))
+            Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
+        DrawTooltipOnLastItem("Open the DhogGPT Discord server.");
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Guide##Settings"))
+            plugin.OpenFirstUseGuide();
+        DrawTooltipOnLastItem("Open the first-use guide again.");
+
+        var ultraCompactMode = plugin.IsUltraCompactModeConfigured();
+        if (ImGui.Checkbox("Ultra compact mode (replace vanilla chat window)", ref ultraCompactMode))
+            plugin.SetUltraCompactMode(ultraCompactMode);
+        DrawTooltipOnLastItem("Turns on simple mode, compact mode, and vanilla-chat suppression together. Disabling it restores vanilla chat replacement while keeping your other layout choices intact.");
+
+        changed |= DrawCheckbox(
+            "Plugin enabled",
+            configuration.PluginEnabled,
+            value => configuration.PluginEnabled = value,
+            "Master DhogGPT enable switch. Incoming translation and related automation stop when this is off.");
+        changed |= DrawCheckbox(
+            "Translate incoming chat",
+            configuration.TranslateIncoming,
+            value => configuration.TranslateIncoming = value,
+            "Translate allowed incoming chat channels into your chosen target language.");
+        changed |= DrawCheckbox(
+            "Open main window when a DM arrives",
+            configuration.OpenMainWindowOnIncomingDirectMessage,
+            value => configuration.OpenMainWindowOnIncomingDirectMessage = value,
+            "Brings DhogGPT to the front when a new incoming tell is observed.");
+        changed |= DrawCheckbox(
+            "Open main window when a character loads",
+            configuration.OpenMainWindowOnCharacterLogin,
+            value => configuration.OpenMainWindowOnCharacterLogin = value,
+            "Reopens the DhogGPT main window automatically on character login.");
+        changed |= DrawCheckbox(
+            "Use simple all-in-one chat mode",
+            configuration.UseSimpleChatMode,
+            value => configuration.UseSimpleChatMode = value,
+            "Uses the tabbed chat layout with the inline composer instead of the older separate preview flow.");
+        changed |= DrawCheckbox(
+            "Use compact simple chat header",
+            configuration.CompactSimpleChatMode,
+            value => configuration.CompactSimpleChatMode = value,
+            "Tightens the simple-mode header and layout for a denser chat-window presentation.");
+        changed |= DrawCheckbox(
+            "Ultra compact: focus chat on /",
+            configuration.FocusUltraCompactOnSlash,
+            value => configuration.FocusUltraCompactOnSlash = value,
+            "When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and seeds slash-command entry.");
+        changed |= DrawCheckbox(
+            "Ultra compact: focus chat on Enter",
+            configuration.FocusUltraCompactOnEnter,
+            value => configuration.FocusUltraCompactOnEnter = value,
+            "When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer.");
+        changed |= DrawCheckbox(
+            "Krangle names in chat UI",
+            configuration.KrangleChatNames,
+            value => configuration.KrangleChatNames = value,
+            "Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat.");
+
+        changed |= DrawLanguageCombo(
+            "Incoming source language",
+            configuration.IncomingSourceLanguage,
+            value => configuration.IncomingSourceLanguage = value,
+            includeAuto: true,
+            "Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time.");
+        changed |= DrawLanguageCombo(
+            "Incoming target language",
+            configuration.IncomingTargetLanguage,
+            value => configuration.IncomingTargetLanguage = value,
+            includeAuto: false,
+            "Language that incoming translations should be rendered into.");
+
+        var focusedOpacity = Math.Clamp(configuration.FocusedWindowOpacity, 0.20f, 1.0f);
+        if (ImGui.SliderFloat("Focused or hovered opacity", ref focusedOpacity, 0.20f, 1.0f, "%.2f"))
+        {
+            configuration.FocusedWindowOpacity = focusedOpacity;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Opacity while the DhogGPT main window is hovered or focused.");
+
+        var backgroundOpacity = Math.Clamp(configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
+        if (ImGui.SliderFloat("Background opacity", ref backgroundOpacity, 0.20f, 1.0f, "%.2f"))
+        {
+            configuration.BackgroundWindowOpacity = backgroundOpacity;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Opacity after you click away from the DhogGPT main window.");
+
+        var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
+        if (ImGui.Combo("Compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
+        {
+            configuration.CompactChatColorTheme = compactChatColorTheme;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Controls header and translation colors in compact and ultra compact chat.");
+
+        var scrollIndicatorStyle = Math.Clamp(configuration.ScrollIndicatorStyle, 0, ScrollIndicatorStyles.Length - 1);
+        if (ImGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
+        {
+            configuration.ScrollIndicatorStyle = scrollIndicatorStyle;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Choose the default look for hidden-scroll hints in the conversation body.");
+
+        if (configuration.CompactChatColorTheme == CompactChatColorThemes.Length - 1)
+            changed |= DrawCustomColorEditor(configuration.CompactChatCustomColors);
+
+        if (changed)
+            configuration.Save();
+
+        ImGui.Separator();
+        ImGui.TextDisabled("Ultra compact mode is the main chat-window replacement path. The / and Enter focus shortcuts only apply while DhogGPT is already open.");
+        ImGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave an Echo breadcrumb.");
+    }
+
+    private void DrawIncomingChannelSettings()
+    {
+        var changed = false;
+        var configuration = plugin.Configuration;
+
+        ImGui.TextUnformatted("Incoming and channel behavior");
+        changed |= DrawCheckbox(
+            "Skip messages from my own character",
+            configuration.SkipOwnMessages,
+            value => configuration.SkipOwnMessages = value,
+            "Prevents DhogGPT from translating messages that appear to come from your own character.");
+        changed |= DrawCheckbox(
+            "Include sender name in translated Echo output",
+            configuration.IncludeSenderName,
+            value => configuration.IncludeSenderName = value,
+            "Adds the sender identity into DhogGPT's Echo mirror for translated incoming chat.");
+        changed |= DrawCheckbox(
+            "Include channel label in translated Echo output",
+            configuration.IncludeChannelLabel,
+            value => configuration.IncludeChannelLabel = value,
+            "Adds the channel label such as Party, FC, or Tell into DhogGPT's Echo mirror output.");
+        changed |= DrawCheckbox("Party", configuration.EnableParty, value => configuration.EnableParty = value, "Enable translation for Party and Alliance chat.");
+        changed |= DrawCheckbox("Free company", configuration.EnableFreeCompany, value => configuration.EnableFreeCompany = value, "Enable translation for Free Company chat.");
+        changed |= DrawCheckbox("Linkshells", configuration.EnableLinkshells, value => configuration.EnableLinkshells = value, "Enable translation for linkshell channels LS1-LS8.");
+        changed |= DrawCheckbox("Cross-world linkshells", configuration.EnableCrossWorldLinkshells, value => configuration.EnableCrossWorldLinkshells = value, "Enable translation for cross-world linkshell channels CWLS1-CWLS8.");
+        changed |= DrawCheckbox("Say", configuration.EnableSay, value => configuration.EnableSay = value, "Enable translation for Say chat.");
+        changed |= DrawCheckbox("Shout", configuration.EnableShout, value => configuration.EnableShout = value, "Enable translation for Shout chat.");
+        changed |= DrawCheckbox("Yell", configuration.EnableYell, value => configuration.EnableYell = value, "Enable translation for Yell chat.");
+        changed |= DrawCheckbox("DM / tell", configuration.EnableTell, value => configuration.EnableTell = value, "Enable translation for incoming and outgoing tells.");
+
+        if (changed)
+            configuration.Save();
+
+        ImGui.Separator();
+        ImGui.TextDisabled("Echo, Progress, and Combat are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
+    }
+
+    private void DrawProviderSettings()
+    {
+        var changed = false;
+        var configuration = plugin.Configuration;
+
+        ImGui.TextUnformatted("Translation provider and timeout");
+        ImGui.TextWrapped("DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line.");
+
+        var requestTimeoutSeconds = configuration.RequestTimeoutSeconds;
+        if (ImGui.SliderInt("Request timeout seconds", ref requestTimeoutSeconds, 5, 60))
+        {
+            configuration.RequestTimeoutSeconds = requestTimeoutSeconds;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Maximum time DhogGPT waits for a single translation request before treating it as failed.");
+
+        var providerEndpoints = configuration.ProviderEndpoints;
+        if (ImGui.InputTextMultiline("Endpoints", ref providerEndpoints, 4000, new Vector2(-1f, 140f)))
+        {
+            configuration.ProviderEndpoints = providerEndpoints;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable.");
+
+        if (ImGui.Button("Reset fallback endpoints"))
+        {
+            configuration.ProviderEndpoints =
+                "https://translate.argosopentech.com" + Environment.NewLine +
+                "https://libretranslate.de";
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Restore the default fallback translation endpoints.");
+
+        if (changed)
+            configuration.Save();
+    }
+
+    private void DrawAdvancedSettings()
+    {
+        var configuration = plugin.Configuration;
+        var changed = false;
+
+        ImGui.TextUnformatted("Advanced and diagnostics");
+        if (ImGui.Button("Open first-use guide"))
+            plugin.OpenFirstUseGuide();
+        DrawTooltipOnLastItem("Reopen the first-use guide window.");
+
+        var dtrBarEnabled = configuration.DtrBarEnabled;
+        if (ImGui.Checkbox("Show DTR bar entry", ref dtrBarEnabled))
+        {
+            configuration.DtrBarEnabled = dtrBarEnabled;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Show or hide the DhogGPT entry in the Dalamud DTR bar.");
+
+        var dtrMode = configuration.DtrBarMode;
+        if (ImGui.Combo("DTR mode", ref dtrMode, DtrModes, DtrModes.Length))
+        {
+            configuration.DtrBarMode = dtrMode;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Choose whether the DTR entry shows text, icon plus text, or icon only.");
+
+        var enabledGlyph = configuration.DtrIconEnabled;
+        if (ImGui.InputText("DTR enabled glyph", ref enabledGlyph, 8))
+        {
+            configuration.DtrIconEnabled = enabledGlyph.Length <= 3 ? enabledGlyph : enabledGlyph[..3];
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Glyph used for the DTR entry while DhogGPT is enabled.");
+
+        var disabledGlyph = configuration.DtrIconDisabled;
+        if (ImGui.InputText("DTR disabled glyph", ref disabledGlyph, 8))
+        {
+            configuration.DtrIconDisabled = disabledGlyph.Length <= 3 ? disabledGlyph : disabledGlyph[..3];
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Glyph used for the DTR entry while DhogGPT is disabled.");
+
+        changed |= DrawCheckbox(
+            "Lock main window position by default",
+            configuration.LockMainWindowPosition,
+            value => configuration.LockMainWindowPosition = value,
+            "Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place.");
+        changed |= DrawCheckbox(
+            "Enable debug logging",
+            configuration.EnableDebugLogging,
+            value => configuration.EnableDebugLogging = value,
+            "Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem.");
+
+        var historyLimit = configuration.HistoryLimit;
+        if (ImGui.SliderInt("History entries to keep", ref historyLimit, 5, 200))
+        {
+            configuration.HistoryLimit = historyLimit;
+            changed = true;
+        }
+        DrawTooltipOnLastItem("Maximum number of translated history items DhogGPT keeps in memory per loaded chat log.");
+
+        if (changed)
+        {
+            configuration.Save();
+            plugin.UpdateDtrBar();
+        }
+
+        if (ImGui.SmallButton("Open chat log folder"))
+        {
+            var logDirectory = Path.Combine(Plugin.PluginInterface.ConfigDirectory.FullName, "Data", "ChatLogs");
+            Directory.CreateDirectory(logDirectory);
+            Process.Start(new ProcessStartInfo { FileName = logDirectory, UseShellExecute = true });
+        }
+        DrawTooltipOnLastItem("Open DhogGPT's per-character chat-log folder on disk.");
+
+        ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
+        ImGui.TextDisabled(Plugin.DiscordFeedbackNote);
     }
 
     private void TrackWindowPosition()
@@ -175,107 +393,19 @@ public sealed class ConfigWindow : Window, IDisposable
         plugin.SaveCurrentWindowPosition(true, currentPosition);
     }
 
-    private void DrawDtrSettings()
-    {
-        var configuration = plugin.Configuration;
-        var changed = false;
-
-        ImGui.TextUnformatted("DTR bar");
-        if (ImGui.Button("Open first-use guide"))
-            plugin.OpenFirstUseGuide();
-
-        var dtrBarEnabled = configuration.DtrBarEnabled;
-        if (ImGui.Checkbox("Show DTR bar entry", ref dtrBarEnabled))
-        {
-            configuration.DtrBarEnabled = dtrBarEnabled;
-            changed = true;
-        }
-
-        var dtrMode = configuration.DtrBarMode;
-        if (ImGui.Combo("DTR mode", ref dtrMode, DtrModes, DtrModes.Length))
-        {
-            configuration.DtrBarMode = dtrMode;
-            changed = true;
-        }
-
-        var enabledGlyph = configuration.DtrIconEnabled;
-        if (ImGui.InputText("DTR enabled glyph", ref enabledGlyph, 8))
-        {
-            configuration.DtrIconEnabled = enabledGlyph.Length <= 3 ? enabledGlyph : enabledGlyph[..3];
-            changed = true;
-        }
-
-        var disabledGlyph = configuration.DtrIconDisabled;
-        if (ImGui.InputText("DTR disabled glyph", ref disabledGlyph, 8))
-        {
-            configuration.DtrIconDisabled = disabledGlyph.Length <= 3 ? disabledGlyph : disabledGlyph[..3];
-            changed = true;
-        }
-
-        if (changed)
-        {
-            configuration.Save();
-            plugin.UpdateDtrBar();
-        }
-    }
-
-    private void DrawIncomingChannelSettings()
-    {
-        var changed = false;
-        var configuration = plugin.Configuration;
-
-        ImGui.TextUnformatted("Incoming channel filters");
-        changed |= DrawCheckbox("Party", configuration.EnableParty, value => configuration.EnableParty = value);
-        changed |= DrawCheckbox("Free company", configuration.EnableFreeCompany, value => configuration.EnableFreeCompany = value);
-        changed |= DrawCheckbox("Linkshells", configuration.EnableLinkshells, value => configuration.EnableLinkshells = value);
-        changed |= DrawCheckbox("Cross-world linkshells", configuration.EnableCrossWorldLinkshells, value => configuration.EnableCrossWorldLinkshells = value);
-        changed |= DrawCheckbox("Say", configuration.EnableSay, value => configuration.EnableSay = value);
-        changed |= DrawCheckbox("Shout", configuration.EnableShout, value => configuration.EnableShout = value);
-        changed |= DrawCheckbox("Yell", configuration.EnableYell, value => configuration.EnableYell = value);
-        changed |= DrawCheckbox("DM / tell", configuration.EnableTell, value => configuration.EnableTell = value);
-
-        if (changed)
-            configuration.Save();
-    }
-
-    private void DrawProviderSettings()
-    {
-        var changed = false;
-        var configuration = plugin.Configuration;
-
-        ImGui.TextUnformatted("Translation provider");
-        ImGui.TextWrapped("DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line.");
-
-        var providerEndpoints = configuration.ProviderEndpoints;
-        if (ImGui.InputTextMultiline("Endpoints", ref providerEndpoints, 4000, new Vector2(-1f, 110f)))
-        {
-            configuration.ProviderEndpoints = providerEndpoints;
-            changed = true;
-        }
-
-        if (ImGui.Button("Reset fallback endpoints"))
-        {
-            configuration.ProviderEndpoints =
-                "https://translate.argosopentech.com" + Environment.NewLine +
-                "https://libretranslate.de";
-            changed = true;
-        }
-
-        if (changed)
-            configuration.Save();
-    }
-
-    private static bool DrawCheckbox(string label, bool value, Action<bool> setter)
+    private static bool DrawCheckbox(string label, bool value, Action<bool> setter, string tooltip)
     {
         var localValue = value;
-        if (!ImGui.Checkbox(label, ref localValue))
+        var changed = ImGui.Checkbox(label, ref localValue);
+        DrawTooltipOnLastItem(tooltip);
+        if (!changed)
             return false;
 
         setter(localValue);
         return true;
     }
 
-    private bool DrawLanguageCombo(string label, string currentCode, Action<string> setter, bool includeAuto)
+    private bool DrawLanguageCombo(string label, string currentCode, Action<string> setter, bool includeAuto, string tooltip)
     {
         var changed = false;
         var options = includeAuto ? languageRegistry.GetSourceLanguages() : languageRegistry.GetTargetLanguages();
@@ -298,6 +428,7 @@ public sealed class ConfigWindow : Window, IDisposable
 
             ImGui.EndCombo();
         }
+        DrawTooltipOnLastItem(tooltip);
 
         return changed;
     }
@@ -307,21 +438,32 @@ public sealed class ConfigWindow : Window, IDisposable
         var changed = false;
         ImGui.Separator();
         ImGui.TextUnformatted("Custom compact chat colors");
-        changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader);
-        changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation);
-        changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader);
-        changed |= DrawColorPicker("Outbound translation", colors.GetOutboundTranslation(), colors.SetOutboundTranslation);
-        changed |= DrawColorPicker("Error", colors.GetError(), colors.SetError);
+        changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader, "Color used for inbound message header lines.");
+        changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation, "Color used for inbound translated lines.");
+        changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader, "Color used for outbound message header lines.");
+        changed |= DrawColorPicker("Outbound translation", colors.GetOutboundTranslation(), colors.SetOutboundTranslation, "Color used for outbound translated lines.");
+        changed |= DrawColorPicker("Error", colors.GetError(), colors.SetError, "Color used for translation failure text.");
         return changed;
     }
 
-    private static bool DrawColorPicker(string label, Vector4 currentValue, Action<Vector4> setter)
+    private static bool DrawColorPicker(string label, Vector4 currentValue, Action<Vector4> setter, string tooltip)
     {
         var color = currentValue;
-        if (!ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar))
+        var changed = ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar);
+        DrawTooltipOnLastItem(tooltip);
+        if (!changed)
             return false;
 
         setter(color);
         return true;
+    }
+
+    private static void DrawTooltipOnLastItem(string tooltip)
+    {
+        if (string.IsNullOrWhiteSpace(tooltip))
+            return;
+
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            ImGui.SetTooltip(tooltip);
     }
 }
