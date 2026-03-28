@@ -220,6 +220,9 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         Configuration.Save();
+        if (enabled)
+            OpenMainUi();
+
         if (printStatus)
             PrintStatus(enabled
                 ? "Ultra compact mode enabled."

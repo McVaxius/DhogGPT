@@ -336,7 +336,8 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, compactFramePadding);
             if (IsUltraCompactMode())
             {
-                if (configuration.KrangleChatNames)
+                var highlightKrangleButton = configuration.KrangleChatNames;
+                if (highlightKrangleButton)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.28f, 0.56f, 0.32f, 0.95f));
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.66f, 0.38f, 0.95f));
@@ -347,7 +348,7 @@ public sealed class MainWindow : Window, IDisposable
                     configuration.KrangleChatNames = !configuration.KrangleChatNames;
                     changed = true;
                 }
-                if (configuration.KrangleChatNames)
+                if (highlightKrangleButton)
                     ImGui.PopStyleColor(3);
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
@@ -723,42 +724,47 @@ public sealed class MainWindow : Window, IDisposable
     {
         var configuration = plugin.Configuration;
         var changed = SyncSimpleComposerToActiveConversation();
-
-        if (pendingSlashSeedFromHotkey && string.IsNullOrWhiteSpace(configuration.OutgoingDraft))
-        {
-            configuration.OutgoingDraft = "/";
-            pendingSlashSeedFromHotkey = false;
-            changed = true;
-        }
+        var ultraCompactMode = IsUltraCompactMode();
 
         var comboWidth = 150f;
         var framePadding = ImGui.GetStyle().FramePadding;
-        var composerFramePadding = IsUltraCompactMode()
+        var composerFramePadding = ultraCompactMode
             ? new Vector2(Math.Max(2f, framePadding.X * 0.55f), Math.Max(4f, framePadding.Y))
             : new Vector2(framePadding.X, Math.Max(framePadding.Y, 6f));
-        var sendWidth = IsUltraCompactMode()
+        var sendWidth = ultraCompactMode
             ? ImGui.CalcTextSize("Send").X + (composerFramePadding.X * 2f)
             : 70f;
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - comboWidth - sendWidth - (spacing * 2f));
         var submitFromEnter = false;
+        var queueSlashSeed = pendingSlashSeedFromHotkey && string.IsNullOrWhiteSpace(configuration.OutgoingDraft);
 
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, composerFramePadding);
-        ImGui.SetNextItemWidth(comboWidth);
-        if (DrawOutgoingChannelCombo("##SimpleChannel"))
+        if (!ultraCompactMode)
         {
-            changed = true;
-            SyncActiveConversationToOutgoingChannel();
+            ImGui.SetNextItemWidth(comboWidth);
+            if (DrawOutgoingChannelCombo("##SimpleChannel"))
+            {
+                changed = true;
+                SyncActiveConversationToOutgoingChannel();
+            }
+
+            ImGui.SameLine();
         }
 
-        ImGui.SameLine();
         if (requestSimpleComposerFocus)
         {
             ImGui.SetKeyboardFocusHere();
             requestSimpleComposerFocus = false;
         }
 
-        ImGui.SetNextItemWidth(entryWidth);
+        if (queueSlashSeed)
+        {
+            ImGui.GetIO().AddInputCharacter('/');
+            pendingSlashSeedFromHotkey = false;
+        }
+
+        ImGui.SetNextItemWidth(ultraCompactMode ? -1f : entryWidth);
         var draft = configuration.OutgoingDraft;
         submitFromEnter = ImGui.InputTextWithHint(
             "##SimpleChatEntry",
@@ -774,9 +780,12 @@ public sealed class MainWindow : Window, IDisposable
             changed = true;
         }
 
-        ImGui.SameLine();
-        if (ImGui.Button("Send##SimpleSend", new Vector2(sendWidth, 0f)))
-            submitFromEnter = true;
+        if (!ultraCompactMode)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Send##SimpleSend", new Vector2(sendWidth, 0f)))
+                submitFromEnter = true;
+        }
         ImGui.PopStyleVar();
 
         if (submitFromEnter)
