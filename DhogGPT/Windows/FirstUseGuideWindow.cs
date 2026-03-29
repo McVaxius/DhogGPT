@@ -32,7 +32,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextWrapped("DhogGPT now defaults to ultra compact mode, which is the supported vanilla-chat replacement path. Translated conversations live in tabs, and the bottom composer sends translated chat without leaving the main window.");
+        ImGui.TextWrapped("DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT.");
         ImGui.Separator();
 
         ImGui.BulletText("Open the main window with /dhoggpt, /dgpt, or /dog.");

@@ -140,9 +140,15 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Open the first-use guide again.");
 
         var ultraCompactMode = plugin.IsUltraCompactModeConfigured();
-        if (ImGui.Checkbox("Ultra compact mode (replace vanilla chat window)", ref ultraCompactMode))
+        if (ImGui.Checkbox("Ultra compact mode", ref ultraCompactMode))
             plugin.SetUltraCompactMode(ultraCompactMode);
-        DrawTooltipOnLastItem("Switch between regular mode and the supported ultra compact chat-window replacement path.");
+        DrawTooltipOnLastItem("Switch between regular mode and DhogGPT's supported ultra compact chat surface.");
+
+        changed |= DrawCheckbox(
+            "Disable vanilla chat window while Ultra Compact is on",
+            configuration.SuppressVanillaChatWindow,
+            value => configuration.SuppressVanillaChatWindow = value,
+            "Keeps the game's vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible.");
 
         changed |= DrawCheckbox(
             "Plugin enabled",

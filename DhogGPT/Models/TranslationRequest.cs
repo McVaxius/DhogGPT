@@ -3,6 +3,7 @@ namespace DhogGPT.Models;
 public sealed class TranslationRequest
 {
     public string Text { get; init; } = string.Empty;
+    public string OriginalSeStringBase64 { get; init; } = string.Empty;
     public string SourceLanguage { get; init; } = "auto";
     public string TargetLanguage { get; init; } = "en";
     public bool IsInbound { get; init; }

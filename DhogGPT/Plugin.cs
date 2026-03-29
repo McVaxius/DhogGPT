@@ -13,6 +13,7 @@ using Dalamud.IoC;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using DhogGPT.Managers;
 using DhogGPT.Models;
 using DhogGPT.Services;
 using DhogGPT.Services.Chat;
@@ -50,6 +51,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public Configuration Configuration { get; }
     public WindowSystem WindowSystem { get; } = new("DhogGPT");
+    public LinkPayloadManager LinkPayloadManager { get; }
     public LanguageRegistryService LanguageRegistry { get; }
     public SessionHealthService SessionHealth { get; }
     public TranslationCacheService TranslationCache { get; }
@@ -75,6 +77,7 @@ public sealed class Plugin : IDalamudPlugin
         NormalizeChatModeConfiguration();
         InitializeConversationVisibilityDefaults();
 
+        LinkPayloadManager = new LinkPayloadManager();
         LanguageRegistry = new LanguageRegistryService();
         SessionHealth = new SessionHealthService();
         TranslationCache = new TranslationCacheService();
@@ -87,7 +90,7 @@ public sealed class Plugin : IDalamudPlugin
         mainWindow = new MainWindow(this, LanguageRegistry, TranslationCoordinator, SessionHealth, ChatLogService);
         configWindow = new ConfigWindow(this, LanguageRegistry);
         firstUseGuideWindow = new FirstUseGuideWindow(this);
-        VanillaChatWindowService = new VanillaChatWindowService(() => IsUltraCompactModeConfigured() && mainWindow.IsOpen);
+        VanillaChatWindowService = new VanillaChatWindowService(() => ShouldSuppressVanillaChatWindow() && mainWindow.IsOpen);
 
         WindowSystem.AddWindow(mainWindow);
         WindowSystem.AddWindow(configWindow);
@@ -141,6 +144,7 @@ public sealed class Plugin : IDalamudPlugin
         firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
+        LinkPayloadManager.Dispose();
         VanillaChatWindowService.Dispose();
         SupplementalLogChannelService.Dispose();
         ChatLogService.Dispose();
@@ -218,7 +222,10 @@ public sealed class Plugin : IDalamudPlugin
 
     public bool IsUltraCompactModeConfigured()
         => Configuration.UseSimpleChatMode &&
-           Configuration.CompactSimpleChatMode &&
+           Configuration.CompactSimpleChatMode;
+
+    public bool ShouldSuppressVanillaChatWindow()
+        => IsUltraCompactModeConfigured() &&
            Configuration.SuppressVanillaChatWindow;
 
     public void SetUltraCompactMode(bool enabled, bool printStatus = false)
@@ -260,8 +267,7 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
-        if (Configuration.SuppressVanillaChatWindow ||
-            Configuration.UseSimpleChatMode ||
+        if (Configuration.UseSimpleChatMode ||
             Configuration.CompactSimpleChatMode ||
             Configuration.UseSuperCompactLanguageBar)
         {
@@ -275,7 +281,6 @@ public sealed class Plugin : IDalamudPlugin
         Configuration.UseSimpleChatMode = true;
         Configuration.CompactSimpleChatMode = true;
         Configuration.UseSuperCompactLanguageBar = true;
-        Configuration.SuppressVanillaChatWindow = true;
     }
 
     private void ApplyRegularModeConfiguration()
@@ -283,7 +288,6 @@ public sealed class Plugin : IDalamudPlugin
         Configuration.UseSimpleChatMode = false;
         Configuration.CompactSimpleChatMode = false;
         Configuration.UseSuperCompactLanguageBar = false;
-        Configuration.SuppressVanillaChatWindow = false;
     }
 
     private void OnCommand(string command, string arguments)
@@ -607,9 +611,7 @@ public sealed class Plugin : IDalamudPlugin
         if (KeyState[VirtualKey.SHIFT] || KeyState[VirtualKey.CONTROL] || KeyState[VirtualKey.MENU])
             return false;
 
-        var focusedNamespace = Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace;
-        return string.IsNullOrEmpty(focusedNamespace) ||
-               string.Equals(focusedNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
+        return true;
     }
 
     private void LogUltraCompactHotkeyAttempt(string hotkeyName, bool captured)
@@ -618,8 +620,7 @@ public sealed class Plugin : IDalamudPlugin
         var focusedNamespace = Dalamud.Interface.Windowing.WindowSystem.FocusedWindowSystemNamespace ?? "<null>";
         var contentReady = PlayerState.ContentId != 0;
         var localPlayerReady = ObjectTable.LocalPlayer != null;
-        var focusedNamespaceAllowsCapture = focusedNamespace == "<null>" ||
-                                           string.Equals(focusedNamespace, this.WindowSystem.Namespace, StringComparison.Ordinal);
+        const string capturePolicy = "IgnoreForeignWindowSystemFocus";
 
         Log.Information(
             $"[DhogGPT] Ultra compact hotkey {(captured ? "accepted" : "blocked")}: " +
@@ -639,7 +640,7 @@ public sealed class Plugin : IDalamudPlugin
             $"alt={KeyState[VirtualKey.MENU]}, " +
             $"hasAnyWindowSystemFocus={hasAnyWindowSystemFocus}, " +
             $"focusedNamespace={focusedNamespace}, " +
-            $"focusedNamespaceAllowsCapture={focusedNamespaceAllowsCapture}, " +
+            $"capturePolicy={capturePolicy}, " +
             $"mainWindowState={mainWindow.DescribeUltraCompactFocusHotkeyState()}");
     }
 }

@@ -98,6 +98,7 @@ public sealed class ChatTranslationService : IDisposable
         var request = new TranslationRequest
         {
             Text = messageText,
+            OriginalSeStringBase64 = CaptureOriginalSeString(message),
             SourceLanguage = configuration.IncomingSourceLanguage,
             TargetLanguage = configuration.IncomingTargetLanguage,
             IsInbound = true,
@@ -334,6 +335,21 @@ public sealed class ChatTranslationService : IDisposable
 
     private static bool LooksLikeDirectMessageSendError(string messageText)
         => DirectMessageErrorSnippets.Any(snippet => messageText.Contains(snippet, StringComparison.OrdinalIgnoreCase));
+
+    private static string CaptureOriginalSeString(SeString message)
+    {
+        if (message.Payloads.All(payload => payload is TextPayload))
+            return string.Empty;
+
+        try
+        {
+            return Convert.ToBase64String(message.Encode());
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
 
     private sealed record PendingOutgoingDirectMessage(
         TranslationResult Result,

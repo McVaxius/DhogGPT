@@ -5,7 +5,10 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using DhogGPT.Models;
 using DhogGPT.Services;
@@ -59,6 +62,8 @@ public sealed class MainWindow : Window, IDisposable
     private bool suppressSimpleComposerAutoFocusThisFrame;
     private bool simpleComposerEditSessionActive;
     private bool requestWindowFocus;
+    private bool hoveredConversationItemThisFrame;
+    private bool hoveredConversationItemLastFrame;
     private bool simpleComposerFocusedLastFrame;
     private bool recentDirectMessageSearchFocusedLastFrame;
     private bool newDirectMessageTargetFocusedLastFrame;
@@ -114,6 +119,9 @@ public sealed class MainWindow : Window, IDisposable
 
     public void Dispose()
     {
+        if (hoveredConversationItemLastFrame)
+            Plugin.GameGui.HoveredItem = 0;
+
         translationCoordinator.TranslationCompleted -= OnTranslationCompleted;
         plugin.ChatTranslationService.IncomingDirectMessageObserved -= OnIncomingDirectMessageObserved;
     }
@@ -153,6 +161,7 @@ public sealed class MainWindow : Window, IDisposable
     public override void Draw()
     {
         ResetTrackedInputRects();
+        hoveredConversationItemThisFrame = false;
         suppressSimpleComposerAutoFocusThisFrame = false;
         anyPopupOpenLastFrame = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup);
 
@@ -166,6 +175,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             DrawSimpleChatMode();
             HandleSimpleComposerAutoFocusFromClick();
+            UpdateHoveredConversationItemState();
             UpdateWindowOpacityState();
             TrackWindowPosition();
             return;
@@ -174,6 +184,7 @@ public sealed class MainWindow : Window, IDisposable
         DrawStatusPanel();
         ImGui.Separator();
         DrawComposer();
+        UpdateHoveredConversationItemState();
         UpdateWindowOpacityState();
         TrackWindowPosition();
     }
@@ -241,7 +252,7 @@ public sealed class MainWindow : Window, IDisposable
             configuration.Save();
         }
 
-        ImGui.TextWrapped("Regular mode keeps the fuller translator surface available. Use the button above if you want DhogGPT to replace vanilla chat with ultra compact mode.");
+        ImGui.TextWrapped("Regular mode keeps the fuller translator surface available. Ultra compact gives you the tighter DhogGPT chat surface, and settings let you decide whether vanilla chat stays visible alongside it.");
     }
 
     private void DrawSimpleChatMode()
@@ -631,8 +642,16 @@ public sealed class MainWindow : Window, IDisposable
                 : $"{timestamp} - {displayName} - {originalText}";
 
             ImGui.PushStyleColor(ImGuiCol.Text, headerColor);
-            ImGui.TextWrapped($"{timestamp} - {displayName} - {originalText}");
+            ImGui.TextUnformatted($"{timestamp} - {displayName} - ");
             ImGui.PopStyleColor();
+            ImGui.SameLine(0f, 0f);
+
+            if (!TryDrawOriginalMessagePayload(message, messageIndex))
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, headerColor);
+                ImGui.TextWrapped(originalText);
+                ImGui.PopStyleColor();
+            }
 
             if (message.Success && canShowTranslatedLine)
             {
@@ -1175,6 +1194,7 @@ public sealed class MainWindow : Window, IDisposable
         var recordedRequest = new TranslationRequest
         {
             Text = result.Request.Text,
+            OriginalSeStringBase64 = result.Request.OriginalSeStringBase64,
             SourceLanguage = result.Request.SourceLanguage,
             TargetLanguage = result.Request.TargetLanguage,
             IsInbound = result.Request.IsInbound,
@@ -2061,6 +2081,48 @@ public sealed class MainWindow : Window, IDisposable
         return !string.Equals(Normalize(message.OriginalText), Normalize(message.TranslatedText), StringComparison.OrdinalIgnoreCase);
     }
 
+    private bool TryDrawOriginalMessagePayload(TranslationHistoryItem message, int messageIndex)
+    {
+        if (!message.TryGetOriginalSeStringBytes(out var originalSeStringBytes))
+            return false;
+
+        var drawParams = new SeStringDrawParams();
+        var drawResult = ImGuiHelpers.SeStringWrapped(
+            originalSeStringBytes,
+            in drawParams,
+            new ImGuiId($"DhogGPTConversationPayload##{message.TimestampUtc.UtcTicks}:{messageIndex}:{message.ConversationKey}"),
+            ImGuiButtonFlags.MouseButtonLeft);
+
+        HandleConversationPayloadInteraction(drawResult);
+        return true;
+    }
+
+    private void HandleConversationPayloadInteraction(in SeStringDrawResult drawResult)
+    {
+        if (drawResult.InteractedPayload is ItemPayload itemPayload)
+        {
+            var hoveredItemId = itemPayload.IsHQ
+                ? itemPayload.ItemId + 1_000_000u
+                : itemPayload.ItemId;
+            Plugin.GameGui.HoveredItem = hoveredItemId;
+            hoveredConversationItemThisFrame = true;
+        }
+
+        if (!drawResult.Clicked)
+            return;
+
+        if (drawResult.InteractedPayload is MapLinkPayload mapLinkPayload)
+            Plugin.GameGui.OpenMapWithMapLink(mapLinkPayload);
+    }
+
+    private void UpdateHoveredConversationItemState()
+    {
+        if (!hoveredConversationItemThisFrame && hoveredConversationItemLastFrame)
+            Plugin.GameGui.HoveredItem = 0;
+
+        hoveredConversationItemLastFrame = hoveredConversationItemThisFrame;
+    }
+
     public void ApplySavedPositionForCurrentCharacter()
     {
         if (plugin.TryGetSavedWindowPosition(false, out var position))
@@ -2113,8 +2175,7 @@ public sealed class MainWindow : Window, IDisposable
     }
 
     private bool IsUltraCompactMode()
-        => plugin.Configuration.SuppressVanillaChatWindow &&
-           plugin.Configuration.UseSimpleChatMode &&
+        => plugin.Configuration.UseSimpleChatMode &&
            plugin.Configuration.CompactSimpleChatMode;
 
     private void OnLockTitleBarButtonClick(ImGuiMouseButton mouseButton)
