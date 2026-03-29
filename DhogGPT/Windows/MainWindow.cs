@@ -74,6 +74,7 @@ public sealed class MainWindow : Window, IDisposable
     private Vector2? lastSavedWindowPosition;
     private Vector2 lastObservedWindowSize;
     private Vector2? pendingViewportPlacementPosition;
+    private Vector2? pendingViewportPlacementSize;
     private TrackedInputRect simpleComposerInputRect;
     private TrackedInputRect recentDirectMessageSearchInputRect;
     private TrackedInputRect newDirectMessageTargetInputRect;
@@ -2480,9 +2481,10 @@ public sealed class MainWindow : Window, IDisposable
         requestSimpleComposerFocus = true;
     }
 
-    private void QueueViewportPlacement(Vector2? requestedPosition, string reason, bool randomize = false, bool forceSizeRepair = false)
+    private void QueueViewportPlacement(Vector2? requestedPosition, string reason, bool randomize = false, bool forceSizeRepair = false, Vector2? requestedSize = null)
     {
         pendingViewportPlacementPosition = requestedPosition;
+        pendingViewportPlacementSize = requestedSize;
         pendingViewportPlacementReason = reason;
         pendingRandomViewportPlacement = randomize;
         pendingSizeRepair |= forceSizeRepair;
@@ -2502,9 +2504,11 @@ public sealed class MainWindow : Window, IDisposable
     {
         var minimumSize = GetMinimumWindowSize();
         var preferredSize =
-            !pendingSizeRepair &&
-            lastObservedWindowSize.X >= minimumSize.X - WindowRepairTolerance &&
-            lastObservedWindowSize.Y >= minimumSize.Y - WindowRepairTolerance
+            pendingViewportPlacementSize.HasValue
+                ? pendingViewportPlacementSize.Value
+                : !pendingSizeRepair &&
+                  lastObservedWindowSize.X >= minimumSize.X - WindowRepairTolerance &&
+                  lastObservedWindowSize.Y >= minimumSize.Y - WindowRepairTolerance
                 ? lastObservedWindowSize
                 : GetPreferredWindowSize();
 
@@ -2548,6 +2552,7 @@ public sealed class MainWindow : Window, IDisposable
             $"random={randomPlacement}, forceSizeRepair={forcedSizeRepair}, ultraCompact={IsUltraCompactMode()}");
 
         pendingViewportPlacementPosition = null;
+        pendingViewportPlacementSize = null;
         pendingViewportPlacementReason = string.Empty;
         pendingRandomViewportPlacement = false;
         pendingSizeRepair = false;
@@ -2566,17 +2571,26 @@ public sealed class MainWindow : Window, IDisposable
             currentSize.X < minimumSize.X - WindowRepairTolerance ||
             currentSize.Y < minimumSize.Y - WindowRepairTolerance;
         var viewport = ImGui.GetMainViewport();
+        var safeSize = WindowPlacementHelper.GetSafeWindowSize(minimumSize, currentSize, viewport.WorkSize);
+        var sizeNeedsRepair = tooSmall || Vector2.DistanceSquared(safeSize, currentSize) >= 0.25f;
         var offscreen = !WindowPlacementHelper.IsInsideWorkArea(currentPosition, currentSize, viewport.WorkPos, viewport.WorkSize);
-        if (!tooSmall && !offscreen)
+        if (!sizeNeedsRepair && !offscreen)
             return false;
 
-        var reason = offscreen
-            ? $"detected off-screen main window at {FormatVector2(currentPosition)}"
-            : $"detected undersized main window at {FormatVector2(currentSize)}";
-        QueueViewportPlacement(currentPosition, reason, forceSizeRepair: true);
+        var reason = tooSmall
+            ? $"detected undersized main window at {FormatVector2(currentSize)}"
+            : sizeNeedsRepair
+                ? $"detected oversized main window at {FormatVector2(currentSize)}"
+                : $"detected off-screen main window at {FormatVector2(currentPosition)}";
+        QueueViewportPlacement(
+            currentPosition,
+            reason,
+            forceSizeRepair: sizeNeedsRepair,
+            requestedSize: sizeNeedsRepair ? currentSize : null);
         Plugin.Log.Warning(
             $"[DhogGPT] Main window repair queued: reason={reason}, " +
             $"currentPos={FormatVector2(currentPosition)}, currentSize={FormatVector2(currentSize)}, " +
+            $"safeSize={FormatVector2(safeSize)}, " +
             $"viewportWorkPos={FormatVector2(viewport.WorkPos)}, viewportWorkSize={FormatVector2(viewport.WorkSize)}, " +
             $"ultraCompact={IsUltraCompactMode()}");
         return true;
