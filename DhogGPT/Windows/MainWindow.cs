@@ -2101,6 +2101,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (seedSlash)
         {
+            OpenSlashCommandConversation();
             var draft = plugin.Configuration.OutgoingDraft;
             if (!draft.StartsWith("/", StringComparison.Ordinal))
                 plugin.Configuration.OutgoingDraft = "/";
