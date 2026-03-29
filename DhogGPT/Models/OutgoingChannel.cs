@@ -11,6 +11,7 @@ public enum OutgoingChannel
     CrossWorldLinkshell,
     Shout,
     Yell,
+    NoviceNetwork,
     Tell,
     Echo,
 }

@@ -65,11 +65,14 @@ public sealed class Plugin : IDalamudPlugin
     private readonly MainWindow mainWindow;
     private readonly ConfigWindow configWindow;
     private readonly FirstUseGuideWindow firstUseGuideWindow;
+    private readonly Dictionary<string, MainWindow> detachedConversationWindows = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> detachedConversationAssignments = new(StringComparer.OrdinalIgnoreCase);
     private IDtrBarEntry? dtrEntry;
     private bool pendingLoginWindowRestore;
     private bool restoreLoginWindowStateWhenCharacterReady = true;
     private bool wasUltraCompactSlashDown;
     private bool wasUltraCompactEnterDown;
+    private int nextDetachedWindowNumber = 1;
 
     public Plugin()
     {
@@ -141,6 +144,11 @@ public sealed class Plugin : IDalamudPlugin
 
         dtrEntry?.Remove();
         ContextMenu.OnMenuOpened -= OnContextMenuOpened;
+        foreach (var detachedWindow in detachedConversationWindows.Values.ToList())
+            detachedWindow.Dispose();
+
+        detachedConversationWindows.Clear();
+        detachedConversationAssignments.Clear();
         firstUseGuideWindow.Dispose();
         mainWindow.Dispose();
         configWindow.Dispose();
@@ -401,6 +409,66 @@ public sealed class Plugin : IDalamudPlugin
         PrintStatus("Reset DhogGPT window positions to 1,1 for this character.");
     }
 
+    public bool HasDetachedConversationWindows()
+        => detachedConversationWindows.Count > 0;
+
+    public bool ShouldWindowDisplayConversation(string windowId, bool isMasterWindow, string conversationKey)
+    {
+        if (!detachedConversationAssignments.TryGetValue(conversationKey, out var assignedWindowId))
+            return isMasterWindow;
+
+        return assignedWindowId.Equals(windowId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public bool CanSpawnDetachedConversationWindow(string conversationKey)
+        => !detachedConversationAssignments.ContainsKey(conversationKey);
+
+    public bool TrySpawnDetachedConversationWindow(string conversationKey, string conversationLabel)
+    {
+        if (string.IsNullOrWhiteSpace(conversationKey) ||
+            detachedConversationAssignments.ContainsKey(conversationKey))
+        {
+            return false;
+        }
+
+        var windowNumber = nextDetachedWindowNumber++;
+        var windowId = $"detached:{windowNumber}";
+        var window = new MainWindow(
+            this,
+            LanguageRegistry,
+            TranslationCoordinator,
+            SessionHealth,
+            ChatLogService,
+            isMasterWindow: false,
+            conversationWindowId: windowId,
+            windowBadge: windowNumber.ToString());
+
+        detachedConversationAssignments[conversationKey] = windowId;
+        detachedConversationWindows[windowId] = window;
+        WindowSystem.AddWindow(window);
+        window.AttachDetachedConversation(conversationKey, conversationLabel);
+        return true;
+    }
+
+    public void CloseDetachedConversationWindow(string windowId)
+    {
+        if (!detachedConversationWindows.Remove(windowId, out var window))
+            return;
+
+        var returnedConversationKeys = detachedConversationAssignments
+            .Where(pair => pair.Value.Equals(windowId, StringComparison.OrdinalIgnoreCase))
+            .Select(pair => pair.Key)
+            .ToList();
+        foreach (var conversationKey in returnedConversationKeys)
+            detachedConversationAssignments.Remove(conversationKey);
+
+        WindowSystem.RemoveWindow(window);
+        window.Dispose();
+
+        foreach (var conversationKey in returnedConversationKeys)
+            mainWindow.ReturnDetachedConversationToPrimaryLists(conversationKey);
+    }
+
     private void SetupDtrBar()
     {
         try
@@ -599,6 +667,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         if (!IsUltraCompactModeConfigured() ||
             !mainWindow.IsOpen ||
+            HasDetachedConversationWindows() ||
             configWindow.IsFocused ||
             firstUseGuideWindow.IsFocused ||
             PlayerState.ContentId == 0 ||
@@ -631,6 +700,7 @@ public sealed class Plugin : IDalamudPlugin
             $"simpleMode={Configuration.UseSimpleChatMode}, " +
             $"compactMode={Configuration.CompactSimpleChatMode}, " +
             $"mainOpen={mainWindow.IsOpen}, " +
+            $"detachedWindowsOpen={detachedConversationWindows.Count}, " +
             $"configFocused={configWindow.IsFocused}, " +
             $"guideFocused={firstUseGuideWindow.IsFocused}, " +
             $"contentReady={contentReady}, " +

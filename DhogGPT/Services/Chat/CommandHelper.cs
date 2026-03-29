@@ -51,6 +51,9 @@ public static class CommandHelper
             case OutgoingChannel.Yell:
                 prefix = "/y ";
                 break;
+            case OutgoingChannel.NoviceNetwork:
+                prefix = "/beginner ";
+                break;
             case OutgoingChannel.Tell:
                 if (!ChatChannelMapper.TryNormalizeDirectMessageIdentity(configuration.TellTarget, out var normalizedIdentity, out var directMessageError))
                 {

@@ -284,6 +284,7 @@ public sealed class ConfigWindow : Window, IDisposable
         changed |= DrawCheckbox("Say", configuration.EnableSay, value => configuration.EnableSay = value, "Enable translation for Say chat.");
         changed |= DrawCheckbox("Shout", configuration.EnableShout, value => configuration.EnableShout = value, "Enable translation for Shout chat.");
         changed |= DrawCheckbox("Yell", configuration.EnableYell, value => configuration.EnableYell = value, "Enable translation for Yell chat.");
+        changed |= DrawCheckbox("NN", configuration.EnableNoviceNetwork, value => configuration.EnableNoviceNetwork = value, "Enable translation for Novice Network chat.");
         changed |= DrawCheckbox("DM / tell", configuration.EnableTell, value => configuration.EnableTell = value, "Enable translation for incoming and outgoing tells.");
 
         if (changed)

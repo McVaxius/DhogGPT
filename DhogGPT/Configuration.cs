@@ -53,6 +53,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool EnableShout { get; set; } = true;
     public bool EnableYell { get; set; } = true;
     public bool EnableTell { get; set; } = true;
+    public bool EnableNoviceNetwork { get; set; } = true;
 
     public string ProviderEndpoints { get; set; } =
         "https://translate.argosopentech.com" + Environment.NewLine +

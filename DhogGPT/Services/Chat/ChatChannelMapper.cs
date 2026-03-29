@@ -31,6 +31,9 @@ public static class ChatChannelMapper
             case XivChatType.Yell:
                 label = "Yell";
                 return configuration.EnableYell;
+            case XivChatType.NoviceNetwork:
+                label = "NN";
+                return configuration.EnableNoviceNetwork;
             case XivChatType.TellIncoming:
             case XivChatType.TellOutgoing:
                 label = "DM";
@@ -74,6 +77,7 @@ public static class ChatChannelMapper
             OutgoingChannel.CrossWorldLinkshell => $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}",
             OutgoingChannel.Shout => "Shout",
             OutgoingChannel.Yell => "Yell",
+            OutgoingChannel.NoviceNetwork => "NN",
             OutgoingChannel.Tell => string.IsNullOrWhiteSpace(configuration.TellTarget) ? "New DM" : "DM",
             OutgoingChannel.Echo => "Echo",
             _ => "Unknown",
