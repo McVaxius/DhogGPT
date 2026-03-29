@@ -95,7 +95,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open DhogGPT. Use /dhoggpt config for settings, /dhoggpt ultra for ultra compact mode, or /dhoggpt ws to reset window positions.",
+            HelpMessage = "Open DhogGPT. Use /dhoggpt config for settings, /dhoggpt ultra for ultra compact mode, /dhoggpt ws to reset window positions, or /dhoggpt j to jump the main window somewhere visible.",
         });
 
         CommandManager.AddHandler(AliasCommandName, new CommandInfo(OnCommand)
@@ -153,6 +153,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void ToggleMainUi()
     {
+        Log.Information($"[DhogGPT] ToggleMainUi requested: mainOpen={mainWindow.IsOpen}, ultraCompact={IsUltraCompactModeConfigured()}");
         if (!mainWindow.IsOpen)
             mainWindow.ApplySavedPositionForCurrentCharacter();
 
@@ -161,11 +162,21 @@ public sealed class Plugin : IDalamudPlugin
 
     public void OpenMainUi()
     {
+        Log.Information($"[DhogGPT] OpenMainUi requested: mainOpen={mainWindow.IsOpen}, ultraCompact={IsUltraCompactModeConfigured()}");
         if (!mainWindow.IsOpen)
             mainWindow.ApplySavedPositionForCurrentCharacter();
 
         mainWindow.IsOpen = true;
         mainWindow.RequestSimpleComposerFocus();
+    }
+
+    public void JumpMainWindowToRandomVisibleLocation()
+    {
+        Log.Information("[DhogGPT] Queued a random visible jump for the main window via /dgpt j.");
+        mainWindow.QueueRandomVisibleJump();
+        mainWindow.IsOpen = true;
+        mainWindow.RequestSimpleComposerFocus();
+        PrintStatus("Queued a random visible jump for the DhogGPT main window.");
     }
 
     public void ToggleConfigUi()
@@ -297,6 +308,12 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
 
+        if (trimmed.Equals("j", StringComparison.OrdinalIgnoreCase))
+        {
+            JumpMainWindowToRandomVisibleLocation();
+            return;
+        }
+
         if (trimmed.Equals("ultra", StringComparison.OrdinalIgnoreCase))
         {
             SetUltraCompactMode(!IsUltraCompactModeConfigured(), printStatus: true);
@@ -374,6 +391,7 @@ public sealed class Plugin : IDalamudPlugin
         state.SettingsWindow.Reset();
         Configuration.Save();
 
+        Log.Information($"[DhogGPT] ResetCurrentWindowPositions requested for character {key}: main=1,1 settings=1,1");
         mainWindow.ApplySavedPositionForCurrentCharacter();
         configWindow.ApplySavedPositionForCurrentCharacter();
         PrintStatus("Reset DhogGPT window positions to 1,1 for this character.");

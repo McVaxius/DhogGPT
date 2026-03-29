@@ -10,6 +10,7 @@ namespace DhogGPT.Windows;
 
 public sealed class ConfigWindow : Window, IDisposable
 {
+    private const float WindowRepairTolerance = 4f;
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
     private static readonly string[] ScrollIndicatorStyles = { "Centered wedges", "Legacy arrows" };
     private static readonly string VersionedWindowTitle = $"DhogGPT Settings v{typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "0.0.0.0"}###DhogGPTConfig";
@@ -26,7 +27,12 @@ public sealed class ConfigWindow : Window, IDisposable
     private readonly LanguageRegistryService languageRegistry;
     private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
     private Vector2? lastSavedWindowPosition;
+    private Vector2 lastObservedWindowSize;
+    private Vector2? pendingViewportPlacementPosition;
     private bool pendingSavedPositionApply;
+    private bool pendingSizeConditionReset;
+    private bool pendingSizeRepair;
+    private string pendingViewportPlacementReason = string.Empty;
 
     public ConfigWindow(Plugin plugin, LanguageRegistryService languageRegistry)
         : base(VersionedWindowTitle)
@@ -39,10 +45,17 @@ public sealed class ConfigWindow : Window, IDisposable
             MinimumSize = new Vector2(560f, 460f),
             MaximumSize = new Vector2(1100f, 900f),
         };
+        Size = new Vector2(900f, 550f);
+        SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     public void Dispose()
     {
+    }
+
+    public override void PreDraw()
+    {
+        ApplyPendingViewportPlacement();
     }
 
     public override void Draw()
@@ -81,10 +94,27 @@ public sealed class ConfigWindow : Window, IDisposable
 
     public void ApplySavedPositionForCurrentCharacter()
     {
-        if (!plugin.TryGetSavedWindowPosition(true, out var position))
-            return;
+        if (plugin.TryGetSavedWindowPosition(true, out var position))
+        {
+            if (plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+            {
+                QueueViewportPlacement(position.ToVector2(), "saved settings-window restore");
+                return;
+            }
 
-        Position = position.ToVector2();
+            Position = position.ToVector2();
+            PositionCondition = ImGuiCond.Always;
+            pendingSavedPositionApply = true;
+            return;
+        }
+
+        if (plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+        {
+            QueueViewportPlacement(new Vector2(1f, 1f), "fallback settings-window restore", forceSizeRepair: true);
+            return;
+        }
+
+        Position = new Vector2(1f, 1f);
         PositionCondition = ImGuiCond.Always;
         pendingSavedPositionApply = true;
     }
@@ -134,6 +164,11 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.OpenMainWindowOnCharacterLogin,
             value => configuration.OpenMainWindowOnCharacterLogin = value,
             "Reopens the DhogGPT main window automatically on character login.");
+        changed |= DrawCheckbox(
+            "Keep windows on current game screen",
+            configuration.KeepWindowsOnCurrentGameScreen,
+            value => configuration.KeepWindowsOnCurrentGameScreen = value,
+            "When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j.");
         changed |= DrawCheckbox(
             "Ultra compact: focus chat on /",
             configuration.FocusUltraCompactOnSlash,
@@ -193,7 +228,7 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.CompactChatColorTheme = compactChatColorTheme;
             changed = true;
         }
-        DrawTooltipOnLastItem("Controls header and translation colors in the ultra compact chat view.");
+        DrawTooltipOnLastItem("Controls ultra compact message colors and the conversation tab palette.");
 
         var scrollIndicatorStyle = Math.Clamp(configuration.ScrollIndicatorStyle, 0, ScrollIndicatorStyles.Length - 1);
         if (ImGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
@@ -371,12 +406,26 @@ public sealed class ConfigWindow : Window, IDisposable
     private void TrackWindowPosition()
     {
         var currentPosition = ImGui.GetWindowPos();
+        var currentSize = ImGui.GetWindowSize();
+        lastObservedWindowSize = currentSize;
         if (pendingSavedPositionApply)
         {
             pendingSavedPositionApply = false;
             Position = null;
             PositionCondition = ImGuiCond.None;
         }
+
+        if (pendingSizeConditionReset)
+        {
+            pendingSizeConditionReset = false;
+            SizeCondition = ImGuiCond.None;
+        }
+
+        if (ImGui.IsWindowAppearing())
+            LogWindowSnapshot("appearing", currentPosition, currentSize);
+
+        if (TryQueueWindowRepair(currentPosition, currentSize))
+            return;
 
         if (DateTimeOffset.UtcNow < nextWindowPositionSaveUtc)
             return;
@@ -391,6 +440,96 @@ public sealed class ConfigWindow : Window, IDisposable
         nextWindowPositionSaveUtc = DateTimeOffset.UtcNow.AddMilliseconds(250);
         plugin.SaveCurrentWindowPosition(true, currentPosition);
     }
+
+    private void QueueViewportPlacement(Vector2? requestedPosition, string reason, bool forceSizeRepair = false)
+    {
+        pendingViewportPlacementPosition = requestedPosition;
+        pendingViewportPlacementReason = reason;
+        pendingSizeRepair |= forceSizeRepair;
+    }
+
+    private void ApplyPendingViewportPlacement()
+    {
+        if (!pendingViewportPlacementPosition.HasValue)
+            return;
+
+        var viewport = ImGui.GetMainViewport();
+        var minimumSize = new Vector2(560f, 460f);
+        var preferredSize =
+            !pendingSizeRepair &&
+            lastObservedWindowSize.X >= minimumSize.X - WindowRepairTolerance &&
+            lastObservedWindowSize.Y >= minimumSize.Y - WindowRepairTolerance
+                ? lastObservedWindowSize
+                : new Vector2(900f, 550f);
+        var windowSize = WindowPlacementHelper.GetSafeWindowSize(minimumSize, preferredSize, viewport.WorkSize);
+        var desiredPosition = pendingViewportPlacementPosition.Value;
+        var appliedPosition = WindowPlacementHelper.ClampToWorkArea(desiredPosition, windowSize, viewport.WorkPos, viewport.WorkSize);
+        var clamped = Vector2.DistanceSquared(desiredPosition, appliedPosition) >= 0.25f;
+        var reason = pendingViewportPlacementReason;
+        var forcedSizeRepair = pendingSizeRepair;
+
+        Position = appliedPosition;
+        PositionCondition = ImGuiCond.Always;
+        pendingSavedPositionApply = true;
+
+        if (forcedSizeRepair)
+        {
+            Size = windowSize;
+            SizeCondition = ImGuiCond.Always;
+            pendingSizeConditionReset = true;
+        }
+
+        Plugin.Log.Information(
+            $"[DhogGPT] Settings window placement applied: reason={reason}, " +
+            $"desired={FormatVector2(desiredPosition)}, applied={FormatVector2(appliedPosition)}, " +
+            $"windowSize={FormatVector2(windowSize)}, viewportWorkPos={FormatVector2(viewport.WorkPos)}, " +
+            $"viewportWorkSize={FormatVector2(viewport.WorkSize)}, clamped={clamped}, forceSizeRepair={forcedSizeRepair}");
+
+        pendingViewportPlacementPosition = null;
+        pendingViewportPlacementReason = string.Empty;
+        pendingSizeRepair = false;
+    }
+
+    private bool TryQueueWindowRepair(Vector2 currentPosition, Vector2 currentSize)
+    {
+        if (!plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+            return false;
+
+        if (pendingViewportPlacementPosition.HasValue)
+            return true;
+
+        var minimumSize = new Vector2(560f, 460f);
+        var tooSmall =
+            currentSize.X < minimumSize.X - WindowRepairTolerance ||
+            currentSize.Y < minimumSize.Y - WindowRepairTolerance;
+        var viewport = ImGui.GetMainViewport();
+        var offscreen = !WindowPlacementHelper.IsInsideWorkArea(currentPosition, currentSize, viewport.WorkPos, viewport.WorkSize);
+        if (!tooSmall && !offscreen)
+            return false;
+
+        var reason = offscreen
+            ? $"detected off-screen settings window at {FormatVector2(currentPosition)}"
+            : $"detected undersized settings window at {FormatVector2(currentSize)}";
+        QueueViewportPlacement(currentPosition, reason, forceSizeRepair: true);
+        Plugin.Log.Warning(
+            $"[DhogGPT] Settings window repair queued: reason={reason}, " +
+            $"currentPos={FormatVector2(currentPosition)}, currentSize={FormatVector2(currentSize)}, " +
+            $"viewportWorkPos={FormatVector2(viewport.WorkPos)}, viewportWorkSize={FormatVector2(viewport.WorkSize)}");
+        return true;
+    }
+
+    private static void LogWindowSnapshot(string reason, Vector2 currentPosition, Vector2 currentSize)
+    {
+        var viewport = ImGui.GetMainViewport();
+        Plugin.Log.Information(
+            $"[DhogGPT] Settings window snapshot: reason={reason}, " +
+            $"pos={FormatVector2(currentPosition)}, size={FormatVector2(currentSize)}, " +
+            $"collapsed={ImGui.IsWindowCollapsed()}, viewportWorkPos={FormatVector2(viewport.WorkPos)}, " +
+            $"viewportWorkSize={FormatVector2(viewport.WorkSize)}");
+    }
+
+    private static string FormatVector2(Vector2 value)
+        => $"{value.X:F1},{value.Y:F1}";
 
     private static bool DrawCheckbox(string label, bool value, Action<bool> setter, string tooltip)
     {
@@ -436,12 +575,23 @@ public sealed class ConfigWindow : Window, IDisposable
     {
         var changed = false;
         ImGui.Separator();
-        ImGui.TextUnformatted("Custom ultra compact chat colors");
+        ImGui.TextUnformatted("Custom ultra compact message and tab colors");
+        ImGui.Spacing();
+        ImGui.TextUnformatted("Messages");
         changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader, "Color used for inbound message header lines.");
         changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation, "Color used for inbound translated lines.");
         changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader, "Color used for outbound message header lines.");
         changed |= DrawColorPicker("Outbound translation", colors.GetOutboundTranslation(), colors.SetOutboundTranslation, "Color used for outbound translated lines.");
         changed |= DrawColorPicker("Error", colors.GetError(), colors.SetError, "Color used for translation failure text.");
+        ImGui.Spacing();
+        ImGui.TextUnformatted("Conversation tabs");
+        changed |= DrawColorPicker("Tab", colors.GetTab(), colors.SetTab, "Background color for inactive conversation tabs.");
+        changed |= DrawColorPicker("Tab hovered", colors.GetTabHovered(), colors.SetTabHovered, "Background color when hovering a conversation tab.");
+        changed |= DrawColorPicker("Tab active", colors.GetTabActive(), colors.SetTabActive, "Background color for the selected conversation tab.");
+        changed |= DrawColorPicker("Tab unfocused", colors.GetTabUnfocused(), colors.SetTabUnfocused, "Background color for inactive tabs while the window is unfocused.");
+        changed |= DrawColorPicker("Tab unfocused active", colors.GetTabUnfocusedActive(), colors.SetTabUnfocusedActive, "Background color for the selected tab while the window is unfocused.");
+        changed |= DrawColorPicker("Tab text", colors.GetTabText(), colors.SetTabText, "Text color used on inactive conversation tabs.");
+        changed |= DrawColorPicker("Selected tab text", colors.GetActiveTabText(), colors.SetActiveTabText, "Text color used on the selected tab. Black is best when the active tab background is bright.");
         return changed;
     }
 

@@ -19,6 +19,7 @@ public sealed class MainWindow : Window, IDisposable
 {
     private const int AutoScrollSettleFrames = 2;
     private const int DefaultVisibleDirectMessageTabs = 3;
+    private const float WindowRepairTolerance = 4f;
     private const string NewDirectMessagePopupId = "New DM###DhogGPTNewDmPopup";
     private const string RecentDirectMessagesPopupId = "Recent DMs###DhogGPTRecentDmPopup";
     private const string HiddenChannelsPopupId = "Hidden Channels###DhogGPTHiddenChannelsPopup";
@@ -66,9 +67,15 @@ public sealed class MainWindow : Window, IDisposable
     private bool windowFocusedLastFrame;
     private DateTimeOffset nextWindowPositionSaveUtc = DateTimeOffset.MinValue;
     private Vector2? lastSavedWindowPosition;
+    private Vector2 lastObservedWindowSize;
+    private Vector2? pendingViewportPlacementPosition;
     private TrackedInputRect simpleComposerInputRect;
     private TrackedInputRect recentDirectMessageSearchInputRect;
     private TrackedInputRect newDirectMessageTargetInputRect;
+    private string pendingViewportPlacementReason = string.Empty;
+    private bool pendingRandomViewportPlacement;
+    private bool pendingSizeConditionReset;
+    private bool pendingSizeRepair;
 
     public MainWindow(
         Plugin plugin,
@@ -101,6 +108,8 @@ public sealed class MainWindow : Window, IDisposable
             MinimumSize = new Vector2(720f, 520f),
             MaximumSize = new Vector2(1400f, 1000f),
         };
+        Size = new Vector2(960f, 700f);
+        SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     public void Dispose()
@@ -129,6 +138,8 @@ public sealed class MainWindow : Window, IDisposable
                 MinimumSize = new Vector2(720f, 520f),
                 MaximumSize = new Vector2(1400f, 1000f),
             };
+
+        ApplyPendingViewportPlacement();
 
         if (requestWindowFocus)
         {
@@ -469,7 +480,13 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.TableSetColumnIndex(0);
         HandleConversationTabWheelNavigation(conversations);
-        PushConversationTabStyleColors();
+        var tabPalette = GetConversationTabPalette();
+        PushConversationTabStyleColors(
+            tabPalette.Tab,
+            tabPalette.TabHovered,
+            tabPalette.TabActive,
+            tabPalette.TabUnfocused,
+            tabPalette.TabUnfocusedActive);
         if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
         {
             ImGui.PopStyleColor(5);
@@ -496,7 +513,10 @@ public sealed class MainWindow : Window, IDisposable
             var tabLabel = isDirectMessage
                 ? $"   {displayLabel}##{conversation.Key}"
                 : $"{displayLabel}##{conversation.Key}";
+            var tabTextColor = isRequestedConversation ? tabPalette.ActiveTabText : tabPalette.TabText;
+            ImGui.PushStyleColor(ImGuiCol.Text, tabTextColor);
             var tabVisible = ImGui.BeginTabItem(tabLabel, ref tabOpen, tabFlags);
+            ImGui.PopStyleColor();
             if (isDirectMessage)
                 DrawDirectMessageTabPin(conversation, isPinnedDirectMessage);
 
@@ -2043,16 +2063,36 @@ public sealed class MainWindow : Window, IDisposable
 
     public void ApplySavedPositionForCurrentCharacter()
     {
-        if (!plugin.TryGetSavedWindowPosition(false, out var position))
-            return;
+        if (plugin.TryGetSavedWindowPosition(false, out var position))
+        {
+            if (plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+            {
+                QueueViewportPlacement(position.ToVector2(), "saved main-window restore");
+                return;
+            }
 
-        Position = position.ToVector2();
+            Position = position.ToVector2();
+            PositionCondition = ImGuiCond.Always;
+            pendingSavedPositionApply = true;
+            return;
+        }
+
+        if (plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+        {
+            QueueViewportPlacement(new Vector2(1f, 1f), "fallback main-window restore", forceSizeRepair: true);
+            return;
+        }
+
+        Position = new Vector2(1f, 1f);
         PositionCondition = ImGuiCond.Always;
         pendingSavedPositionApply = true;
     }
 
     public void RequestSimpleComposerFocus()
         => requestSimpleComposerFocus = true;
+
+    public void QueueRandomVisibleJump()
+        => QueueViewportPlacement(null, "command /dgpt j", randomize: true, forceSizeRepair: true);
 
     public void OpenComposerFromHotkey(bool seedSlash)
     {
@@ -2339,9 +2379,13 @@ public sealed class MainWindow : Window, IDisposable
         return totalWidth + Math.Max(6f, style.CellPadding.X * 2f);
     }
 
-    private void PushConversationTabStyleColors()
+    private static void PushConversationTabStyleColors(
+        Vector4 tab,
+        Vector4 tabHovered,
+        Vector4 tabActive,
+        Vector4 tabUnfocused,
+        Vector4 tabUnfocusedActive)
     {
-        var (tab, tabHovered, tabActive, tabUnfocused, tabUnfocusedActive) = GetConversationTabPalette();
         ImGui.PushStyleColor(ImGuiCol.Tab, tab);
         ImGui.PushStyleColor(ImGuiCol.TabHovered, tabHovered);
         ImGui.PushStyleColor(ImGuiCol.TabActive, tabActive);
@@ -2374,15 +2418,144 @@ public sealed class MainWindow : Window, IDisposable
         requestSimpleComposerFocus = true;
     }
 
+    private void QueueViewportPlacement(Vector2? requestedPosition, string reason, bool randomize = false, bool forceSizeRepair = false)
+    {
+        pendingViewportPlacementPosition = requestedPosition;
+        pendingViewportPlacementReason = reason;
+        pendingRandomViewportPlacement = randomize;
+        pendingSizeRepair |= forceSizeRepair;
+    }
+
+    private Vector2 GetMinimumWindowSize()
+        => IsUltraCompactMode()
+            ? new Vector2(460f, 220f)
+            : new Vector2(720f, 520f);
+
+    private Vector2 GetPreferredWindowSize()
+        => IsUltraCompactMode()
+            ? new Vector2(620f, 320f)
+            : new Vector2(960f, 700f);
+
+    private Vector2 GetPlacementWindowSize(Vector2 workSize)
+    {
+        var minimumSize = GetMinimumWindowSize();
+        var preferredSize =
+            !pendingSizeRepair &&
+            lastObservedWindowSize.X >= minimumSize.X - WindowRepairTolerance &&
+            lastObservedWindowSize.Y >= minimumSize.Y - WindowRepairTolerance
+                ? lastObservedWindowSize
+                : GetPreferredWindowSize();
+
+        return WindowPlacementHelper.GetSafeWindowSize(minimumSize, preferredSize, workSize);
+    }
+
+    private void ApplyPendingViewportPlacement()
+    {
+        if (!pendingRandomViewportPlacement && !pendingViewportPlacementPosition.HasValue)
+            return;
+
+        var viewport = ImGui.GetMainViewport();
+        var workPos = viewport.WorkPos;
+        var workSize = viewport.WorkSize;
+        var windowSize = GetPlacementWindowSize(workSize);
+        var desiredPosition = pendingRandomViewportPlacement
+            ? WindowPlacementHelper.BuildRandomVisiblePosition(windowSize, workPos, workSize)
+            : pendingViewportPlacementPosition ?? WindowPlacementHelper.GetViewportTopLeft(workPos);
+        var appliedPosition = WindowPlacementHelper.ClampToWorkArea(desiredPosition, windowSize, workPos, workSize);
+        var clamped = Vector2.DistanceSquared(desiredPosition, appliedPosition) >= 0.25f;
+        var reason = pendingViewportPlacementReason;
+        var forcedSizeRepair = pendingSizeRepair;
+        var randomPlacement = pendingRandomViewportPlacement;
+
+        Position = appliedPosition;
+        PositionCondition = ImGuiCond.Always;
+        pendingSavedPositionApply = true;
+
+        if (forcedSizeRepair)
+        {
+            Size = windowSize;
+            SizeCondition = ImGuiCond.Always;
+            pendingSizeConditionReset = true;
+        }
+
+        Plugin.Log.Information(
+            $"[DhogGPT] Main window placement applied: reason={reason}, " +
+            $"desired={FormatVector2(desiredPosition)}, applied={FormatVector2(appliedPosition)}, " +
+            $"windowSize={FormatVector2(windowSize)}, viewportWorkPos={FormatVector2(workPos)}, " +
+            $"viewportWorkSize={FormatVector2(workSize)}, clamped={clamped}, " +
+            $"random={randomPlacement}, forceSizeRepair={forcedSizeRepair}, ultraCompact={IsUltraCompactMode()}");
+
+        pendingViewportPlacementPosition = null;
+        pendingViewportPlacementReason = string.Empty;
+        pendingRandomViewportPlacement = false;
+        pendingSizeRepair = false;
+    }
+
+    private bool TryQueueWindowRepair(Vector2 currentPosition, Vector2 currentSize)
+    {
+        if (!plugin.Configuration.KeepWindowsOnCurrentGameScreen)
+            return false;
+
+        if (pendingViewportPlacementPosition.HasValue || pendingRandomViewportPlacement)
+            return true;
+
+        var minimumSize = GetMinimumWindowSize();
+        var tooSmall =
+            currentSize.X < minimumSize.X - WindowRepairTolerance ||
+            currentSize.Y < minimumSize.Y - WindowRepairTolerance;
+        var viewport = ImGui.GetMainViewport();
+        var offscreen = !WindowPlacementHelper.IsInsideWorkArea(currentPosition, currentSize, viewport.WorkPos, viewport.WorkSize);
+        if (!tooSmall && !offscreen)
+            return false;
+
+        var reason = offscreen
+            ? $"detected off-screen main window at {FormatVector2(currentPosition)}"
+            : $"detected undersized main window at {FormatVector2(currentSize)}";
+        QueueViewportPlacement(currentPosition, reason, forceSizeRepair: true);
+        Plugin.Log.Warning(
+            $"[DhogGPT] Main window repair queued: reason={reason}, " +
+            $"currentPos={FormatVector2(currentPosition)}, currentSize={FormatVector2(currentSize)}, " +
+            $"viewportWorkPos={FormatVector2(viewport.WorkPos)}, viewportWorkSize={FormatVector2(viewport.WorkSize)}, " +
+            $"ultraCompact={IsUltraCompactMode()}");
+        return true;
+    }
+
+    private void LogWindowSnapshot(string reason, Vector2 currentPosition, Vector2 currentSize)
+    {
+        var viewport = ImGui.GetMainViewport();
+        Plugin.Log.Information(
+            $"[DhogGPT] Main window snapshot: reason={reason}, " +
+            $"pos={FormatVector2(currentPosition)}, size={FormatVector2(currentSize)}, " +
+            $"collapsed={ImGui.IsWindowCollapsed()}, viewportWorkPos={FormatVector2(viewport.WorkPos)}, " +
+            $"viewportWorkSize={FormatVector2(viewport.WorkSize)}, ultraCompact={IsUltraCompactMode()}");
+    }
+
+    private static string FormatVector2(Vector2 value)
+        => $"{value.X:F1},{value.Y:F1}";
+
     private void TrackWindowPosition()
     {
         var currentPosition = ImGui.GetWindowPos();
+        var currentSize = ImGui.GetWindowSize();
+        lastObservedWindowSize = currentSize;
         if (pendingSavedPositionApply)
         {
             pendingSavedPositionApply = false;
             Position = null;
             PositionCondition = ImGuiCond.None;
         }
+
+        if (pendingSizeConditionReset)
+        {
+            pendingSizeConditionReset = false;
+            SizeCondition = ImGuiCond.None;
+        }
+
+        if (ImGui.IsWindowAppearing())
+            LogWindowSnapshot("appearing", currentPosition, currentSize);
+
+        if (TryQueueWindowRepair(currentPosition, currentSize))
+            return;
 
         if (DateTimeOffset.UtcNow < nextWindowPositionSaveUtc)
             return;
@@ -2420,8 +2593,21 @@ public sealed class MainWindow : Window, IDisposable
         };
     }
 
-    private (Vector4 Tab, Vector4 TabHovered, Vector4 TabActive, Vector4 TabUnfocused, Vector4 TabUnfocusedActive) GetConversationTabPalette()
+    private (Vector4 Tab, Vector4 TabHovered, Vector4 TabActive, Vector4 TabUnfocused, Vector4 TabUnfocusedActive, Vector4 TabText, Vector4 ActiveTabText) GetConversationTabPalette()
     {
+        if (plugin.Configuration.CompactChatColorTheme == 4)
+        {
+            var customColors = plugin.Configuration.CompactChatCustomColors;
+            return (
+                customColors.GetTab(),
+                customColors.GetTabHovered(),
+                customColors.GetTabActive(),
+                customColors.GetTabUnfocused(),
+                customColors.GetTabUnfocusedActive(),
+                customColors.GetTabText(),
+                customColors.GetActiveTabText());
+        }
+
         var inbound = GetMessagePalette(isInbound: true).Header;
         var outbound = GetMessagePalette(isInbound: false).Header;
         var accent = BlendColors(inbound, outbound, 0.5f);
@@ -2430,7 +2616,7 @@ public sealed class MainWindow : Window, IDisposable
         var active = WithAlpha(ScaleColorRgb(accent, 1.12f), 0.98f);
         var unfocused = WithAlpha(ScaleColorRgb(accent, 0.36f), 0.55f);
         var unfocusedActive = WithAlpha(ScaleColorRgb(accent, 0.72f), 0.78f);
-        return (tab, hovered, active, unfocused, unfocusedActive);
+        return (tab, hovered, active, unfocused, unfocusedActive, GetReadableTextColor(tab), GetReadableTextColor(active));
     }
 
     private static Vector4 BlendColors(Vector4 left, Vector4 right, float amount)
@@ -2452,6 +2638,14 @@ public sealed class MainWindow : Window, IDisposable
 
     private static Vector4 WithAlpha(Vector4 color, float alpha)
         => new(color.X, color.Y, color.Z, Math.Clamp(alpha, 0f, 1f));
+
+    private static Vector4 GetReadableTextColor(Vector4 background)
+    {
+        var luminance = (0.2126f * background.X) + (0.7152f * background.Y) + (0.0722f * background.Z);
+        return luminance >= 0.58f
+            ? new Vector4(0.05f, 0.05f, 0.05f, 1.0f)
+            : new Vector4(0.95f, 0.97f, 1.0f, 1.0f);
+    }
 
     private static bool IsDirectMessageConversation(string conversationKey)
         => conversationKey.StartsWith("dm:", StringComparison.OrdinalIgnoreCase);
