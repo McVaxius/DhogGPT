@@ -253,7 +253,7 @@ public sealed class ConfigWindow : Window, IDisposable
         ImGui.Separator();
         ImGui.TextDisabled("Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode.");
         ImGui.TextDisabled("The / and Enter focus shortcuts only apply while the ultra compact window is already open.");
-        ImGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave an Echo breadcrumb.");
+        ImGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb.");
     }
 
     private void DrawIncomingChannelSettings()
@@ -290,7 +290,7 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.Separator();
-        ImGui.TextDisabled("Echo, Progress, and Combat are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
+        ImGui.TextDisabled("Safe, Echo, Progress, and Combat are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
     }
 
     private void DrawProviderSettings()

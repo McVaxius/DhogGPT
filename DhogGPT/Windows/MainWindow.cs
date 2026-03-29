@@ -35,6 +35,7 @@ public sealed class MainWindow : Window, IDisposable
     private readonly ChatLogService chatLogService;
     private readonly Dictionary<string, DateTimeOffset> closedConversationCutoffs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> pendingDirectMessageTabs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ConversationPopoutWindow> conversationPopoutWindows = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ConversationScrollState> conversationScrollStates = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> pendingConversationBottomScrolls = new(StringComparer.OrdinalIgnoreCase);
     private readonly TitleBarButton lockTitleBarButton;
@@ -125,6 +126,16 @@ public sealed class MainWindow : Window, IDisposable
 
         translationCoordinator.TranslationCompleted -= OnTranslationCompleted;
         plugin.ChatTranslationService.IncomingDirectMessageObserved -= OnIncomingDirectMessageObserved;
+    }
+
+    public override void OnClose()
+    {
+        if (conversationPopoutWindows.Count == 0)
+            return;
+
+        IsOpen = true;
+        simpleChatStatus = "Close DhogGPT's extra conversation windows first.";
+        plugin.PrintStatus("Close DhogGPT's extra conversation windows first.");
     }
 
     public override void PreDraw()
@@ -287,7 +298,8 @@ public sealed class MainWindow : Window, IDisposable
             var compactFramePadding = new Vector2(Math.Max(2f, originalFramePadding.X * 0.60f), 0f);
             var labelWidth = Math.Max(ImGui.CalcTextSize("Them").X, ImGui.CalcTextSize("Me").X);
             var utilityWidth = IsUltraCompactMode()
-                ? (ImGui.CalcTextSize("K").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
+                ? (ImGui.CalcTextSize("Ko-fi").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
+                  (ImGui.CalcTextSize("K").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
                   (ImGui.CalcTextSize("S").X + (compactFramePadding.X * 2f) + compactSpacing.X)
                 : 0f;
             var comboWidth = Math.Max(
@@ -298,6 +310,12 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, compactFramePadding);
             if (IsUltraCompactMode())
             {
+                if (ImGui.SmallButton("Ko-fi##UltraCompactSupport"))
+                    Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Open the DhogGPT support page.");
+
+                ImGui.SameLine();
                 var highlightKrangleButton = configuration.KrangleChatNames;
                 if (highlightKrangleButton)
                 {
@@ -459,10 +477,13 @@ public sealed class MainWindow : Window, IDisposable
             .OrderByDescending(conversation => conversation.LastMessageUtc)
             .ThenBy(conversation => conversation.Label, StringComparer.OrdinalIgnoreCase)
             .ToList();
+        var visibleDirectMessageConversations = allDirectMessageConversations
+            .Where(conversation => !IsConversationPoppedOut(conversation.Key))
+            .ToList();
 
         ApplyDefaultDirectMessageVisibility(currentLogIdentity, allDirectMessageConversations);
 
-        conversations.AddRange(allDirectMessageConversations.Where(IsConversationVisible));
+        conversations.AddRange(visibleDirectMessageConversations.Where(IsConversationVisible));
 
         if (string.IsNullOrWhiteSpace(activeConversationKey) || conversations.All(state => !state.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase)))
         {
@@ -482,7 +503,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             ImGui.PopStyleVar(3);
             DrawHiddenChannelsPopup();
-            DrawRecentDirectMessagesPopup(allDirectMessageConversations);
+            DrawRecentDirectMessagesPopup(visibleDirectMessageConversations);
             return;
         }
 
@@ -507,7 +528,7 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.EndTable();
             ImGui.PopStyleVar(3);
             DrawHiddenChannelsPopup();
-            DrawRecentDirectMessagesPopup(allDirectMessageConversations);
+            DrawRecentDirectMessagesPopup(visibleDirectMessageConversations);
             return;
         }
 
@@ -586,7 +607,7 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.EndTable();
         ImGui.PopStyleVar(3);
         DrawHiddenChannelsPopup();
-        DrawRecentDirectMessagesPopup(allDirectMessageConversations);
+        DrawRecentDirectMessagesPopup(visibleDirectMessageConversations);
         if (selectedConversationApplied)
             forceActiveConversationSelection = false;
 
@@ -891,7 +912,7 @@ public sealed class MainWindow : Window, IDisposable
             return;
 
         previewBusy = true;
-        previewStatus = "Working...";
+        previewStatus = string.Empty;
         previewText = string.Empty;
         previewMetadata = string.Empty;
 
@@ -910,6 +931,9 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             var request = BuildOutgoingRequest(recordInHistory: false);
+            previewStatus = ShouldBypassOutgoingTranslation(request)
+                ? (sendAfterTranslate ? "Sending without translation..." : "Previewing without translation...")
+                : "Working...";
             var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
             {
@@ -929,7 +953,7 @@ public sealed class MainWindow : Window, IDisposable
             if (!sendAfterTranslate)
                 return;
 
-            if (request.ChannelLabel.Equals("Echo", StringComparison.OrdinalIgnoreCase))
+            if (IsSafeConversation(request))
             {
                 RecordSuccessfulSend(result);
                 await Plugin.Framework.RunOnFrameworkThread(() =>
@@ -941,7 +965,7 @@ public sealed class MainWindow : Window, IDisposable
                 activeConversationKey = request.ConversationKey;
                 activeConversationLabel = request.ConversationLabel;
                 forceActiveConversationSelection = true;
-                await SetPreviewStateAsync(status: "Saved to Echo.", text: result.TranslatedText);
+                await SetPreviewStateAsync(status: "Saved to Safe.", text: result.TranslatedText);
                 return;
             }
 
@@ -986,7 +1010,7 @@ public sealed class MainWindow : Window, IDisposable
             return;
 
         previewBusy = true;
-        simpleChatStatus = "Translating...";
+        simpleChatStatus = string.Empty;
 
         try
         {
@@ -994,6 +1018,9 @@ public sealed class MainWindow : Window, IDisposable
                 return;
 
             var request = BuildOutgoingRequest(recordInHistory: false);
+            if (!ShouldBypassOutgoingTranslation(request))
+                simpleChatStatus = "Translating...";
+
             var result = await TranslateOutgoingRequestAsync(request);
             if (!result.Success)
             {
@@ -1001,7 +1028,7 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
-            if (request.ChannelLabel.Equals("Echo", StringComparison.OrdinalIgnoreCase))
+            if (IsSafeConversation(request))
             {
                 RecordSuccessfulSend(result);
 
@@ -1385,6 +1412,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private bool ShouldInsertConfiguredConversation((string Key, string Label) configuredConversation)
     {
+        if (IsConversationPoppedOut(configuredConversation.Key))
+            return false;
+
         if (!IsDirectMessageConversation(configuredConversation.Key))
             return !configuredConversation.Key.Equals(ChatChannelMapper.DirectMessageComposerKey, StringComparison.OrdinalIgnoreCase) &&
                    !IsGeneralConversationHidden(configuredConversation.Key);
@@ -1555,6 +1585,8 @@ public sealed class MainWindow : Window, IDisposable
         switch (conversationKey)
         {
             case "channel:ECHO":
+                return SetOutgoingChannel(configuration, OutgoingChannel.Safe);
+            case "channel:ECHO_CHAT":
                 return SetOutgoingChannel(configuration, OutgoingChannel.Echo);
             case "channel:SAY":
                 return SetOutgoingChannel(configuration, OutgoingChannel.Say);
@@ -1621,6 +1653,7 @@ public sealed class MainWindow : Window, IDisposable
     private List<ConversationTabState> GetPinnedGeneralConversations()
         => GetAllGeneralConversations()
             .Where(conversation => !IsGeneralConversationHidden(conversation.Key))
+            .Where(conversation => !IsConversationPoppedOut(conversation.Key))
             .ToList();
 
     private List<ConversationTabState> GetAllGeneralConversations()
@@ -1628,7 +1661,8 @@ public sealed class MainWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         var conversations = new List<ConversationTabState>
         {
-            BuildPinnedConversation("channel:ECHO", "Echo"),
+            BuildPinnedConversation("channel:ECHO", "Safe"),
+            BuildPinnedConversation("channel:ECHO_CHAT", "Echo"),
             BuildPinnedConversation("channel:PROGRESS", "Progress"),
             BuildPinnedConversation("channel:COMBAT", "Combat"),
             BuildPinnedConversation("channel:SAY", "Say"),
@@ -1765,6 +1799,7 @@ public sealed class MainWindow : Window, IDisposable
 
         var hiddenConversations = GetAllGeneralConversations()
             .Where(conversation => IsGeneralConversationHidden(conversation.Key))
+            .Where(conversation => !IsConversationPoppedOut(conversation.Key))
             .ToList();
 
         if (hiddenConversations.Count == 0)
@@ -1922,6 +1957,17 @@ public sealed class MainWindow : Window, IDisposable
         if (!ImGui.BeginPopupContextItem($"DhogGPTDirectMessageContext##{conversation.Key}"))
             return;
 
+        if (ImGui.Selectable(
+                IsConversationPoppedOut(conversation.Key) ? "Already in another window" : "Spawn new window",
+                false,
+                IsConversationPoppedOut(conversation.Key) ? ImGuiSelectableFlags.Disabled : ImGuiSelectableFlags.None))
+        {
+            ClearTransientUiStatus();
+            PopOutConversation(conversation);
+        }
+
+        ImGui.Separator();
+
         if (conversation.Messages.Count > 0)
         {
             if (ImGui.Selectable(isPinnedDirectMessage ? "Unpin conversation" : "Pin conversation"))
@@ -2031,6 +2077,16 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.Separator();
         }
 
+        if (ImGui.Selectable(
+                IsConversationPoppedOut(conversation.Key) ? "Already in another window" : "Spawn new window",
+                false,
+                IsConversationPoppedOut(conversation.Key) ? ImGuiSelectableFlags.Disabled : ImGuiSelectableFlags.None))
+        {
+            ClearTransientUiStatus();
+            PopOutConversation(conversation);
+        }
+
+        ImGui.Separator();
         ImGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
         ImGui.EndPopup();
     }
@@ -2197,10 +2253,10 @@ public sealed class MainWindow : Window, IDisposable
             TimestampUtc = DateTimeOffset.UtcNow,
             IsInbound = false,
             Success = true,
-            ChannelLabel = "Echo",
+            ChannelLabel = "Safe",
             Sender = sender,
             ConversationKey = "channel:ECHO",
-            ConversationLabel = "Echo",
+            ConversationLabel = "Safe",
             OriginalText = command,
             ProviderName = "SlashCommand",
         });
@@ -2219,7 +2275,7 @@ public sealed class MainWindow : Window, IDisposable
             string.Equals(hidden, "channel:ECHO", StringComparison.OrdinalIgnoreCase)) > 0;
 
         activeConversationKey = "channel:ECHO";
-        activeConversationLabel = "Echo";
+        activeConversationLabel = "Safe";
         forceActiveConversationSelection = true;
         changed |= TryApplyConversationKeyToOutgoingChannel("channel:ECHO");
 
@@ -2241,8 +2297,7 @@ public sealed class MainWindow : Window, IDisposable
         => IsOpen &&
            !simpleComposerFocusedLastFrame &&
            !recentDirectMessageSearchFocusedLastFrame &&
-           !newDirectMessageTargetFocusedLastFrame &&
-           !anyPopupOpenLastFrame;
+           !newDirectMessageTargetFocusedLastFrame;
 
     public string DescribeUltraCompactFocusHotkeyState()
         => $"windowOpen={IsOpen}, windowHovered={windowHoveredLastFrame}, windowFocused={windowFocusedLastFrame}, composerFocused={simpleComposerFocusedLastFrame}, recentDmSearchFocused={recentDirectMessageSearchFocusedLastFrame}, newDmTargetFocused={newDirectMessageTargetFocusedLastFrame}, popupOpen={anyPopupOpenLastFrame}";
@@ -2721,6 +2776,139 @@ public sealed class MainWindow : Window, IDisposable
         return luminance >= 0.58f
             ? new Vector4(0.05f, 0.05f, 0.05f, 1.0f)
             : new Vector4(0.95f, 0.97f, 1.0f, 1.0f);
+    }
+
+    private static bool IsSafeConversation(TranslationRequest request)
+        => string.Equals(request.ConversationKey, "channel:ECHO", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsConversationPoppedOut(string conversationKey)
+        => conversationPopoutWindows.ContainsKey(conversationKey);
+
+    private void PopOutConversation(ConversationTabState conversation)
+    {
+        if (conversationPopoutWindows.ContainsKey(conversation.Key))
+            return;
+
+        var window = new ConversationPopoutWindow(this, conversation.Key);
+        conversationPopoutWindows[conversation.Key] = window;
+        plugin.WindowSystem.AddWindow(window);
+
+        if (conversation.Key.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase))
+        {
+            activeConversationKey = string.Empty;
+            activeConversationLabel = string.Empty;
+            forceActiveConversationSelection = true;
+        }
+    }
+
+    internal string GetConversationPopoutWindowTitle(string conversationKey)
+    {
+        if (TryResolveConversationTabState(conversationKey, out var conversation))
+            return $"{GetConversationDisplayLabel(conversation)}###DhogGPTPopout:{conversationKey}";
+
+        return $"Conversation###DhogGPTPopout:{conversationKey}";
+    }
+
+    internal void DrawConversationPopout(string conversationKey)
+    {
+        if (!TryResolveConversationTabState(conversationKey, out var conversation))
+        {
+            ImGui.TextDisabled("This conversation is no longer available.");
+            ImGui.TextDisabled("Close this window to return it to DhogGPT.");
+            return;
+        }
+
+        ImGui.TextDisabled(IsDirectMessageConversation(conversationKey)
+            ? "Close this window to send the DM back into the R list."
+            : "Close this window to send the tab back into the H list.");
+        ImGui.Separator();
+        DrawConversationMessages(conversation.Key, conversation.Messages, Math.Max(72f, ImGui.GetContentRegionAvail().Y));
+    }
+
+    internal void HandleConversationPopoutClosed(string conversationKey)
+    {
+        if (!conversationPopoutWindows.Remove(conversationKey, out var window))
+            return;
+
+        plugin.WindowSystem.RemoveWindow(window);
+
+        if (TryResolveConversationTabState(conversationKey, out var conversation))
+        {
+            if (IsDirectMessageConversation(conversationKey))
+            {
+                pendingDirectMessageTabs.Remove(conversation.Key);
+                closedConversationCutoffs[conversation.Key] = conversation.LastMessageUtc;
+            }
+            else
+            {
+                SetGeneralConversationHidden(conversation.Key, true);
+            }
+        }
+        else if (IsDirectMessageConversation(conversationKey))
+        {
+            pendingDirectMessageTabs.Remove(conversationKey);
+            closedConversationCutoffs[conversationKey] = DateTimeOffset.UtcNow;
+        }
+        else
+        {
+            SetGeneralConversationHidden(conversationKey, true);
+        }
+
+        if (conversationKey.Equals(activeConversationKey, StringComparison.OrdinalIgnoreCase))
+        {
+            activeConversationKey = string.Empty;
+            activeConversationLabel = string.Empty;
+            forceActiveConversationSelection = true;
+        }
+    }
+
+    private bool TryResolveConversationTabState(string conversationKey, out ConversationTabState conversation)
+    {
+        var entries = chatLogService.GetEntriesSnapshot();
+
+        foreach (var generalConversation in GetAllGeneralConversations())
+        {
+            if (!generalConversation.Key.Equals(conversationKey, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var messages = entries
+                .Where(entry => GetConversationGroupingKey(entry).Equals(conversationKey, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(entry => entry.TimestampUtc)
+                .ToList();
+            conversation = generalConversation with
+            {
+                Messages = messages,
+                LastMessageUtc = messages.Count > 0 ? messages[^1].TimestampUtc : DateTimeOffset.MinValue,
+            };
+            return true;
+        }
+
+        var matchingMessages = entries
+            .Where(entry => GetConversationGroupingKey(entry).Equals(conversationKey, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(entry => entry.TimestampUtc)
+            .ToList();
+        if (matchingMessages.Count > 0)
+        {
+            conversation = new ConversationTabState(
+                conversationKey,
+                ResolveConversationLabel(matchingMessages),
+                matchingMessages,
+                matchingMessages[^1].TimestampUtc);
+            return true;
+        }
+
+        if (pendingDirectMessageTabs.TryGetValue(conversationKey, out var pendingLabel))
+        {
+            conversation = new ConversationTabState(
+                conversationKey,
+                pendingLabel,
+                Array.Empty<TranslationHistoryItem>(),
+                DateTimeOffset.MinValue);
+            return true;
+        }
+
+        conversation = default!;
+        return false;
     }
 
     private static bool IsDirectMessageConversation(string conversationKey)

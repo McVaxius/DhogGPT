@@ -40,7 +40,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
         ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
         ImGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");
         ImGui.BulletText("Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there.");
-        ImGui.BulletText("Raw slash commands typed into DhogGPT send directly and leave an Echo breadcrumb instead of going through translation.");
+        ImGui.BulletText("Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation.");
         ImGui.BulletText("Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it.");
         ImGui.BulletText("Use Krangle if you want display-only name scrambling in the plugin window.");
         ImGui.BulletText("Click the DTR entry to open the DhogGPT main window.");

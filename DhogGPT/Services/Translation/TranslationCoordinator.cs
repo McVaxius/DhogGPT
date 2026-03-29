@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Channels;
 using DhogGPT.Models;
+using DhogGPT.Services.Chat;
 using DhogGPT.Services.Diagnostics;
 using DhogGPT.Services.Translation.Providers;
 
@@ -131,11 +132,14 @@ public sealed class TranslationCoordinator : IDisposable
 
     private async Task<TranslationResult> TranslateCoreAsync(TranslationRequest request, CancellationToken cancellationToken)
     {
-        if (cache.TryGet(request.SourceLanguage, request.TargetLanguage, request.Text, out var cachedText, out var cachedDetectedLanguage))
+        var preservedPayloadText = PreservedPayloadTranslationText.Prepare(request);
+        var requestForTranslation = preservedPayloadText.ApplyTo(request);
+
+        if (cache.TryGet(request.SourceLanguage, request.TargetLanguage, requestForTranslation.Text, out var cachedText, out var cachedDetectedLanguage))
         {
             var cachedResult = TranslationResult.Succeeded(
                 request,
-                cachedText,
+                preservedPayloadText.Restore(cachedText),
                 provider.Name,
                 "cache",
                 cachedDetectedLanguage,
@@ -149,24 +153,37 @@ public sealed class TranslationCoordinator : IDisposable
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, disposeCts.Token);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(configuration.RequestTimeoutSeconds, 5, 60)));
 
-        var result = await provider.TranslateAsync(request, timeoutCts.Token).ConfigureAwait(false);
+        var result = await provider.TranslateAsync(requestForTranslation, timeoutCts.Token).ConfigureAwait(false);
         if (result.Success)
         {
+            var translatedText = preservedPayloadText.Restore(result.TranslatedText);
             cache.Store(
                 request.SourceLanguage,
                 request.TargetLanguage,
-                request.Text,
+                requestForTranslation.Text,
                 result.TranslatedText,
                 result.DetectedSourceLanguage);
 
-            sessionHealth.RecordSuccess(result.ProviderName, result.Endpoint, result.Duration);
-        }
-        else
-        {
-            sessionHealth.RecordFailure(result.ProviderName, result.Endpoint, result.Error, result.Duration);
+            var restoredResult = TranslationResult.Succeeded(
+                request,
+                translatedText,
+                result.ProviderName,
+                result.Endpoint,
+                result.DetectedSourceLanguage,
+                result.Duration,
+                result.FromCache);
+            sessionHealth.RecordSuccess(restoredResult.ProviderName, restoredResult.Endpoint, restoredResult.Duration);
+            return restoredResult;
         }
 
-        return result;
+        var failedResult = TranslationResult.Failed(
+            request,
+            result.ProviderName,
+            result.Endpoint,
+            result.Error,
+            result.Duration);
+        sessionHealth.RecordFailure(failedResult.ProviderName, failedResult.Endpoint, failedResult.Error, failedResult.Duration);
+        return failedResult;
     }
 
     private void AddHistory(TranslationResult result)

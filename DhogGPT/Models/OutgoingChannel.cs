@@ -2,7 +2,7 @@ namespace DhogGPT;
 
 public enum OutgoingChannel
 {
-    Echo,
+    Safe = 0,
     Say,
     Party,
     Alliance,
@@ -12,4 +12,5 @@ public enum OutgoingChannel
     Shout,
     Yell,
     Tell,
+    Echo,
 }

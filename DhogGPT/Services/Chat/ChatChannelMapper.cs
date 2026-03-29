@@ -65,7 +65,7 @@ public static class ChatChannelMapper
     {
         return configuration.SelectedOutgoingChannel switch
         {
-            OutgoingChannel.Echo => "Echo",
+            OutgoingChannel.Safe => "Safe",
             OutgoingChannel.Say => "Say",
             OutgoingChannel.Party => "Party",
             OutgoingChannel.Alliance => "Alliance",
@@ -75,6 +75,7 @@ public static class ChatChannelMapper
             OutgoingChannel.Shout => "Shout",
             OutgoingChannel.Yell => "Yell",
             OutgoingChannel.Tell => string.IsNullOrWhiteSpace(configuration.TellTarget) ? "New DM" : "DM",
+            OutgoingChannel.Echo => "Echo",
             _ => "Unknown",
         };
     }
@@ -102,7 +103,12 @@ public static class ChatChannelMapper
             return (GetDirectMessageConversationKey(label), label);
         }
 
-        return ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel);
+        return configuration.SelectedOutgoingChannel switch
+        {
+            OutgoingChannel.Safe => ("channel:ECHO", channelLabel),
+            OutgoingChannel.Echo => ("channel:ECHO_CHAT", channelLabel),
+            _ => ($"channel:{NormalizeConversationToken(channelLabel)}", channelLabel),
+        };
     }
 
     public static string GetDirectMessageConversationKey(string value)

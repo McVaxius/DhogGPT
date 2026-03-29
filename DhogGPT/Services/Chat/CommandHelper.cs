@@ -21,6 +21,9 @@ public static class CommandHelper
         string prefix;
         switch (configuration.SelectedOutgoingChannel)
         {
+            case OutgoingChannel.Safe:
+                error = "Safe messages stay inside DhogGPT and are not sent to game chat.";
+                return false;
             case OutgoingChannel.Echo:
                 prefix = "/echo ";
                 break;
