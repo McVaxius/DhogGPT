@@ -672,7 +672,7 @@ public sealed class MainWindow : Window, IDisposable
         for (var messageIndex = 0; messageIndex < orderedMessages.Count; messageIndex++)
         {
             var message = orderedMessages[messageIndex];
-            var (headerColor, translatedColor, errorColor) = GetMessagePalette(message.IsInbound);
+            var (headerColor, translatedColor, errorColor) = GetMessagePalette(message);
             var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm");
             var displayName = GetDisplayName(message);
             var originalText = string.IsNullOrWhiteSpace(message.OriginalText) ? "(empty)" : message.OriginalText;
@@ -3056,7 +3056,19 @@ public sealed class MainWindow : Window, IDisposable
         plugin.SaveCurrentWindowPosition(false, currentPosition);
     }
 
-    private (Vector4 Header, Vector4 Translation, Vector4 Error) GetMessagePalette(bool isInbound)
+    private (Vector4 Header, Vector4 Translation, Vector4 Error) GetMessagePalette(TranslationHistoryItem message)
+    {
+        var palette = GetBaseMessagePalette(message.IsInbound);
+
+        if (!plugin.Configuration.UseRealChatColorParity)
+            return palette;
+
+        return TryGetRealChatHeaderColor(message.ChannelLabel, out var channelHeaderColor)
+            ? (channelHeaderColor, palette.Item2, palette.Item3)
+            : palette;
+    }
+
+    private (Vector4 Header, Vector4 Translation, Vector4 Error) GetBaseMessagePalette(bool isInbound)
     {
         return plugin.Configuration.CompactChatColorTheme switch
         {
@@ -3093,8 +3105,8 @@ public sealed class MainWindow : Window, IDisposable
                 customColors.GetActiveTabText());
         }
 
-        var inbound = GetMessagePalette(isInbound: true).Header;
-        var outbound = GetMessagePalette(isInbound: false).Header;
+        var inbound = GetBaseMessagePalette(isInbound: true).Header;
+        var outbound = GetBaseMessagePalette(isInbound: false).Header;
         var accent = BlendColors(inbound, outbound, 0.5f);
         var tab = WithAlpha(ScaleColorRgb(accent, 0.48f), 0.78f);
         var hovered = WithAlpha(ScaleColorRgb(accent, 0.90f), 0.92f);
@@ -3130,6 +3142,66 @@ public sealed class MainWindow : Window, IDisposable
         return luminance >= 0.58f
             ? new Vector4(0.05f, 0.05f, 0.05f, 1.0f)
             : new Vector4(0.95f, 0.97f, 1.0f, 1.0f);
+    }
+
+    private static bool TryGetRealChatHeaderColor(string channelLabel, out Vector4 color)
+    {
+        var normalized = Normalize(channelLabel).ToUpperInvariant();
+        switch (normalized)
+        {
+            case "SAY":
+                color = new Vector4(0.92f, 0.92f, 0.92f, 1.0f);
+                return true;
+            case "PARTY":
+                color = new Vector4(0.47f, 0.72f, 1.0f, 1.0f);
+                return true;
+            case "ALLIANCE":
+                color = new Vector4(1.0f, 0.78f, 0.38f, 1.0f);
+                return true;
+            case "FC":
+                color = new Vector4(0.48f, 0.94f, 0.55f, 1.0f);
+                return true;
+            case "SHOUT":
+                color = new Vector4(1.0f, 0.63f, 0.28f, 1.0f);
+                return true;
+            case "YELL":
+                color = new Vector4(1.0f, 0.86f, 0.36f, 1.0f);
+                return true;
+            case "NN":
+                color = new Vector4(0.60f, 1.0f, 0.72f, 1.0f);
+                return true;
+            case "DM":
+                color = new Vector4(1.0f, 0.60f, 0.86f, 1.0f);
+                return true;
+            case "SAFE":
+                color = new Vector4(0.74f, 0.82f, 0.92f, 1.0f);
+                return true;
+            case "ECHO":
+            case "ECHO CHAT":
+                color = new Vector4(0.80f, 0.82f, 0.88f, 1.0f);
+                return true;
+            case "PROGRESS":
+                color = new Vector4(0.92f, 0.86f, 0.56f, 1.0f);
+                return true;
+            case "COMBAT":
+                color = new Vector4(1.0f, 0.58f, 0.50f, 1.0f);
+                return true;
+        }
+
+        if (normalized.StartsWith("LS", StringComparison.Ordinal))
+        {
+            color = new Vector4(0.88f, 0.64f, 1.0f, 1.0f);
+            return true;
+        }
+
+        if (normalized.StartsWith("CWLS", StringComparison.Ordinal))
+        {
+            color = new Vector4(1.0f, 0.56f, 0.94f, 1.0f);
+            return true;
+        }
+
+        color = default;
+        return false;
     }
 
     private static bool IsSafeConversation(TranslationRequest request)

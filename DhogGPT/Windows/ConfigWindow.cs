@@ -236,6 +236,12 @@ public sealed class ConfigWindow : Window, IDisposable
         }
         DrawTooltipOnLastItem("Controls ultra compact message colors and the conversation tab palette.");
 
+        changed |= DrawCheckbox(
+            "Ultra compact: use real-chat channel header colors",
+            configuration.UseRealChatColorParity,
+            value => configuration.UseRealChatColorParity = value,
+            "Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text.");
+
         var scrollIndicatorStyle = Math.Clamp(configuration.ScrollIndicatorStyle, 0, ScrollIndicatorStyles.Length - 1);
         if (ImGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
         {

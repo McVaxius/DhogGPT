@@ -38,6 +38,7 @@ public sealed class Configuration : IPluginConfiguration
     public float FocusedWindowOpacity { get; set; } = 0.75f;
     public float BackgroundWindowOpacity { get; set; } = 0.50f;
     public int CompactChatColorTheme { get; set; }
+    public bool UseRealChatColorParity { get; set; }
     public CompactChatCustomColors CompactChatCustomColors { get; set; } = new();
 
     public string IncomingSourceLanguage { get; set; } = "auto";
