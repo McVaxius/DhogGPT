@@ -50,6 +50,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool EnableFreeCompany { get; set; } = true;
     public bool EnableLinkshells { get; set; } = true;
     public bool EnableCrossWorldLinkshells { get; set; } = true;
+    public bool EnablePvPTeam { get; set; } = true;
     public bool EnableSay { get; set; } = true;
     public bool EnableShout { get; set; } = true;
     public bool EnableYell { get; set; } = true;

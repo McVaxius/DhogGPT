@@ -14,11 +14,15 @@ public static class ChatChannelMapper
         switch (chatType)
         {
             case XivChatType.Party:
+            case XivChatType.CrossParty:
                 label = "Party";
                 return configuration.EnableParty;
             case XivChatType.Alliance:
                 label = "Alliance";
                 return configuration.EnableParty;
+            case XivChatType.PvPTeam:
+                label = "PvP Team";
+                return configuration.EnablePvPTeam;
             case XivChatType.FreeCompany:
                 label = "FC";
                 return configuration.EnableFreeCompany;
@@ -72,6 +76,7 @@ public static class ChatChannelMapper
             OutgoingChannel.Say => "Say",
             OutgoingChannel.Party => "Party",
             OutgoingChannel.Alliance => "Alliance",
+            OutgoingChannel.PvPTeam => "PvP Team",
             OutgoingChannel.FreeCompany => "FC",
             OutgoingChannel.Linkshell => $"LS{Math.Clamp(configuration.LinkshellSlot, 1, 8)}",
             OutgoingChannel.CrossWorldLinkshell => $"CWLS{Math.Clamp(configuration.CrossWorldLinkshellSlot, 1, 8)}",

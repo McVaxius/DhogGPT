@@ -6,6 +6,7 @@ public enum OutgoingChannel
     Say,
     Party,
     Alliance,
+    PvPTeam,
     FreeCompany,
     Linkshell,
     CrossWorldLinkshell,

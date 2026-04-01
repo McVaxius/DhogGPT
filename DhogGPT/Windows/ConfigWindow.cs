@@ -283,7 +283,8 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.IncludeChannelLabel,
             value => configuration.IncludeChannelLabel = value,
             "Adds the channel label such as Party, FC, or Tell into DhogGPT's Echo mirror output.");
-        changed |= DrawCheckbox("Party", configuration.EnableParty, value => configuration.EnableParty = value, "Enable translation for Party and Alliance chat.");
+        changed |= DrawCheckbox("Party", configuration.EnableParty, value => configuration.EnableParty = value, "Enable translation for Party, Cross-party, and Alliance chat.");
+        changed |= DrawCheckbox("PvP team", configuration.EnablePvPTeam, value => configuration.EnablePvPTeam = value, "Enable translation for PvP Team chat.");
         changed |= DrawCheckbox("Free company", configuration.EnableFreeCompany, value => configuration.EnableFreeCompany = value, "Enable translation for Free Company chat.");
         changed |= DrawCheckbox("Linkshells", configuration.EnableLinkshells, value => configuration.EnableLinkshells = value, "Enable translation for linkshell channels LS1-LS8.");
         changed |= DrawCheckbox("Cross-world linkshells", configuration.EnableCrossWorldLinkshells, value => configuration.EnableCrossWorldLinkshells = value, "Enable translation for cross-world linkshell channels CWLS1-CWLS8.");

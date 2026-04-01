@@ -1239,6 +1239,9 @@ public sealed class MainWindow : Window, IDisposable
             case "CHANNEL:ALLIANCE":
                 prefix = "/a ";
                 break;
+            case "CHANNEL:PVP TEAM":
+                prefix = "/pvpteam ";
+                break;
             case "CHANNEL:FC":
                 prefix = "/fc ";
                 break;
@@ -1302,6 +1305,7 @@ public sealed class MainWindow : Window, IDisposable
             "CHANNEL:SAY" => "Say",
             "CHANNEL:PARTY" => "Party",
             "CHANNEL:ALLIANCE" => "Alliance",
+            "CHANNEL:PVP TEAM" => "PvP Team",
             "CHANNEL:FC" => "FC",
             "CHANNEL:SHOUT" => "Shout",
             "CHANNEL:YELL" => "Yell",
@@ -1841,6 +1845,8 @@ public sealed class MainWindow : Window, IDisposable
                 return SetOutgoingChannel(configuration, OutgoingChannel.Party) || changed;
             case "channel:ALLIANCE":
                 return SetOutgoingChannel(configuration, OutgoingChannel.Alliance) || changed;
+            case "channel:PVP TEAM":
+                return SetOutgoingChannel(configuration, OutgoingChannel.PvPTeam) || changed;
             case "channel:FC":
                 return SetOutgoingChannel(configuration, OutgoingChannel.FreeCompany) || changed;
             case "channel:SHOUT":
@@ -1917,6 +1923,7 @@ public sealed class MainWindow : Window, IDisposable
             BuildPinnedConversation("channel:SAY", "Say"),
             BuildPinnedConversation("channel:PARTY", "Party"),
             BuildPinnedConversation("channel:ALLIANCE", "Alliance"),
+            BuildPinnedConversation("channel:PVP TEAM", "PvP Team"),
             BuildPinnedConversation("channel:FC", "FC"),
             BuildPinnedConversation("channel:SHOUT", "Shout"),
             BuildPinnedConversation("channel:YELL", "Yell"),
@@ -3169,6 +3176,9 @@ public sealed class MainWindow : Window, IDisposable
                 return true;
             case "NN":
                 color = new Vector4(0.60f, 1.0f, 0.72f, 1.0f);
+                return true;
+            case "PVP TEAM":
+                color = new Vector4(1.0f, 0.52f, 0.72f, 1.0f);
                 return true;
             case "DM":
                 color = new Vector4(1.0f, 0.60f, 0.86f, 1.0f);

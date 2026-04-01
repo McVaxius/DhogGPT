@@ -36,6 +36,9 @@ public static class CommandHelper
             case OutgoingChannel.Alliance:
                 prefix = "/a ";
                 break;
+            case OutgoingChannel.PvPTeam:
+                prefix = "/pvpteam ";
+                break;
             case OutgoingChannel.FreeCompany:
                 prefix = "/fc ";
                 break;
