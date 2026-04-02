@@ -50,6 +50,8 @@ public sealed class MainWindow : Window, IDisposable
     private string activeConversationKey = string.Empty;
     private string activeConversationLabel = string.Empty;
     private string outgoingDraft = string.Empty;
+    private string outgoingDraftOriginalSeStringBase64 = string.Empty;
+    private string outgoingDraftPayloadSourceText = string.Empty;
     private string restoredDirectMessageLogIdentity = string.Empty;
     private string pendingDirectMessageTarget = string.Empty;
     private string recentDirectMessageSearch = string.Empty;
@@ -987,15 +989,7 @@ public sealed class MainWindow : Window, IDisposable
             if (IsSafeConversation(request))
             {
                 RecordSuccessfulSend(result);
-                await Plugin.Framework.RunOnFrameworkThread(() =>
-                {
-                    outgoingDraft = string.Empty;
-                    if (isMasterWindow)
-                    {
-                        plugin.Configuration.OutgoingDraft = string.Empty;
-                        plugin.Configuration.Save();
-                    }
-                });
+                await Plugin.Framework.RunOnFrameworkThread(() => ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: false));
 
                 activeConversationKey = request.ConversationKey;
                 activeConversationLabel = request.ConversationLabel;
@@ -1004,7 +998,7 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
-            if (!TryBuildOutgoingCommandForActiveConversation(result.TranslatedText, out var command, out var error))
+            if (!TryBuildOutgoingPrefixForActiveConversation(out var prefix, out var error))
             {
                 await SetPreviewStateAsync(status: error);
                 return;
@@ -1016,13 +1010,15 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
-            var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
-            if (sent)
+            var sent = await Plugin.Framework.RunOnFrameworkThread(() => TrySendOutgoingTranslatedResult(result, prefix, out var sendError)
+                ? (true, string.Empty)
+                : (false, sendError));
+            if (sent.Item1)
                 RecordSuccessfulSend(result);
 
-            await SetPreviewStateAsync(status: sent
+            await SetPreviewStateAsync(status: sent.Item1
                 ? $"Sent translated message to {GetOutgoingConversationDisplayLabel()}."
-                : "Translation succeeded, but sending the message failed.");
+                : sent.Item2);
         }
         catch (OperationCanceledException)
         {
@@ -1067,15 +1063,7 @@ public sealed class MainWindow : Window, IDisposable
             {
                 RecordSuccessfulSend(result);
 
-                await Plugin.Framework.RunOnFrameworkThread(() =>
-                {
-                    outgoingDraft = string.Empty;
-                    if (isMasterWindow)
-                    {
-                        plugin.Configuration.OutgoingDraft = string.Empty;
-                        plugin.Configuration.Save();
-                    }
-                });
+                await Plugin.Framework.RunOnFrameworkThread(() => ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: false));
 
                 activeConversationKey = request.ConversationKey;
                 activeConversationLabel = request.ConversationLabel;
@@ -1084,7 +1072,7 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
-            if (!TryBuildOutgoingCommandForActiveConversation(result.TranslatedText, out var command, out var error))
+            if (!TryBuildOutgoingPrefixForActiveConversation(out var prefix, out var error))
             {
                 await SetSimpleChatStatusAsync(error);
                 return;
@@ -1096,24 +1084,16 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
-            var sent = await Plugin.Framework.RunOnFrameworkThread(() => CommandHelper.SendCommand(command));
-            if (!sent)
+            var sent = await Plugin.Framework.RunOnFrameworkThread(() => TrySendOutgoingTranslatedResult(result, prefix, out var sendError)
+                ? (true, string.Empty)
+                : (false, sendError));
+            if (!sent.Item1)
             {
-                await SetSimpleChatStatusAsync("Translation succeeded, but sending the message failed.");
+                await SetSimpleChatStatusAsync(sent.Item2);
                 return;
             }
 
             RecordSuccessfulSend(result);
-
-            await Plugin.Framework.RunOnFrameworkThread(() =>
-            {
-                outgoingDraft = string.Empty;
-                if (isMasterWindow)
-                {
-                    plugin.Configuration.OutgoingDraft = string.Empty;
-                    plugin.Configuration.Save();
-                }
-            });
 
             activeConversationKey = request.ConversationKey;
             activeConversationLabel = request.ConversationLabel;
@@ -1141,6 +1121,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private TranslationRequest BuildOutgoingRequest(bool recordInHistory)
     {
+        TryAdoptCurrentPayloadDraft(forceOverwrite: string.IsNullOrWhiteSpace(outgoingDraft));
+        ClearOutgoingPayloadDraftIfStale();
+
         var configuration = plugin.Configuration;
         if (!TryGetComposerConversation(out var conversationKey, out var conversationLabel, out var channelLabel))
         {
@@ -1152,6 +1135,7 @@ public sealed class MainWindow : Window, IDisposable
         return new TranslationRequest
         {
             Text = outgoingDraft,
+            OriginalSeStringBase64 = outgoingDraftOriginalSeStringBase64,
             SourceLanguage = configuration.OutgoingSourceLanguage,
             TargetLanguage = configuration.OutgoingTargetLanguage,
             IsInbound = false,
@@ -1203,9 +1187,9 @@ public sealed class MainWindow : Window, IDisposable
         return true;
     }
 
-    private bool TryBuildOutgoingCommandForActiveConversation(string translatedText, out string command, out string error)
+    private bool TryBuildOutgoingPrefixForActiveConversation(out string prefix, out string error)
     {
-        command = string.Empty;
+        prefix = string.Empty;
         error = string.Empty;
 
         if (!TryGetComposerConversation(out var conversationKey, out var conversationLabel, out _))
@@ -1214,14 +1198,6 @@ public sealed class MainWindow : Window, IDisposable
             return false;
         }
 
-        var trimmed = translatedText.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed))
-        {
-            error = "There is no translated text to send.";
-            return false;
-        }
-
-        string prefix;
         switch (conversationKey.ToUpperInvariant())
         {
             case "CHANNEL:ECHO":
@@ -1283,6 +1259,22 @@ public sealed class MainWindow : Window, IDisposable
                 return false;
         }
 
+        return true;
+    }
+
+    private bool TryBuildOutgoingCommandForActiveConversation(string translatedText, out string command, out string error)
+    {
+        command = string.Empty;
+        if (!TryBuildOutgoingPrefixForActiveConversation(out var prefix, out error))
+            return false;
+
+        var trimmed = translatedText.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            error = "There is no translated text to send.";
+            return false;
+        }
+
         command = prefix + trimmed;
         if (Encoding.UTF8.GetByteCount(command) > 500)
         {
@@ -1292,6 +1284,89 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         return true;
+    }
+
+    private bool TryAdoptCurrentPayloadDraft(bool forceOverwrite)
+    {
+        if (!CommandHelper.TryCaptureCurrentPayloadDraft(out var plainText, out var originalSeStringBase64))
+            return false;
+
+        if (!forceOverwrite &&
+            !string.IsNullOrWhiteSpace(outgoingDraft) &&
+            !string.Equals(outgoingDraft, plainText, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        outgoingDraft = plainText;
+        outgoingDraftOriginalSeStringBase64 = originalSeStringBase64;
+        outgoingDraftPayloadSourceText = plainText;
+        if (isMasterWindow)
+        {
+            plugin.Configuration.OutgoingDraft = plainText;
+            plugin.Configuration.Save();
+        }
+
+        return true;
+    }
+
+    private void ClearOutgoingPayloadDraftIfStale()
+    {
+        if (string.IsNullOrWhiteSpace(outgoingDraftOriginalSeStringBase64))
+            return;
+
+        if (string.Equals(outgoingDraft, outgoingDraftPayloadSourceText, StringComparison.Ordinal))
+            return;
+
+        outgoingDraftOriginalSeStringBase64 = string.Empty;
+        outgoingDraftPayloadSourceText = string.Empty;
+    }
+
+    private void ClearOutgoingDraftAfterSuccessfulSend(bool clearLiveChatInput)
+    {
+        outgoingDraft = string.Empty;
+        outgoingDraftOriginalSeStringBase64 = string.Empty;
+        outgoingDraftPayloadSourceText = string.Empty;
+        if (clearLiveChatInput)
+            CommandHelper.ClearCurrentChatInput();
+        if (isMasterWindow)
+        {
+            plugin.Configuration.OutgoingDraft = string.Empty;
+            plugin.Configuration.Save();
+        }
+    }
+
+    private bool TrySendOutgoingTranslatedResult(TranslationResult result, string prefix, out string error)
+    {
+        error = "Translation succeeded, but sending the message failed.";
+
+        if (!string.IsNullOrWhiteSpace(result.Request.OriginalSeStringBase64))
+        {
+            var preservedPayloadText = PreservedPayloadTranslationText.Prepare(result.Request);
+            if (!preservedPayloadText.HasPayloadBlocks ||
+                !preservedPayloadText.TryBuildOutgoingSeStringBytes(prefix, result.TranslatedText.Trim(), out var bytes))
+            {
+                error = "Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending.";
+                return false;
+            }
+
+            var payloadSent = CommandHelper.SendEncodedSeString(bytes);
+            if (payloadSent)
+                ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: true);
+            else
+                error = "Translation succeeded, but the payload-preserving send path failed.";
+
+            return payloadSent;
+        }
+
+        if (!TryBuildOutgoingCommandForActiveConversation(result.TranslatedText, out var command, out error))
+            return false;
+
+        var sent = CommandHelper.SendCommand(command);
+        if (sent)
+            ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: false);
+
+        return sent;
     }
 
     private static string GetDefaultConversationLabel(string conversationKey)

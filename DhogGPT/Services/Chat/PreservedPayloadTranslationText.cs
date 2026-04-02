@@ -19,6 +19,7 @@ internal sealed class PreservedPayloadTranslationText
     }
 
     public string PreparedText { get; }
+    public bool HasPayloadBlocks => replacements.Count > 0;
 
     public static PreservedPayloadTranslationText Prepare(TranslationRequest request)
     {
@@ -48,10 +49,10 @@ internal sealed class PreservedPayloadTranslationText
         var searchStart = 0;
         foreach (var segment in protectedSegments)
         {
-            if (string.IsNullOrWhiteSpace(segment))
+            if (string.IsNullOrWhiteSpace(segment.Text))
                 continue;
 
-            var matchIndex = preparedText.IndexOf(segment, searchStart, StringComparison.Ordinal);
+            var matchIndex = preparedText.IndexOf(segment.Text, searchStart, StringComparison.Ordinal);
             if (matchIndex < 0)
                 continue;
 
@@ -59,8 +60,8 @@ internal sealed class PreservedPayloadTranslationText
             preparedText = string.Concat(
                 preparedText.AsSpan(0, matchIndex),
                 token,
-                preparedText.AsSpan(matchIndex + segment.Length));
-            replacements.Add(new Replacement(token, segment));
+                preparedText.AsSpan(matchIndex + segment.Text.Length));
+            replacements.Add(new Replacement(token, segment.Text, segment.Payloads));
             searchStart = matchIndex + token.Length;
         }
 
@@ -99,19 +100,52 @@ internal sealed class PreservedPayloadTranslationText
         return restored;
     }
 
-    private static List<string> ExtractProtectedSegments(SeString seString)
+    public bool TryBuildOutgoingSeStringBytes(string prefixText, string translatedText, out byte[] bytes)
     {
-        var segments = new List<string>();
+        bytes = Array.Empty<byte>();
+        if (replacements.Count == 0)
+            return false;
+
+        var payloads = new List<Payload>();
+        if (!string.IsNullOrEmpty(prefixText))
+            payloads.Add(new TextPayload(prefixText));
+
+        var cursor = 0;
+        foreach (var replacement in replacements)
+        {
+            var matchIndex = translatedText.IndexOf(replacement.Value, cursor, StringComparison.Ordinal);
+            if (matchIndex < 0)
+                return false;
+
+            if (matchIndex > cursor)
+                payloads.Add(new TextPayload(translatedText[cursor..matchIndex]));
+
+            payloads.AddRange(replacement.Payloads);
+            cursor = matchIndex + replacement.Value.Length;
+        }
+
+        if (cursor < translatedText.Length)
+            payloads.Add(new TextPayload(translatedText[cursor..]));
+
+        bytes = new SeString(payloads.ToArray()).Encode();
+        return bytes.Length > 0;
+    }
+
+    private static List<ProtectedSegment> ExtractProtectedSegments(SeString seString)
+    {
+        var segments = new List<ProtectedSegment>();
         var activeBuilder = new StringBuilder();
+        List<Payload>? activePayloads = null;
         var protectingPayloadText = false;
 
         void Flush()
         {
-            if (activeBuilder.Length == 0)
+            if (activePayloads == null || activeBuilder.Length == 0)
                 return;
 
-            segments.Add(activeBuilder.ToString());
+            segments.Add(new ProtectedSegment(activeBuilder.ToString(), [.. activePayloads]));
             activeBuilder.Clear();
+            activePayloads = null;
         }
 
         foreach (var payload in seString.Payloads)
@@ -122,28 +156,36 @@ internal sealed class PreservedPayloadTranslationText
                 case MapLinkPayload:
                     Flush();
                     protectingPayloadText = true;
+                    activePayloads = [payload];
                     continue;
                 case RawPayload rawPayload when Equals(rawPayload, RawPayload.LinkTerminator):
+                    activePayloads?.Add(payload);
                     Flush();
                     protectingPayloadText = false;
                     continue;
             }
 
-            if (!protectingPayloadText || payload is not ITextProvider textProvider)
+            if (!protectingPayloadText)
                 continue;
 
-            var text = textProvider.Text ?? string.Empty;
-            var nullIndex = text.IndexOf('\0');
-            if (nullIndex >= 0)
-                text = text[..nullIndex];
+            activePayloads?.Add(payload);
 
-            if (!string.IsNullOrEmpty(text))
-                activeBuilder.Append(text);
+            if (payload is ITextProvider textProvider)
+            {
+                var text = textProvider.Text ?? string.Empty;
+                var nullIndex = text.IndexOf('\0');
+                if (nullIndex >= 0)
+                    text = text[..nullIndex];
+
+                if (!string.IsNullOrEmpty(text))
+                    activeBuilder.Append(text);
+            }
         }
 
         Flush();
         return segments;
     }
 
-    private sealed record Replacement(string Token, string Value);
+    private sealed record ProtectedSegment(string Text, Payload[] Payloads);
+    private sealed record Replacement(string Token, string Value, Payload[] Payloads);
 }
