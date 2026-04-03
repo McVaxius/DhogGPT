@@ -1,4 +1,6 @@
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using DhogGPT.Models;
@@ -9,6 +11,7 @@ namespace DhogGPT.Services.Chat;
 public sealed class ChatTranslationService : IDisposable
 {
     private static readonly TimeSpan PendingOutgoingDirectMessageConfirmDelay = TimeSpan.FromSeconds(1.5);
+    private static readonly TimeSpan IncomingChatDiagnosticInterval = TimeSpan.FromSeconds(30);
     private static readonly string[] DirectMessageErrorSnippets =
     [
         "There are no Worlds by that name",
@@ -21,6 +24,7 @@ public sealed class ChatTranslationService : IDisposable
     private readonly Configuration configuration;
     private readonly TranslationCoordinator translationCoordinator;
     private readonly Dictionary<string, DateTimeOffset> recentMessages = [];
+    private readonly Dictionary<string, DateTimeOffset> incomingChatDiagnosticLogTimes = [];
     private readonly List<PendingOutgoingDirectMessage> pendingOutgoingDirectMessages = [];
     private readonly List<ConfirmedOutgoingDirectMessage> confirmedOutgoingDirectMessages = [];
     private readonly object syncRoot = new();
@@ -32,13 +36,16 @@ public sealed class ChatTranslationService : IDisposable
 
         translationCoordinator.InboundTranslationReady += OnInboundTranslationReady;
         Plugin.ChatGui.ChatMessage += OnChatMessage;
+        Plugin.ChatGui.LogMessage += OnLogMessage;
         Plugin.Framework.Update += OnFrameworkUpdate;
+        Plugin.Log.Information("[DhogGPT] ChatTranslationService subscribed to ChatMessage and LogMessage.");
     }
 
     public void Dispose()
     {
         translationCoordinator.InboundTranslationReady -= OnInboundTranslationReady;
         Plugin.ChatGui.ChatMessage -= OnChatMessage;
+        Plugin.ChatGui.LogMessage -= OnLogMessage;
         Plugin.Framework.Update -= OnFrameworkUpdate;
     }
 
@@ -69,36 +76,95 @@ public sealed class ChatTranslationService : IDisposable
         {
             if (TryConfirmPendingOutgoingDirectMessage(normalizedSender, messageText))
                 return;
-
-            if (configuration.PluginEnabled &&
-                !string.IsNullOrWhiteSpace(normalizedSender) &&
-                !string.Equals(normalizedSender, "DM", StringComparison.OrdinalIgnoreCase))
-            {
-                ChatChannelMapper.RegisterKnownDirectMessageIdentity(normalizedSender);
-                IncomingDirectMessageObserved?.Invoke(normalizedSender);
-            }
         }
 
-        if (!configuration.PluginEnabled || !configuration.TranslateIncoming)
+        TryQueueIncomingTranslation(
+            source: "ChatMessage",
+            type,
+            senderText,
+            messageText,
+            CaptureOriginalSeString(message));
+    }
+
+    private void OnLogMessage(ILogMessage message)
+    {
+        if (message.IsHandled)
             return;
 
-        if (!ChatChannelMapper.TryGetIncomingChannelLabel(configuration, type, out var channelLabel))
+        if (!TryBuildInboundFromLogMessage(message, out var type, out var senderText, out var messageText))
             return;
 
+        TryQueueIncomingTranslation(
+            source: "LogMessage",
+            type,
+            senderText,
+            messageText,
+            originalSeStringBase64: string.Empty);
+    }
+
+    private void TryQueueIncomingTranslation(string source, XivChatType type, string senderText, string messageText, string originalSeStringBase64)
+    {
+        if (string.IsNullOrWhiteSpace(messageText))
+            return;
+
+        if (!configuration.PluginEnabled)
+        {
+            TryLogIncomingChatDiagnostic(source, type, string.Empty, senderText, messageText, "plugin-disabled");
+            return;
+        }
+
+        if (!configuration.TranslateIncoming)
+        {
+            TryLogIncomingChatDiagnostic(source, type, string.Empty, senderText, messageText, "translate-incoming-off");
+            return;
+        }
+
+        if (!ChatChannelMapper.TryGetIncomingChannelConfiguration(configuration, type, out var channelLabel, out var channelEnabled))
+        {
+            TryLogIncomingChatDiagnostic(source, type, string.Empty, senderText, messageText, "unmapped");
+            return;
+        }
+
+        if (!channelEnabled)
+        {
+            TryLogIncomingChatDiagnostic(source, type, channelLabel, senderText, messageText, "disabled");
+            return;
+        }
+
+        var normalizedSender = ChatChannelMapper.NormalizeDirectMessageLabel(senderText);
         if (type == XivChatType.TellIncoming && ShouldSuppressConfirmedOutgoingEcho(normalizedSender, messageText))
+        {
+            TryLogIncomingChatDiagnostic(source, type, channelLabel, senderText, messageText, "suppressed-confirmed-echo");
             return;
+        }
 
         if (configuration.SkipOwnMessages && IsLocalPlayer(senderText))
+        {
+            TryLogIncomingChatDiagnostic(source, type, channelLabel, senderText, messageText, "suppressed-own");
             return;
+        }
 
         if (!ShouldQueue(channelLabel, senderText, messageText))
+        {
+            TryLogIncomingChatDiagnostic(source, type, channelLabel, senderText, messageText, "deduped");
             return;
+        }
+
+        if (type == XivChatType.TellIncoming &&
+            !string.IsNullOrWhiteSpace(normalizedSender) &&
+            !string.Equals(normalizedSender, "DM", StringComparison.OrdinalIgnoreCase))
+        {
+            ChatChannelMapper.RegisterKnownDirectMessageIdentity(normalizedSender);
+            IncomingDirectMessageObserved?.Invoke(normalizedSender);
+        }
+
+        TryLogIncomingChatDiagnostic(source, type, channelLabel, senderText, messageText, "queued");
 
         var conversation = ChatChannelMapper.GetIncomingConversation(channelLabel, senderText);
         var request = new TranslationRequest
         {
             Text = messageText,
-            OriginalSeStringBase64 = CaptureOriginalSeString(message),
+            OriginalSeStringBase64 = originalSeStringBase64,
             SourceLanguage = configuration.IncomingSourceLanguage,
             TargetLanguage = configuration.IncomingTargetLanguage,
             IsInbound = true,
@@ -109,6 +175,34 @@ public sealed class ChatTranslationService : IDisposable
         };
 
         _ = translationCoordinator.QueueIncomingAsync(request);
+    }
+
+    private bool TryBuildInboundFromLogMessage(ILogMessage message, out XivChatType type, out string senderText, out string messageText)
+    {
+        type = default;
+        senderText = string.Empty;
+        messageText = string.Empty;
+
+        uint logKindId;
+        try
+        {
+            logKindId = message.GameData.Value.LogKind.RowId;
+        }
+        catch
+        {
+            return false;
+        }
+
+        type = (XivChatType)logKindId;
+        if (type == XivChatType.TellOutgoing)
+            return false;
+
+        if (!ChatChannelMapper.TryGetIncomingChannelConfiguration(configuration, type, out _, out _))
+            return false;
+
+        senderText = ResolveLogMessageSenderIdentity(message);
+        messageText = ExtractLogMessageText(message, senderText);
+        return !string.IsNullOrWhiteSpace(messageText);
     }
 
     private void OnFrameworkUpdate(Dalamud.Plugin.Services.IFramework framework)
@@ -253,6 +347,30 @@ public sealed class ChatTranslationService : IDisposable
         return sender.TextValue?.Trim() ?? string.Empty;
     }
 
+    private static string ResolveLogMessageSenderIdentity(ILogMessage message)
+    {
+        var sourceEntity = message.SourceEntity;
+        if (sourceEntity == null)
+            return string.Empty;
+
+        var playerName = NormalizeWhitespace(sourceEntity.Name.ExtractText());
+        if (string.IsNullOrWhiteSpace(playerName))
+            return string.Empty;
+
+        try
+        {
+            var worldName = sourceEntity.HomeWorld.Value.Name.ToString();
+            var fullIdentity = ChatChannelMapper.BuildDirectMessageIdentity(playerName, worldName);
+            if (!string.IsNullOrWhiteSpace(fullIdentity))
+                return fullIdentity;
+        }
+        catch
+        {
+        }
+
+        return playerName;
+    }
+
     private bool TryConfirmPendingOutgoingDirectMessage(string senderText, string messageText)
     {
         TranslationResult? completedResult = null;
@@ -333,6 +451,97 @@ public sealed class ChatTranslationService : IDisposable
         confirmedOutgoingDirectMessages.RemoveAll(confirmed => confirmed.CreatedAtUtc < cutoff);
     }
 
+    private static string ExtractLogMessageText(ILogMessage message, string senderText)
+    {
+        var preview = EvaluateLogMessagePreview(message);
+        if (string.IsNullOrWhiteSpace(preview))
+            return string.Empty;
+
+        if (string.IsNullOrWhiteSpace(senderText))
+            return preview;
+
+        var normalizedSender = NormalizeWhitespace(senderText);
+        if (string.IsNullOrWhiteSpace(normalizedSender))
+            return preview;
+
+        foreach (var prefix in new[]
+                 {
+                     normalizedSender + ": ",
+                     normalizedSender + " : ",
+                     normalizedSender + " ",
+                 })
+        {
+            if (preview.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var stripped = preview[prefix.Length..].Trim();
+                if (!string.IsNullOrWhiteSpace(stripped))
+                    return stripped;
+            }
+        }
+
+        return preview;
+    }
+
+    private static string EvaluateLogMessagePreview(ILogMessage message)
+    {
+        try
+        {
+            var parameters = message.Parameters.Count == 0
+                ? Array.Empty<SeStringParameter>()
+                : message.Parameters.ToArray();
+            var preview = Plugin.SeStringEvaluator
+                .EvaluateFromLogMessage(message.LogMessageId, parameters, Plugin.ClientState.ClientLanguage)
+                .ExtractText();
+            return NormalizeWhitespace(preview);
+        }
+        catch
+        {
+            try
+            {
+                return NormalizeWhitespace(message.GameData.Value.Text.ExtractText());
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+    }
+
+    private void TryLogIncomingChatDiagnostic(string source, XivChatType type, string channelLabel, string senderText, string messageText, string outcome)
+    {
+        if (!configuration.EnableDebugLogging)
+            return;
+
+        var now = DateTimeOffset.UtcNow;
+        var key = $"{source}:{(uint)type}:{outcome}:{channelLabel}";
+        lock (syncRoot)
+        {
+            CleanupIncomingChatDiagnosticLogTimes(now);
+            if (incomingChatDiagnosticLogTimes.TryGetValue(key, out var lastLoggedUtc) &&
+                now - lastLoggedUtc < IncomingChatDiagnosticInterval)
+            {
+                return;
+            }
+
+            incomingChatDiagnosticLogTimes[key] = now;
+        }
+
+        var displayChannel = string.IsNullOrWhiteSpace(channelLabel) ? "<unmapped>" : channelLabel;
+        Plugin.Log.Information(
+            $"[DhogGPT] Incoming chat diag: source={source}, type={(uint)type}/{type}, channel={displayChannel}, outcome={outcome}, sender={TrimDiagnosticText(senderText, 48)}, message={TrimDiagnosticText(messageText, 96)}");
+    }
+
+    private void CleanupIncomingChatDiagnosticLogTimes(DateTimeOffset now)
+    {
+        var cutoff = now - TimeSpan.FromMinutes(10);
+        var expiredKeys = incomingChatDiagnosticLogTimes
+            .Where(pair => pair.Value < cutoff)
+            .Select(pair => pair.Key)
+            .ToArray();
+        foreach (var expiredKey in expiredKeys)
+            incomingChatDiagnosticLogTimes.Remove(expiredKey);
+    }
+
     private static bool LooksLikeDirectMessageSendError(string messageText)
         => DirectMessageErrorSnippets.Any(snippet => messageText.Contains(snippet, StringComparison.OrdinalIgnoreCase));
 
@@ -350,6 +559,18 @@ public sealed class ChatTranslationService : IDisposable
             return string.Empty;
         }
     }
+
+    private static string TrimDiagnosticText(string value, int maxLength)
+    {
+        var normalized = NormalizeWhitespace(value);
+        if (normalized.Length <= maxLength)
+            return normalized;
+
+        return normalized[..Math.Max(0, maxLength - 3)] + "...";
+    }
+
+    private static string NormalizeWhitespace(string value)
+        => string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).Trim();
 
     private sealed record PendingOutgoingDirectMessage(
         TranslationResult Result,

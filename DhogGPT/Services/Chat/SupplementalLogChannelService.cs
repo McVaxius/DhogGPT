@@ -99,7 +99,7 @@ public sealed class SupplementalLogChannelService : IDisposable
         if (string.IsNullOrWhiteSpace(preview))
             return;
 
-        var channelLabel = ClassifyChannel(message, preview);
+        var (conversationKey, channelLabel) = ClassifyChannel(message, preview);
         var sourceName = NormalizeText(message.SourceEntity?.Name.ExtractText() ?? string.Empty);
         if (string.IsNullOrWhiteSpace(sourceName))
             sourceName = "System";
@@ -111,21 +111,21 @@ public sealed class SupplementalLogChannelService : IDisposable
             Success = true,
             ChannelLabel = channelLabel,
             Sender = sourceName,
-            ConversationKey = $"channel:{channelLabel.ToUpperInvariant()}",
+            ConversationKey = conversationKey,
             ConversationLabel = channelLabel,
             OriginalText = preview,
             TranslatedText = string.Empty,
         });
     }
 
-    private static string ClassifyChannel(ILogMessage message, string preview)
+    private static (string ConversationKey, string ChannelLabel) ClassifyChannel(ILogMessage message, string preview)
     {
         var lowered = preview.ToLowerInvariant();
         var hasCombatEntities = message.SourceEntity != null || message.TargetEntity != null;
         if (hasCombatEntities || CombatKeywords.Any(lowered.Contains))
-            return "Combat";
+            return ("channel:COMBAT", "Events");
 
-        return "Progress";
+        return ("channel:PROGRESS", "System");
     }
 
     private static string EvaluateLogMessagePreview(ILogMessage message)

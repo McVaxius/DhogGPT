@@ -289,6 +289,7 @@ public sealed class ConfigWindow : Window, IDisposable
         changed |= DrawCheckbox("Linkshells", configuration.EnableLinkshells, value => configuration.EnableLinkshells = value, "Enable translation for linkshell channels LS1-LS8.");
         changed |= DrawCheckbox("Cross-world linkshells", configuration.EnableCrossWorldLinkshells, value => configuration.EnableCrossWorldLinkshells = value, "Enable translation for cross-world linkshell channels CWLS1-CWLS8.");
         changed |= DrawCheckbox("Say", configuration.EnableSay, value => configuration.EnableSay = value, "Enable translation for Say chat.");
+        changed |= DrawCheckbox("Emote", configuration.EnableEmote, value => configuration.EnableEmote = value, "Enable translation for standard and custom emote chat lines.");
         changed |= DrawCheckbox("Shout", configuration.EnableShout, value => configuration.EnableShout = value, "Enable translation for Shout chat.");
         changed |= DrawCheckbox("Yell", configuration.EnableYell, value => configuration.EnableYell = value, "Enable translation for Yell chat.");
         changed |= DrawCheckbox("NN", configuration.EnableNoviceNetwork, value => configuration.EnableNoviceNetwork = value, "Enable translation for Novice Network chat.");
@@ -298,7 +299,7 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.Separator();
-        ImGui.TextDisabled("Safe, Echo, Progress, and Combat are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
+        ImGui.TextDisabled("Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
     }
 
     private void DrawProviderSettings()

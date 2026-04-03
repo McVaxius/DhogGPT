@@ -71,7 +71,7 @@ internal sealed class PreservedPayloadTranslationText
     }
 
     public TranslationRequest ApplyTo(TranslationRequest request)
-        => string.Equals(PreparedText, request.Text, StringComparison.Ordinal)
+        => replacements.Count == 0 || string.Equals(PreparedText, request.Text, StringComparison.Ordinal)
             ? request
             : new TranslationRequest
             {

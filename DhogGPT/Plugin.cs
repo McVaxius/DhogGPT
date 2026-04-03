@@ -77,6 +77,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        NormalizeLegacyConfiguration();
         NormalizeChatModeConfiguration();
         InitializeConversationVisibilityDefaults();
 
@@ -282,6 +283,27 @@ public sealed class Plugin : IDalamudPlugin
             ApplyUltraCompactConfiguration();
             Configuration.Save();
         }
+    }
+
+    private void NormalizeLegacyConfiguration()
+    {
+        var changed = false;
+
+        if (Configuration.Version < 2)
+        {
+            if (!Configuration.PluginEnabled && Configuration.TranslateIncoming)
+            {
+                Configuration.PluginEnabled = true;
+                changed = true;
+                Log.Information("[DhogGPT] Migrated legacy config: restored PluginEnabled because incoming translation was already configured on.");
+            }
+
+            Configuration.Version = 2;
+            changed = true;
+        }
+
+        if (changed)
+            Configuration.Save();
     }
 
     private void ApplyUltraCompactConfiguration()

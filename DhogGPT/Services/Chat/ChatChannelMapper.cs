@@ -10,38 +10,55 @@ public static class ChatChannelMapper
     private static readonly ConcurrentDictionary<string, string> KnownDirectMessageIdentities = new(StringComparer.OrdinalIgnoreCase);
 
     public static bool TryGetIncomingChannelLabel(Configuration configuration, XivChatType chatType, out string label)
+        => TryGetIncomingChannelConfiguration(configuration, chatType, out label, out var enabled) && enabled;
+
+    public static bool TryGetIncomingChannelConfiguration(Configuration configuration, XivChatType chatType, out string label, out bool enabled)
     {
         switch (chatType)
         {
             case XivChatType.Party:
             case XivChatType.CrossParty:
                 label = "Party";
-                return configuration.EnableParty;
+                enabled = configuration.EnableParty;
+                return true;
             case XivChatType.Alliance:
                 label = "Alliance";
-                return configuration.EnableParty;
+                enabled = configuration.EnableParty;
+                return true;
             case XivChatType.PvPTeam:
                 label = "PvP Team";
-                return configuration.EnablePvPTeam;
+                enabled = configuration.EnablePvPTeam;
+                return true;
             case XivChatType.FreeCompany:
                 label = "FC";
-                return configuration.EnableFreeCompany;
+                enabled = configuration.EnableFreeCompany;
+                return true;
             case XivChatType.Say:
                 label = "Say";
-                return configuration.EnableSay;
+                enabled = configuration.EnableSay;
+                return true;
+            case XivChatType.CustomEmote:
+            case XivChatType.StandardEmote:
+                label = "Emote";
+                enabled = configuration.EnableEmote;
+                return true;
             case XivChatType.Shout:
                 label = "Shout";
-                return configuration.EnableShout;
+                enabled = configuration.EnableShout;
+                return true;
             case XivChatType.Yell:
                 label = "Yell";
-                return configuration.EnableYell;
+                enabled = configuration.EnableYell;
+                return true;
             case XivChatType.NoviceNetwork:
                 label = "NN";
-                return configuration.EnableNoviceNetwork;
+                enabled = configuration.EnableNoviceNetwork;
+                return true;
             case XivChatType.TellIncoming:
             case XivChatType.TellOutgoing:
                 label = "DM";
-                return configuration.EnableTell;
+                enabled = configuration.EnableTell;
+                return true;
             case XivChatType.Ls1:
             case XivChatType.Ls2:
             case XivChatType.Ls3:
@@ -51,7 +68,8 @@ public static class ChatChannelMapper
             case XivChatType.Ls7:
             case XivChatType.Ls8:
                 label = $"LS{GetLinkshellSlot(chatType)}";
-                return configuration.EnableLinkshells;
+                enabled = configuration.EnableLinkshells;
+                return true;
             case XivChatType.CrossLinkShell1:
             case XivChatType.CrossLinkShell2:
             case XivChatType.CrossLinkShell3:
@@ -61,9 +79,11 @@ public static class ChatChannelMapper
             case XivChatType.CrossLinkShell7:
             case XivChatType.CrossLinkShell8:
                 label = $"CWLS{GetCrossWorldLinkshellSlot(chatType)}";
-                return configuration.EnableCrossWorldLinkshells;
+                enabled = configuration.EnableCrossWorldLinkshells;
+                return true;
             default:
                 label = string.Empty;
+                enabled = false;
                 return false;
         }
     }

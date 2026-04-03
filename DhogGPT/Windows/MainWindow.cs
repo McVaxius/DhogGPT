@@ -23,6 +23,8 @@ public sealed class MainWindow : Window, IDisposable
     private const int AutoScrollSettleFrames = 2;
     private const int DefaultVisibleDirectMessageTabs = 3;
     private const float WindowRepairTolerance = 4f;
+    private const string CombinedConversationPrefix = "combo:";
+    private const char CombinedConversationSeparator = '|';
     private const string NewDirectMessagePopupId = "New DM###DhogGPTNewDmPopup";
     private const string RecentDirectMessagesPopupId = "Recent DMs###DhogGPTRecentDmPopup";
     private const string HiddenChannelsPopupId = "Hidden Channels###DhogGPTHiddenChannelsPopup";
@@ -465,6 +467,8 @@ public sealed class MainWindow : Window, IDisposable
         {
             if (remainingConversations.Remove(pinnedConversation.Key, out var existingConversation))
                 conversations.Add(existingConversation with { Label = pinnedConversation.Label });
+            else if (TryResolveConversationTabState(pinnedConversation.Key, out var resolvedConversation))
+                conversations.Add(resolvedConversation with { Label = pinnedConversation.Label });
             else
                 conversations.Add(pinnedConversation);
         }
@@ -1180,6 +1184,13 @@ public sealed class MainWindow : Window, IDisposable
                    !conversationLabel.Equals("DM", StringComparison.OrdinalIgnoreCase);
         }
 
+        if (TryParseCombinedConversationKey(conversationKey, out var combinedConversationKeys) &&
+            combinedConversationKeys.Count > 0)
+        {
+            conversationKey = combinedConversationKeys[0];
+            conversationLabel = GetDisplayLabelForConversationKey(conversationKey);
+        }
+
         if (string.IsNullOrWhiteSpace(conversationLabel))
             conversationLabel = GetDefaultConversationLabel(conversationKey);
 
@@ -1371,13 +1382,17 @@ public sealed class MainWindow : Window, IDisposable
 
     private static string GetDefaultConversationLabel(string conversationKey)
     {
+        if (TryParseCombinedConversationKey(conversationKey, out var combinedConversationKeys))
+            return BuildDefaultCombinedConversationLabel(combinedConversationKeys);
+
         return conversationKey.ToUpperInvariant() switch
         {
             "CHANNEL:ECHO" => "Safe",
             "CHANNEL:ECHO_CHAT" => "Echo",
-            "CHANNEL:PROGRESS" => "Progress",
-            "CHANNEL:COMBAT" => "Combat",
+            "CHANNEL:PROGRESS" => "System",
+            "CHANNEL:COMBAT" => "Events",
             "CHANNEL:SAY" => "Say",
+            "CHANNEL:EMOTE" => "Emote",
             "CHANNEL:PARTY" => "Party",
             "CHANNEL:ALLIANCE" => "Alliance",
             "CHANNEL:PVP TEAM" => "PvP Team",
@@ -1650,6 +1665,9 @@ public sealed class MainWindow : Window, IDisposable
 
     private string GetConversationDisplayLabel(ConversationTabState conversation)
     {
+        if (TryParseCombinedConversationKey(conversation.Key, out _))
+            return string.IsNullOrWhiteSpace(conversation.Label) ? GetDefaultConversationLabel(conversation.Key) : conversation.Label;
+
         if (!IsDirectMessageConversation(conversation.Key))
             return ShellChannelDisplayService.GetDisplayLabel(plugin.Configuration, conversation.Key, conversation.Label);
 
@@ -1660,6 +1678,26 @@ public sealed class MainWindow : Window, IDisposable
             return conversation.Label;
 
         return KrangleService.KrangleName(conversation.Label);
+    }
+
+    private string GetDisplayLabelForConversationKey(string conversationKey)
+    {
+        foreach (var conversation in GetAllGeneralConversations())
+        {
+            if (conversation.Key.Equals(conversationKey, StringComparison.OrdinalIgnoreCase))
+                return GetConversationDisplayLabel(conversation);
+        }
+
+        return GetDefaultConversationLabel(conversationKey);
+    }
+
+    private string BuildCombinedConversationLabel(IEnumerable<string> conversationKeys)
+    {
+        var tokens = conversationKeys
+            .Select(GetDisplayLabelForConversationKey)
+            .Select(label => string.IsNullOrWhiteSpace(label) ? "?" : label.Trim()[0].ToString())
+            .ToList();
+        return tokens.Count == 0 ? "?" : string.Join("|", tokens);
     }
 
     private string GetConversationGroupingKey(TranslationHistoryItem entry)
@@ -1700,6 +1738,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (!IsDirectMessageConversation(configuredConversation.Key))
             return !configuredConversation.Key.Equals(ChatChannelMapper.DirectMessageComposerKey, StringComparison.OrdinalIgnoreCase) &&
+                   !IsGeneralConversationCoveredByCombinedTab(configuredConversation.Key) &&
                    !IsGeneralConversationHidden(configuredConversation.Key);
 
         return !string.IsNullOrWhiteSpace(configuredConversation.Label) &&
@@ -1788,6 +1827,13 @@ public sealed class MainWindow : Window, IDisposable
         if (!isMasterWindow)
         {
             plugin.CloseDetachedConversationWindow(conversationWindowId);
+            return;
+        }
+
+        if (TryParseCombinedConversationKey(conversation.Key, out _))
+        {
+            ClearTransientUiStatus();
+            ReleaseCombinedConversation(conversation.Key);
             return;
         }
 
@@ -1894,6 +1940,13 @@ public sealed class MainWindow : Window, IDisposable
             return false;
         }
 
+        var outgoingConversationKey = conversationKey;
+        if (TryParseCombinedConversationKey(conversationKey, out var combinedConversationKeys) &&
+            combinedConversationKeys.Count > 0)
+        {
+            outgoingConversationKey = combinedConversationKeys[0];
+        }
+
         var label = GetDefaultConversationLabel(conversationKey);
         if (TryResolveConversationTabState(conversationKey, out var resolvedConversation))
             label = resolvedConversation.Label;
@@ -1908,7 +1961,7 @@ public sealed class MainWindow : Window, IDisposable
             return changed;
 
         var configuration = plugin.Configuration;
-        switch (conversationKey)
+        switch (outgoingConversationKey)
         {
             case "channel:ECHO":
                 return SetOutgoingChannel(configuration, OutgoingChannel.Safe) || changed;
@@ -1932,9 +1985,9 @@ public sealed class MainWindow : Window, IDisposable
                 return SetOutgoingChannel(configuration, OutgoingChannel.NoviceNetwork) || changed;
         }
 
-        if (conversationKey.StartsWith("channel:LS", StringComparison.OrdinalIgnoreCase))
+        if (outgoingConversationKey.StartsWith("channel:LS", StringComparison.OrdinalIgnoreCase))
         {
-            var slot = ParseConversationSlot(conversationKey, "channel:LS");
+            var slot = ParseConversationSlot(outgoingConversationKey, "channel:LS");
             var configurationChanged = SetOutgoingChannel(configuration, OutgoingChannel.Linkshell);
             if (slot.HasValue && configuration.LinkshellSlot != slot.Value)
             {
@@ -1945,9 +1998,9 @@ public sealed class MainWindow : Window, IDisposable
             return configurationChanged || changed;
         }
 
-        if (conversationKey.StartsWith("channel:CWLS", StringComparison.OrdinalIgnoreCase))
+        if (outgoingConversationKey.StartsWith("channel:CWLS", StringComparison.OrdinalIgnoreCase))
         {
-            var slot = ParseConversationSlot(conversationKey, "channel:CWLS");
+            var slot = ParseConversationSlot(outgoingConversationKey, "channel:CWLS");
             var configurationChanged = SetOutgoingChannel(configuration, OutgoingChannel.CrossWorldLinkshell);
             if (slot.HasValue && configuration.CrossWorldLinkshellSlot != slot.Value)
             {
@@ -1981,10 +2034,63 @@ public sealed class MainWindow : Window, IDisposable
     }
 
     private List<ConversationTabState> GetPinnedGeneralConversations()
-        => GetAllGeneralConversations()
+    {
+        var visibleGeneralConversations = GetAllGeneralConversations()
             .Where(conversation => !IsGeneralConversationHidden(conversation.Key))
             .Where(conversation => ShouldWindowDisplayConversation(conversation.Key))
             .ToList();
+
+        var groupedConversationLookup = new Dictionary<string, ConversationTabState>(StringComparer.OrdinalIgnoreCase);
+        var coveredKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var groupedConversationKeys in GetNormalizedCombinedGeneralConversationSpecs())
+        {
+            if (groupedConversationKeys.Count < 2)
+                continue;
+
+            var memberConversations = new List<ConversationTabState>();
+            var skipGroup = false;
+            foreach (var groupedConversationKey in groupedConversationKeys)
+            {
+                var match = visibleGeneralConversations.FirstOrDefault(conversation =>
+                    conversation.Key.Equals(groupedConversationKey, StringComparison.OrdinalIgnoreCase));
+                if (match is null || coveredKeys.Contains(groupedConversationKey))
+                {
+                    skipGroup = true;
+                    break;
+                }
+
+                memberConversations.Add(match);
+            }
+
+            if (skipGroup || memberConversations.Count != groupedConversationKeys.Count)
+                continue;
+
+            foreach (var memberConversation in memberConversations)
+                coveredKeys.Add(memberConversation.Key);
+
+            groupedConversationLookup[groupedConversationKeys[0]] = new ConversationTabState(
+                BuildCombinedConversationKey(groupedConversationKeys),
+                BuildCombinedConversationLabel(groupedConversationKeys),
+                Array.Empty<TranslationHistoryItem>(),
+                DateTimeOffset.MinValue);
+        }
+
+        var output = new List<ConversationTabState>();
+        foreach (var conversation in visibleGeneralConversations)
+        {
+            if (coveredKeys.Contains(conversation.Key))
+            {
+                if (groupedConversationLookup.Remove(conversation.Key, out var groupedConversation))
+                    output.Add(groupedConversation);
+
+                continue;
+            }
+
+            output.Add(conversation);
+        }
+
+        return output;
+    }
 
     private List<ConversationTabState> GetAllGeneralConversations()
     {
@@ -1993,9 +2099,10 @@ public sealed class MainWindow : Window, IDisposable
         {
             BuildPinnedConversation("channel:ECHO", "Safe"),
             BuildPinnedConversation("channel:ECHO_CHAT", "Echo"),
-            BuildPinnedConversation("channel:PROGRESS", "Progress"),
-            BuildPinnedConversation("channel:COMBAT", "Combat"),
+            BuildPinnedConversation("channel:PROGRESS", "System"),
+            BuildPinnedConversation("channel:COMBAT", "Events"),
             BuildPinnedConversation("channel:SAY", "Say"),
+            BuildPinnedConversation("channel:EMOTE", "Emote"),
             BuildPinnedConversation("channel:PARTY", "Party"),
             BuildPinnedConversation("channel:ALLIANCE", "Alliance"),
             BuildPinnedConversation("channel:PVP TEAM", "PvP Team"),
@@ -2020,6 +2127,164 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         return conversations;
+    }
+
+    private List<List<string>> GetNormalizedCombinedGeneralConversationSpecs()
+    {
+        var validGeneralKeys = GetAllGeneralConversations()
+            .Select(conversation => conversation.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var usedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var output = new List<List<string>>();
+
+        foreach (var spec in plugin.Configuration.CombinedGeneralConversationSpecs)
+        {
+            if (!TryParseCombinedConversationSpec(spec, out var parsedKeys))
+                continue;
+
+            var normalizedKeys = new List<string>();
+            var skipGroup = false;
+            foreach (var parsedKey in parsedKeys)
+            {
+                if (!validGeneralKeys.Contains(parsedKey) || usedKeys.Contains(parsedKey))
+                {
+                    skipGroup = true;
+                    break;
+                }
+
+                normalizedKeys.Add(parsedKey);
+            }
+
+            if (skipGroup || normalizedKeys.Count < 2)
+                continue;
+
+            output.Add(normalizedKeys);
+            foreach (var normalizedKey in normalizedKeys)
+                usedKeys.Add(normalizedKey);
+        }
+
+        return output;
+    }
+
+    private bool IsGeneralConversationCoveredByCombinedTab(string conversationKey)
+        => GetNormalizedCombinedGeneralConversationSpecs()
+            .Any(group => group.Any(item => item.Equals(conversationKey, StringComparison.OrdinalIgnoreCase)));
+
+    private List<ConversationTabState> GetAvailableCombineTargets(string conversationKey)
+    {
+        var currentGroupKeys = GetGeneralConversationKeysForCombination(conversationKey);
+        if (currentGroupKeys.Count == 0)
+            return [];
+
+        var reservedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var groupedConversationKeys in GetNormalizedCombinedGeneralConversationSpecs())
+        {
+            var isCurrentGroup = groupedConversationKeys.Count == currentGroupKeys.Count &&
+                                 !groupedConversationKeys.Except(currentGroupKeys, StringComparer.OrdinalIgnoreCase).Any();
+            if (isCurrentGroup)
+                continue;
+
+            foreach (var groupedConversationKey in groupedConversationKeys)
+                reservedKeys.Add(groupedConversationKey);
+        }
+
+        return GetAllGeneralConversations()
+            .Where(conversation => !IsGeneralConversationHidden(conversation.Key))
+            .Where(conversation => ShouldWindowDisplayConversation(conversation.Key))
+            .Where(conversation => !currentGroupKeys.Any(key => key.Equals(conversation.Key, StringComparison.OrdinalIgnoreCase)))
+            .Where(conversation => !reservedKeys.Contains(conversation.Key))
+            .ToList();
+    }
+
+    private bool CombineGeneralConversation(string anchorConversationKey, string targetConversationKey)
+    {
+        var combinedConversationKeys = GetGeneralConversationKeysForCombination(anchorConversationKey);
+        if (combinedConversationKeys.Count == 0 ||
+            string.IsNullOrWhiteSpace(targetConversationKey) ||
+            combinedConversationKeys.Any(key => key.Equals(targetConversationKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        var normalizedSpecs = plugin.Configuration.CombinedGeneralConversationSpecs;
+        normalizedSpecs.RemoveAll(spec => CombinedConversationSpecMatches(spec, combinedConversationKeys));
+
+        combinedConversationKeys.Add(targetConversationKey);
+        normalizedSpecs.Add(string.Join(CombinedConversationSeparator, combinedConversationKeys));
+        activeConversationKey = BuildCombinedConversationKey(combinedConversationKeys);
+        activeConversationLabel = BuildCombinedConversationLabel(combinedConversationKeys);
+        forceActiveConversationSelection = true;
+        plugin.Configuration.Save();
+        return true;
+    }
+
+    private bool ReleaseCombinedConversation(string conversationKey)
+    {
+        if (!TryParseCombinedConversationKey(conversationKey, out var groupedConversationKeys) ||
+            groupedConversationKeys.Count < 2)
+        {
+            return false;
+        }
+
+        var changed = plugin.Configuration.CombinedGeneralConversationSpecs.RemoveAll(spec =>
+            CombinedConversationSpecMatches(spec, groupedConversationKeys)) > 0;
+        if (!changed)
+            return false;
+
+        activeConversationKey = groupedConversationKeys[0];
+        activeConversationLabel = GetDisplayLabelForConversationKey(activeConversationKey);
+        forceActiveConversationSelection = true;
+        plugin.Configuration.Save();
+        return true;
+    }
+
+    private static string BuildCombinedConversationKey(IEnumerable<string> conversationKeys)
+        => $"{CombinedConversationPrefix}{string.Join(CombinedConversationSeparator, conversationKeys)}";
+
+    private static List<string> GetGeneralConversationKeysForCombination(string conversationKey)
+    {
+        if (TryParseCombinedConversationKey(conversationKey, out var groupedConversationKeys))
+            return groupedConversationKeys;
+
+        return string.IsNullOrWhiteSpace(conversationKey) || IsDirectMessageConversation(conversationKey)
+            ? []
+            : [conversationKey];
+    }
+
+    private static bool TryParseCombinedConversationSpec(string? spec, out List<string> conversationKeys)
+    {
+        conversationKeys = (spec ?? string.Empty)
+            .Split(CombinedConversationSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        return conversationKeys.Count >= 2;
+    }
+
+    private static bool TryParseCombinedConversationKey(string conversationKey, out List<string> conversationKeys)
+    {
+        if (!conversationKey.StartsWith(CombinedConversationPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            conversationKeys = [];
+            return false;
+        }
+
+        return TryParseCombinedConversationSpec(conversationKey[CombinedConversationPrefix.Length..], out conversationKeys);
+    }
+
+    private static bool CombinedConversationSpecMatches(string spec, IReadOnlyList<string> expectedConversationKeys)
+        => TryParseCombinedConversationSpec(spec, out var parsedConversationKeys) &&
+           parsedConversationKeys.Count == expectedConversationKeys.Count &&
+           !parsedConversationKeys.Where((parsedConversationKey, index) =>
+                   !parsedConversationKey.Equals(expectedConversationKeys[index], StringComparison.OrdinalIgnoreCase))
+               .Any();
+
+    private static string BuildDefaultCombinedConversationLabel(IEnumerable<string> conversationKeys)
+    {
+        var tokens = conversationKeys
+            .Select(GetDefaultConversationLabel)
+            .Select(label => string.IsNullOrWhiteSpace(label) ? "?" : label.Trim()[0].ToString())
+            .ToList();
+        return tokens.Count == 0 ? "?" : string.Join("|", tokens);
     }
 
     private static ConversationTabState BuildPinnedConversation(string key, string label)
@@ -2412,7 +2677,8 @@ public sealed class MainWindow : Window, IDisposable
         if (!ImGui.BeginPopupContextItem($"DhogGPTGeneralConversationContext##{conversation.Key}"))
             return;
 
-        if (ShellChannelDisplayService.TryGetDescriptor(conversation.Key, out _))
+        var isCombinedConversation = TryParseCombinedConversationKey(conversation.Key, out _);
+        if (!isCombinedConversation && ShellChannelDisplayService.TryGetDescriptor(conversation.Key, out _))
         {
             var useTechnical = ShellChannelDisplayService.UsesTechnicalLabel(plugin.Configuration, conversation.Key);
             if (ImGui.Selectable("Use in-game name", !useTechnical))
@@ -2430,7 +2696,7 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.Separator();
         }
 
-        var canSpawnDetachedWindow = plugin.CanSpawnDetachedConversationWindow(conversation.Key);
+        var canSpawnDetachedWindow = !isCombinedConversation && plugin.CanSpawnDetachedConversationWindow(conversation.Key);
         if (ImGui.Selectable(
                 canSpawnDetachedWindow ? "Spawn new window" : "Already detached",
                 false,
@@ -2441,7 +2707,48 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         ImGui.Separator();
-        ImGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
+
+        if (isMasterWindow && ImGui.BeginMenu("Combine with"))
+        {
+            var combineTargets = GetAvailableCombineTargets(conversation.Key);
+            if (combineTargets.Count == 0)
+            {
+                ImGui.BeginDisabled();
+                ImGui.MenuItem("No eligible channels");
+                ImGui.EndDisabled();
+            }
+            else
+            {
+                foreach (var targetConversation in combineTargets)
+                {
+                    if (!ImGui.MenuItem(GetConversationDisplayLabel(targetConversation)))
+                        continue;
+
+                    ClearTransientUiStatus();
+                    CombineGeneralConversation(conversation.Key, targetConversation.Key);
+                    ImGui.CloseCurrentPopup();
+                }
+            }
+
+            ImGui.EndMenu();
+        }
+
+        if (isCombinedConversation)
+        {
+            if (ImGui.Selectable("Release combined channels"))
+            {
+                ClearTransientUiStatus();
+                ReleaseCombinedConversation(conversation.Key);
+                ImGui.CloseCurrentPopup();
+            }
+
+            ImGui.TextDisabled("Click x to release the combined tab back into separate channels.");
+        }
+        else
+        {
+            ImGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
+        }
+
         ImGui.EndPopup();
     }
 
@@ -3234,6 +3541,9 @@ public sealed class MainWindow : Window, IDisposable
             case "SAY":
                 color = new Vector4(0.92f, 0.92f, 0.92f, 1.0f);
                 return true;
+            case "EMOTE":
+                color = new Vector4(1.0f, 0.80f, 0.92f, 1.0f);
+                return true;
             case "PARTY":
                 color = new Vector4(0.47f, 0.72f, 1.0f, 1.0f);
                 return true;
@@ -3295,6 +3605,21 @@ public sealed class MainWindow : Window, IDisposable
     private bool TryResolveConversationTabState(string conversationKey, out ConversationTabState conversation)
     {
         var entries = chatLogService.GetEntriesSnapshot();
+
+        if (TryParseCombinedConversationKey(conversationKey, out var groupedConversationKeys))
+        {
+            var messages = entries
+                .Where(entry => groupedConversationKeys.Any(groupedConversationKey =>
+                    GetConversationGroupingKey(entry).Equals(groupedConversationKey, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(entry => entry.TimestampUtc)
+                .ToList();
+            conversation = new ConversationTabState(
+                conversationKey,
+                BuildCombinedConversationLabel(groupedConversationKeys),
+                messages,
+                messages.Count > 0 ? messages[^1].TimestampUtc : DateTimeOffset.MinValue);
+            return true;
+        }
 
         foreach (var generalConversation in GetAllGeneralConversations())
         {

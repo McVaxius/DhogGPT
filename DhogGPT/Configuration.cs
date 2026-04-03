@@ -6,7 +6,7 @@ namespace DhogGPT;
 [Serializable]
 public sealed class Configuration : IPluginConfiguration
 {
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
 
     public bool PluginEnabled { get; set; } = true;
     public bool DtrBarEnabled { get; set; } = true;
@@ -52,6 +52,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool EnableCrossWorldLinkshells { get; set; } = true;
     public bool EnablePvPTeam { get; set; } = true;
     public bool EnableSay { get; set; } = true;
+    public bool EnableEmote { get; set; } = true;
     public bool EnableShout { get; set; } = true;
     public bool EnableYell { get; set; } = true;
     public bool EnableTell { get; set; } = true;
@@ -71,6 +72,7 @@ public sealed class Configuration : IPluginConfiguration
     public string OutgoingDraft { get; set; } = string.Empty;
     public List<string> PinnedDirectMessageTabs { get; set; } = [];
     public List<string> HiddenGeneralConversationKeys { get; set; } = ["channel:ECHO"];
+    public List<string> CombinedGeneralConversationSpecs { get; set; } = [];
     public List<string> TechnicalShellConversationKeys { get; set; } = [];
     public Dictionary<string, CharacterWindowState> CharacterWindowStates { get; set; } = [];
 
