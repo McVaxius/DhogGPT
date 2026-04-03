@@ -21,7 +21,6 @@ namespace DhogGPT.Windows;
 public sealed class MainWindow : Window, IDisposable
 {
     private const int AutoScrollSettleFrames = 2;
-    private const int DefaultVisibleDirectMessageTabs = 3;
     private const float WindowRepairTolerance = 4f;
     private const string CombinedConversationPrefix = "combo:";
     private const char CombinedConversationSeparator = '|';
@@ -967,6 +966,7 @@ public sealed class MainWindow : Window, IDisposable
                 return;
             }
 
+            var retainedConversationSelection = CaptureRetainedConversationSelection();
             var request = BuildOutgoingRequest(recordInHistory: false);
             previewStatus = ShouldBypassOutgoingTranslation(request)
                 ? (sendAfterTranslate ? "Sending without translation..." : "Previewing without translation...")
@@ -995,9 +995,7 @@ public sealed class MainWindow : Window, IDisposable
                 RecordSuccessfulSend(result);
                 await Plugin.Framework.RunOnFrameworkThread(() => ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: false));
 
-                activeConversationKey = request.ConversationKey;
-                activeConversationLabel = request.ConversationLabel;
-                forceActiveConversationSelection = true;
+                RestoreConversationSelectionAfterSend(retainedConversationSelection, request);
                 await SetPreviewStateAsync(status: "Saved to Safe.", text: result.TranslatedText);
                 return;
             }
@@ -1018,7 +1016,10 @@ public sealed class MainWindow : Window, IDisposable
                 ? (true, string.Empty)
                 : (false, sendError));
             if (sent.Item1)
+            {
                 RecordSuccessfulSend(result);
+                RestoreConversationSelectionAfterSend(retainedConversationSelection, request);
+            }
 
             await SetPreviewStateAsync(status: sent.Item1
                 ? $"Sent translated message to {GetOutgoingConversationDisplayLabel()}."
@@ -1052,6 +1053,7 @@ public sealed class MainWindow : Window, IDisposable
             if (await TryHandleRawSlashCommandAsync(simpleChatMode: true))
                 return;
 
+            var retainedConversationSelection = CaptureRetainedConversationSelection();
             var request = BuildOutgoingRequest(recordInHistory: false);
             if (!ShouldBypassOutgoingTranslation(request))
                 simpleChatStatus = "Translating...";
@@ -1069,9 +1071,7 @@ public sealed class MainWindow : Window, IDisposable
 
                 await Plugin.Framework.RunOnFrameworkThread(() => ClearOutgoingDraftAfterSuccessfulSend(clearLiveChatInput: false));
 
-                activeConversationKey = request.ConversationKey;
-                activeConversationLabel = request.ConversationLabel;
-                forceActiveConversationSelection = true;
+                RestoreConversationSelectionAfterSend(retainedConversationSelection, request);
                 await SetSimpleChatStatusAsync(string.Empty);
                 return;
             }
@@ -1099,9 +1099,7 @@ public sealed class MainWindow : Window, IDisposable
 
             RecordSuccessfulSend(result);
 
-            activeConversationKey = request.ConversationKey;
-            activeConversationLabel = request.ConversationLabel;
-            forceActiveConversationSelection = true;
+            RestoreConversationSelectionAfterSend(retainedConversationSelection, request);
             await SetSimpleChatStatusAsync(string.Empty);
         }
         catch (OperationCanceledException)
@@ -1149,6 +1147,28 @@ public sealed class MainWindow : Window, IDisposable
             ConversationLabel = conversationLabel,
             RecordInHistory = recordInHistory,
         };
+    }
+
+    private (string Key, string Label) CaptureRetainedConversationSelection()
+        => (activeConversationKey, activeConversationLabel);
+
+    private void RestoreConversationSelectionAfterSend((string Key, string Label) retainedSelection, TranslationRequest request)
+    {
+        if (!string.IsNullOrWhiteSpace(retainedSelection.Key) &&
+            TryParseCombinedConversationKey(retainedSelection.Key, out var combinedConversationKeys) &&
+            combinedConversationKeys.Any(conversationKey => conversationKey.Equals(request.ConversationKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            activeConversationKey = retainedSelection.Key;
+            activeConversationLabel = string.IsNullOrWhiteSpace(retainedSelection.Label)
+                ? GetDefaultConversationLabel(retainedSelection.Key)
+                : retainedSelection.Label;
+            forceActiveConversationSelection = true;
+            return;
+        }
+
+        activeConversationKey = request.ConversationKey;
+        activeConversationLabel = request.ConversationLabel;
+        forceActiveConversationSelection = true;
     }
 
     private bool TryGetComposerConversation(out string conversationKey, out string conversationLabel, out string channelLabel)
@@ -1790,12 +1810,11 @@ public sealed class MainWindow : Window, IDisposable
         foreach (var existingKey in closedConversationCutoffs.Keys.Where(IsDirectMessageConversation).ToList())
             closedConversationCutoffs.Remove(existingKey);
 
-        var overflowConversations = directMessageConversations
+        var autoClosedConversations = directMessageConversations
             .Where(conversation => !pendingDirectMessageTabs.ContainsKey(conversation.Key))
-            .Where(conversation => !IsPinnedDirectMessageConversation(conversation.Key))
-            .Skip(DefaultVisibleDirectMessageTabs);
+            .Where(conversation => !IsPinnedDirectMessageConversation(conversation.Key));
 
-        foreach (var conversation in overflowConversations)
+        foreach (var conversation in autoClosedConversations)
             closedConversationCutoffs[conversation.Key] = conversation.LastMessageUtc;
     }
 
