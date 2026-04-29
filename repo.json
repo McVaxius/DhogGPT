@@ -6,7 +6,7 @@
     "Punchline": "Translate selected FFXIV chat channels in real time.",
     "Description": "DhogGPT translates incoming chat from selected channels and gives you a translate-and-send composer for outgoing messages. Use /dhoggpt, /dgpt, or /dog to open it.",
     "InternalName": "DhogGPT",
-    "AssemblyVersion": "1.0.0.18",
+    "AssemblyVersion": "1.0.0.19",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 15,
     "Tags": [
@@ -17,6 +17,10 @@
     ],
     "CategoryTags": [
       "social"
-    ]
+    ],
+    "RepoUrl": "https://github.com/McVaxius/DhogGPT",
+    "DownloadLinkInstall": "https://github.com/McVaxius/DhogGPT/releases/download/v1.0.0.19/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/McVaxius/DhogGPT/releases/download/v1.0.0.19/latest.zip",
+    "IconUrl": "https://raw.githubusercontent.com/McVaxius/DhogGPT/master/DhogGPT/images/icon.png"
   }
 ]
