@@ -35,7 +35,7 @@ public sealed class ChatTranslationService : IDisposable
         this.translationCoordinator = translationCoordinator;
 
         translationCoordinator.InboundTranslationReady += OnInboundTranslationReady;
-        Plugin.ChatGui.ChatMessage += OnChatMessage;
+        Plugin.ChatGui.ChatMessageUnhandled += OnChatMessage;
         Plugin.ChatGui.LogMessage += OnLogMessage;
         Plugin.Framework.Update += OnFrameworkUpdate;
         Plugin.Log.Information("[DhogGPT] ChatTranslationService subscribed to ChatMessage and LogMessage.");
@@ -44,14 +44,20 @@ public sealed class ChatTranslationService : IDisposable
     public void Dispose()
     {
         translationCoordinator.InboundTranslationReady -= OnInboundTranslationReady;
-        Plugin.ChatGui.ChatMessage -= OnChatMessage;
+        Plugin.ChatGui.ChatMessageUnhandled -= OnChatMessage;
         Plugin.ChatGui.LogMessage -= OnLogMessage;
         Plugin.Framework.Update -= OnFrameworkUpdate;
     }
 
     public event Action<string>? IncomingDirectMessageObserved;
 
+    private void OnChatMessage(IChatMessage message)
+        => HandleChatMessage(message.LogKind, message.Sender, message.Message);
+
     private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => HandleChatMessage(type, sender, message);
+
+    private void HandleChatMessage(XivChatType type, SeString sender, SeString message)
     {
         var messageText = message.TextValue?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(messageText))
