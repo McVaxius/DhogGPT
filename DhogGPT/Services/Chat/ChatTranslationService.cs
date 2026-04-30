@@ -54,9 +54,6 @@ public sealed class ChatTranslationService : IDisposable
     private void OnChatMessage(IChatMessage message)
         => HandleChatMessage(message.LogKind, message.Sender, message.Message);
 
-    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-        => HandleChatMessage(type, sender, message);
-
     private void HandleChatMessage(XivChatType type, SeString sender, SeString message)
     {
         var messageText = message.TextValue?.Trim() ?? string.Empty;
