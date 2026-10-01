@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-01
+
+- Build only the plugin project in GitHub Actions so test and regression projects do not block production artifacts.
+
 ## 2026-03-25 - First-Use UX and DTR Pass
 
 ### Added
