@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-06 - Actions dependency revision
+
+- Pin the existing AethertekUI checkout to published revision `6c193cf06ac67f954c549cafc2033ac0efdd630a`, which includes the Hindi text host required by this plugin. The preceding Actions run checked out the library before those APIs were published; local compilation alone did not establish runner compatibility.
+
 ## 2026-10-06 - Hindi interface source adoption
 
 - Add the complete 311-entry Hindi catalog and append हिन्दी to the existing interface language choices. Scope Windows text shaping over all window and font-status draws, retaining managed font roles and CJK/symbol merges. Measure and paint shaped captions, conversation tabs, summaries and chat; bridge single-line and multiline editing while preserving original native IDs, source values and actions. Keep Hindi DTR and game context-menu labels in supported English.
