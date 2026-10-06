@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-10-06 - Hindi interface source adoption
+
+- Add the complete 311-entry Hindi catalog and append हिन्दी to the existing interface language choices. Scope Windows text shaping over all window and font-status draws, retaining managed font roles and CJK/symbol merges. Measure and paint shaped captions, conversation tabs, summaries and chat; bridge single-line and multiline editing while preserving original native IDs, source values and actions. Keep Hindi DTR and game context-menu labels in supported English.
+- Reserve complete shaped checkbox captions inside the native item rectangle, retaining the original-label minimum and nonnegative adjusted inner spacing. The shorter Hindi Enabled caption previously lost four right pixels. Keep unshaped spacing and native labels/IDs unchanged.
+- The current Debug x64 source builds with zero warnings/errors. Independent native checks pass 15,174 assertions across Main, ultra, Settings and Guide using inert empty-chat snapshots at both densities, reference/narrow widths and 100/150 percent scales, including 328 original-ID hovers, 48 preference edits and 24 safe guide callbacks. Focused Hindi/English controls, catalogs, glyphs, editing and save checks pass 7,325/7,119. Managed-host/game/GPU/IME acceptance remains pending.
+
+## 2026-10-06 - Window appearance and transparency
+
+- Move colour, compact mode and UI language into Window appearance settings, with independent compact/language visibility in regular and ultra headers and a main transparency toggle. Preserve saved focused/background opacity values, use 100%/50% defaults for new configurations, and persist automatic unfocused fade with a 10-second delay. Replace the former window-background alpha path with one complete-window opacity application after native motion restore; retain the separate composer opacity preference, focus observations, detached conversations and chat behavior. Translate new labels in all fourteen catalogs. The unchanged local launcher builds successfully with zero warnings and errors. Native appearance/persistence checks and game acceptance remain pending.
+
+## 2026-10-05 - Rounded window chrome and native minimize (source adoption)
+
+- Adopt per-instance rounded chrome and animated native minimize/restore for Main, Config, detached Main windows and font status. Round FirstUseGuide's chrome while retaining its NoCollapse; preserve control identities, layout, saved geometry and actions.
+- Compilation, native interaction and game acceptance for this source adoption remain pending verification.
+
+## 2026-10-05 - Window layout corrections
+
+- Enlarge regular and ultra chat typography using a lexical window font scale that restores the caller's scale. Size passive headings from their actual glyph ink and preserve the compact summary, message editor and field geometry without changing font sources, atlas roles or native control identities. Refine the compact title, subtitle and Status proportions together with their reserved heading height, keeping the English reference windows free of vertical overflow.
+- Place ultra-mode compact, colour and interface-language preferences in a measured top header. Retain the approved chat-language field width, current native title/version, original control IDs and existing preference callbacks.
+- Keep native conversation-tab arrows and close controls visible. Reserve the larger original/translated caption width and replace only the original caption glyph ink, clipping translations to the native scrolling region while preserving custom translucent tab fills and native identities.
+- Reserve a leading inset in native combo previews so negative-bearing glyphs remain visible, with original identities, values and callbacks preserved.
+- Wrap guide bullets and reflow complete guide action buttons at narrow widths. Draw the main counter in its existing Caption font role.
+- Verify the current offline window and tab-navigation matrix across fourteen locales: 186086 checks, including 560 native tab presses and 2301 scroll checks. Retain original IDs, preference saves and composer focus. Remaining reference refinements and managed-host/game acceptance stay open.
+
+## 2026-10-03 - Additional UI languages
+
+- Add Vietnamese, Brazilian Portuguese, Indonesian, Polish and Turkish to every DhogGPT window, guide and authored status using the existing UI-language setting and save path. Preserve all prior locale choices and chat-translation language settings.
+- Include the native language names and required accented glyphs in the existing managed font checks. Hindi remains unavailable because the native rendering route does not shape Devanagari correctly.
+
+## 2026-10-03 - UI feedback
+
+- Restore the current assembly version in the main and detached title bars while retaining their native window identities.
+- Measure single-line checkbox/action labels, complete combo previews and readable text, multiline, opacity and colour editors. Retain pending native widths, raw values and translated-label layout bounds; expose horizontal scrolling when required.
+- Keep the compact checkbox's hidden native identity and square interaction, with its painted caption reserved in the layout.
+- Current Debug/x64 compilation passed with zero warnings/errors. Native field, title, checkbox interaction, embedded-catalog and offline glyph checks passed across nine languages, both densities, two scales and three widths. Complete-window comparison and game visual acceptance remain pending.
+
+## 2026-10-03 - AethertekUI adoption
+
+- Rebuild the regular translator and ultra compact chat layouts from the approved references, with native vector branding, measured controls, responsive language groups and a scrolling regular body.
+- Add shared compact density, nine UI languages and a relative colour theme through existing configuration/save paths. Preserve configuration/version, chat languages, custom message palettes, real-channel colours, logs, provider selection and payload-aware sending.
+- Retain existing native control/window IDs, detached conversations, channel visibility/pinning, positions and opacity. Localize settings, guide, tooltips, DTR and plugin-authored popup/status text while preserving external names and message bodies.
+- Use managed Segoe UI font roles with host CJK/symbol merges and explicit load/glyph errors. Chat/composer CJK coverage is independent of the selected UI language; host fonts remain undistributed.
+- Local build/resource/package checks are separate from mcvaxius's game visual acceptance. No tests or live clients are run in this adoption pass.
+
+
+## 2026-10-02 - Build and release repair
+
+- Pin GitHub builds to SDK 10.0.201 and pass the downloaded Dalamud library path. Restore and build plugin projects with matching configuration, platform and runtime; stop on restore failure.
+- Keep build tokens read-only and release writes in a separate job. Use packaged manifest versions for untagged releases.
+- Local launchers build the plugin directly in the pinned environment and return its exit status.
+
 ## 2026-10-01
 
 - Build only the plugin project in GitHub Actions so test and regression projects do not block production artifacts.

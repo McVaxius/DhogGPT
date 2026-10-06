@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="{0:F0} ms" xml:space="preserve"><value>{0:F0} ms</value></data>
+  <data name="{0}" xml:space="preserve"><value>{0}</value></data>
+  <data name="{0} / 2000" xml:space="preserve"><value>{0} / 2000</value></data>
+  <data name="A DM target is required." xml:space="preserve"><value>Penerima pesan pribadi diperlukan.</value></data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT&apos;s Echo mirror output." xml:space="preserve"><value>Menambahkan nama kanal seperti Party, FC, atau Tell ke salinan Echo DhogGPT.</value></data>
+  <data name="Adds the sender identity into DhogGPT&apos;s Echo mirror for translated incoming chat." xml:space="preserve"><value>Menambahkan identitas pengirim ke salinan Echo pesan masuk yang diterjemahkan.</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Lanjutan</value></data>
+  <data name="Advanced and diagnostics" xml:space="preserve"><value>Lanjutan dan diagnostik</value></data>
+  <data name="Alliance" xml:space="preserve"><value>Aliansi</value></data>
+  <data name="Already detached" xml:space="preserve"><value>Sudah dipisahkan</value></data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve"><value>Mengacak nama dengan Krangle hanya di antarmuka DhogGPT tanpa mengubah chat game.</value></data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve"><value>Setidaknya satu tab kanal harus tetap terlihat.</value></data>
+  <data name="Autodetect" xml:space="preserve"><value>Deteksi otomatis</value></data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve"><value>Warna latar tab percakapan yang tidak aktif.</value></data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve"><value>Warna latar tab tidak aktif saat jendela tidak mendapat fokus.</value></data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve"><value>Warna latar tab percakapan yang dipilih.</value></data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve"><value>Warna latar tab terpilih saat jendela tidak mendapat fokus.</value></data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve"><value>Warna latar saat kursor berada di tab percakapan.</value></data>
+  <data name="Background opacity" xml:space="preserve"><value>Opasitas latar</value></data>
+  <data name="Blue" xml:space="preserve"><value>Biru</value></data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve"><value>Menampilkan DhogGPT di depan saat pesan pribadi baru diterima.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Batal</value></data>
+  <data name="Centered wedges" xml:space="preserve"><value>Penanda segitiga di tengah</value></data>
+  <data name="Channels" xml:space="preserve"><value>Kanal</value></data>
+  <data name="Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat scroll indicator style" xml:space="preserve"><value>Gaya indikator gulir chat</value></data>
+  <data name="Chat translation for FFXIV" xml:space="preserve"><value>Terjemahan chat untuk FFXIV</value></data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve"><value>Pilih tampilan bawaan petunjuk gulir untuk bagian percakapan yang tersembunyi.</value></data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve"><value>Pilih teks, ikon dan teks, atau hanya ikon untuk entri DTR.</value></data>
+  <data name="Clear" xml:space="preserve"><value>Hapus</value></data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve"><value>Klik entri DTR untuk membuka jendela utama DhogGPT.</value></data>
+  <data name="Click to pin this DM tab." xml:space="preserve"><value>Klik untuk menyematkan tab pesan pribadi ini.</value></data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve"><value>Klik x untuk memisahkan tab gabungan menjadi kanal terpisah.</value></data>
+  <data name="Close DM" xml:space="preserve"><value>Tutup pesan pribadi</value></data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve"><value>Tutup pesan pribadi tersemat (tahan Ctrl + klik x)</value></data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve"><value>Tutup panduan ini dan tandai sudah dilihat.</value></data>
+  <data name="Color" xml:space="preserve"><value>Warna</value></data>
+  <data name="Color used for inbound message header lines." xml:space="preserve"><value>Warna baris kepala pesan masuk.</value></data>
+  <data name="Color used for inbound translated lines." xml:space="preserve"><value>Warna baris terjemahan pesan masuk.</value></data>
+  <data name="Color used for outbound message header lines." xml:space="preserve"><value>Warna baris kepala pesan keluar.</value></data>
+  <data name="Color used for outbound translated lines." xml:space="preserve"><value>Warna baris terjemahan pesan keluar.</value></data>
+  <data name="Color used for translation failure text." xml:space="preserve"><value>Warna teks kegagalan terjemahan.</value></data>
+  <data name="Combine with" xml:space="preserve"><value>Gabungkan dengan</value></data>
+  <data name="Common DhogGPT settings" xml:space="preserve"><value>Pengaturan umum DhogGPT</value></data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve"><value>Mode ringkas dan superringkas sudah tidak digunakan. DhogGPT kini mendukung mode biasa dan ultraringkas.</value></data>
+  <data name="Compact mode" xml:space="preserve"><value>Mode ringkas</value></data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve"><value>Mengatur warna pesan ultraringkas dan palet tab percakapan.</value></data>
+  <data name="Conversation tabs" xml:space="preserve"><value>Tab percakapan</value></data>
+  <data name="Copy both" xml:space="preserve"><value>Salin keduanya</value></data>
+  <data name="Copy DM target" xml:space="preserve"><value>Salin penerima</value></data>
+  <data name="Copy original" xml:space="preserve"><value>Salin asli</value></data>
+  <data name="Copy translation" xml:space="preserve"><value>Salin terjemahan</value></data>
+  <data name="Cross-world linkshells" xml:space="preserve"><value>Linkshell lintas dunia</value></data>
+  <data name="Custom" xml:space="preserve"><value>Kustom</value></data>
+  <data name="Custom RGB" xml:space="preserve"><value>RGB kustom</value></data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve"><value>Warna pesan dan tab ultraringkas kustom</value></data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve"><value>DhogGPT {0}. Klik untuk membuka jendela utama.</value></data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve"><value>DhogGPT kini memakai mode ultraringkas secara bawaan. Percakapan terjemahan berada dalam tab; kolom bawah mengirim chat terjemahan dari jendela utama. Pengaturan menentukan apakah chat bawaan tetap terlihat bersama DhogGPT.</value></data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve"><value>Pengaturan DhogGPT v{0}</value></data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve"><value>DhogGPT mencoba layanan web bergaya Google tanpa kunci terlebih dahulu. Jika gagal, layanan kompatibel LibreTranslate di bawah digunakan, satu per baris.</value></data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve"><value>Sembunyikan chat bawaan saat mode ultraringkas aktif</value></data>
+  <data name="Discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="DM" xml:space="preserve"><value>DM</value></data>
+  <data name="DM / tell" xml:space="preserve"><value>Pesan pribadi / tell</value></data>
+  <data name="DM target must include a world name after @." xml:space="preserve"><value>Penerima harus menyertakan nama dunia setelah @.</value></data>
+  <data name="DM target must include first and last name." xml:space="preserve"><value>Penerima harus menyertakan nama depan dan belakang.</value></data>
+  <data name="DM target must use First Last@World." xml:space="preserve"><value>Penerima harus memakai First Last@World.</value></data>
+  <data name="DTR Bar" xml:space="preserve"><value>Bilah DTR</value></data>
+  <data name="DTR disabled glyph" xml:space="preserve"><value>Simbol DTR nonaktif</value></data>
+  <data name="DTR enabled glyph" xml:space="preserve"><value>Simbol DTR aktif</value></data>
+  <data name="DTR mode" xml:space="preserve"><value>Mode DTR</value></data>
+  <data name="Echo" xml:space="preserve"><value>Echo</value></data>
+  <data name="Emote" xml:space="preserve"><value>Emote</value></data>
+  <data name="Enable debug logging" xml:space="preserve"><value>Aktifkan log debug</value></data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve"><value>Aktifkan terjemahan kanal linkshell lintas dunia CWLS1-CWLS8.</value></data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve"><value>Aktifkan terjemahan chat Free Company.</value></data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve"><value>Aktifkan terjemahan pesan pribadi masuk dan keluar.</value></data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve"><value>Aktifkan terjemahan kanal linkshell LS1-LS8.</value></data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve"><value>Aktifkan terjemahan chat Novice Network.</value></data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve"><value>Aktifkan terjemahan chat party, lintas party, dan aliansi.</value></data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve"><value>Aktifkan terjemahan chat tim PvP.</value></data>
+  <data name="Enable translation for Say chat." xml:space="preserve"><value>Aktifkan terjemahan chat Say.</value></data>
+  <data name="Enable translation for Shout chat." xml:space="preserve"><value>Aktifkan terjemahan chat Shout.</value></data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve"><value>Aktifkan terjemahan emote standar dan kustom.</value></data>
+  <data name="Enable translation for Yell chat." xml:space="preserve"><value>Aktifkan terjemahan chat Yell.</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Aktif</value></data>
+  <data name="Endpoints" xml:space="preserve"><value>Layanan</value></data>
+  <data name="Error" xml:space="preserve"><value>Kesalahan</value></data>
+  <data name="Events" xml:space="preserve"><value>Peristiwa</value></data>
+  <data name="Everyday" xml:space="preserve"><value>Sehari-hari</value></data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve"><value>Opasitas kolom chat saat memudar</value></data>
+  <data name="Fail" xml:space="preserve"><value>Gagal</value></data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve"><value>Layanan cadangan bergaya LibreTranslate, satu per baris, digunakan saat layanan web utama tidak tersedia.</value></data>
+  <data name="First Last@World" xml:space="preserve"><value>First Last@World</value></data>
+  <data name="Focused or hovered opacity" xml:space="preserve"><value>Opasitas saat fokus atau kursor di atas</value></data>
+  <data name="Free company" xml:space="preserve"><value>Free Company</value></data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve"><value>Akun uji coba gratis tidak dapat mengirim pesan pribadi.</value></data>
+  <data name="From" xml:space="preserve"><value>Dari</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve"><value>Simbol entri DTR saat DhogGPT nonaktif.</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve"><value>Simbol entri DTR saat DhogGPT aktif.</value></data>
+  <data name="Got it" xml:space="preserve"><value>Mengerti</value></data>
+  <data name="Guide" xml:space="preserve"><value>Panduan</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Tersembunyi</value></data>
+  <data name="High contrast" xml:space="preserve"><value>Kontras tinggi</value></data>
+  <data name="History entries to keep" xml:space="preserve"><value>Jumlah riwayat yang disimpan</value></data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve"><value>Tahan Ctrl dan klik x untuk menyembunyikan tab kanal ini.</value></data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve"><value>Tahan Ctrl saat mengeklik x untuk menyembunyikan tab kanal.</value></data>
+  <data name="Icon + text" xml:space="preserve"><value>Ikon + teks</value></data>
+  <data name="Icon only" xml:space="preserve"><value>Hanya ikon</value></data>
+  <data name="Inbound header" xml:space="preserve"><value>Kepala pesan masuk</value></data>
+  <data name="Inbound translation" xml:space="preserve"><value>Terjemahan masuk</value></data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve"><value>Sertakan nama kanal dalam Echo terjemahan</value></data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve"><value>Sertakan nama pengirim dalam Echo terjemahan</value></data>
+  <data name="Incoming" xml:space="preserve"><value>Masuk</value></data>
+  <data name="Incoming and channel behavior" xml:space="preserve"><value>Pesan masuk dan perilaku kanal</value></data>
+  <data name="Incoming source language" xml:space="preserve"><value>Bahasa sumber pesan masuk</value></data>
+  <data name="Incoming target language" xml:space="preserve"><value>Bahasa tujuan pesan masuk</value></data>
+  <data name="Jobs" xml:space="preserve"><value>Job</value></data>
+  <data name="Keep windows on current game screen" xml:space="preserve"><value>Pertahankan jendela di layar game saat ini</value></data>
+  <data name="Keeps the game&apos;s vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve"><value>Menyembunyikan chat bawaan saat mode ultraringkas aktif. Biarkan aktif untuk memakai DhogGPT sepenuhnya; nonaktifkan untuk menampilkan kedua jendela chat.</value></data>
+  <data name="Ko-fi" xml:space="preserve"><value>Ko-fi</value></data>
+  <data name="Krangle names in chat UI" xml:space="preserve"><value>Acak nama di antarmuka chat</value></data>
+  <data name="Krangle names is off." xml:space="preserve"><value>Pengacakan nama nonaktif.</value></data>
+  <data name="Krangle names is on." xml:space="preserve"><value>Pengacakan nama aktif.</value></data>
+  <data name="Krangle Names: Off" xml:space="preserve"><value>Acak nama: Nonaktif</value></data>
+  <data name="Krangle Names: On" xml:space="preserve"><value>Acak nama: Aktif</value></data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve"><value>Bahasa yang diperkirakan untuk pesan masuk. Biarkan Otomatis kecuali bahasa sumber sudah diketahui.</value></data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve"><value>Bahasa untuk menampilkan terjemahan pesan masuk.</value></data>
+  <data name="Last error: {0}" xml:space="preserve"><value>Kesalahan terakhir: {0}</value></data>
+  <data name="Latency" xml:space="preserve"><value>Latensi</value></data>
+  <data name="Legacy arrows" xml:space="preserve"><value>Panah lama</value></data>
+  <data name="Linkshells" xml:space="preserve"><value>Linkshell</value></data>
+  <data name="Loading UI fonts..." xml:space="preserve"><value>Memuat font antarmuka...</value></data>
+  <data name="Lock main window position" xml:space="preserve"><value>Kunci posisi jendela utama</value></data>
+  <data name="Lock main window position by default" xml:space="preserve"><value>Kunci posisi jendela utama secara bawaan</value></data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve"><value>Sakelar utama DhogGPT. Terjemahan masuk dan otomatisasi terkait berhenti saat nonaktif.</value></data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve"><value>Jumlah maksimum riwayat terjemahan yang disimpan di memori untuk setiap log chat yang dimuat.</value></data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve"><value>Waktu tunggu maksimum untuk satu permintaan terjemahan sebelum dianggap gagal.</value></data>
+  <data name="Me" xml:space="preserve"><value>Saya</value></data>
+  <data name="Message" xml:space="preserve"><value>Pesan</value></data>
+  <data name="Messages" xml:space="preserve"><value>Pesan</value></data>
+  <data name="Neon night" xml:space="preserve"><value>Malam neon</value></data>
+  <data name="New DM" xml:space="preserve"><value>Pesan pribadi baru</value></data>
+  <data name="No channels are hidden." xml:space="preserve"><value>Tidak ada kanal tersembunyi.</value></data>
+  <data name="No eligible channels" xml:space="preserve"><value>Tidak ada kanal yang sesuai</value></data>
+  <data name="No recent DMs matched." xml:space="preserve"><value>Tidak ada pesan pribadi terbaru yang cocok.</value></data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve"><value>Belum ada chat terjemahan yang dicatat untuk tab ini.</value></data>
+  <data name="No translation" xml:space="preserve"><value>Tanpa terjemahan</value></data>
+  <data name="Off" xml:space="preserve"><value>Nonaktif</value></data>
+  <data name="On" xml:space="preserve"><value>Aktif</value></data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve"><value>Opasitas setelah mengeklik di luar jendela utama DhogGPT.</value></data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve"><value>Opasitas kolom chat bawah saat DhogGPT memudar dan Anda tidak mengetik. Saat mengetik, kolom tetap sepenuhnya opak.</value></data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve"><value>Opasitas saat jendela utama DhogGPT mendapat fokus atau berada di bawah kursor.</value></data>
+  <data name="Open" xml:space="preserve"><value>Buka</value></data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve"><value>Buka pesan pribadi dengan memasukkan First Last@World.</value></data>
+  <data name="Open a new DM." xml:space="preserve"><value>Buka pesan pribadi baru.</value></data>
+  <data name="Open chat log folder" xml:space="preserve"><value>Buka folder log chat</value></data>
+  <data name="Open DhogGPT settings." xml:space="preserve"><value>Buka pengaturan DhogGPT.</value></data>
+  <data name="Open DhogGPT&apos;s per-character chat-log folder on disk." xml:space="preserve"><value>Buka folder log chat DhogGPT per karakter di disk.</value></data>
+  <data name="Open first-use guide" xml:space="preserve"><value>Buka panduan awal</value></data>
+  <data name="Open main window" xml:space="preserve"><value>Buka jendela utama</value></data>
+  <data name="Open main window when a character loads" xml:space="preserve"><value>Buka jendela utama saat karakter dimuat</value></data>
+  <data name="Open main window when a DM arrives" xml:space="preserve"><value>Buka jendela utama saat pesan pribadi tiba</value></data>
+  <data name="Open settings" xml:space="preserve"><value>Buka pengaturan</value></data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve"><value>Buka server Discord DhogGPT.</value></data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve"><value>Buka jendela chat utama DhogGPT.</value></data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve"><value>Buka jendela pengaturan DhogGPT.</value></data>
+  <data name="Open the DhogGPT support page." xml:space="preserve"><value>Buka halaman dukungan DhogGPT.</value></data>
+  <data name="Open the first-use guide again." xml:space="preserve"><value>Buka kembali panduan awal.</value></data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve"><value>Buka jendela utama dengan /dhoggpt, /dgpt, atau /dog.</value></data>
+  <data name="Outbound header" xml:space="preserve"><value>Kepala pesan keluar</value></data>
+  <data name="Outbound translation" xml:space="preserve"><value>Terjemahan keluar</value></data>
+  <data name="Outgoing" xml:space="preserve"><value>Keluar</value></data>
+  <data name="Outgoing translation" xml:space="preserve"><value>Terjemahan keluar</value></data>
+  <data name="Party" xml:space="preserve"><value>Party</value></data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve"><value>Pilih bahasa masuk dan keluar di Pengaturan. Biarkan sumber Otomatis kecuali Anda tahu bahasanya.</value></data>
+  <data name="Pin conversation" xml:space="preserve"><value>Sematkan percakapan</value></data>
+  <data name="Pink" xml:space="preserve"><value>Merah muda</value></data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve"><value>Tab pesan pribadi tersemat. Klik untuk melepas sematan.</value></data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve"><value>Tahan Ctrl saat mengeklik x untuk menutup tab pesan pribadi tersemat.</value></data>
+  <data name="Plugin enabled" xml:space="preserve"><value>Plugin aktif</value></data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve"><value>Saat mode ultraringkas terbuka tanpa fokus, tekan / atau Enter untuk langsung kembali ke kolom DhogGPT.</value></data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve"><value>Mencegah terjemahan pesan yang tampaknya berasal dari karakter Anda sendiri.</value></data>
+  <data name="Preview ready from cache." xml:space="preserve"><value>Pratinjau siap dari cache.</value></data>
+  <data name="Preview ready." xml:space="preserve"><value>Pratinjau siap.</value></data>
+  <data name="Preview translation" xml:space="preserve"><value>Pratinjau terjemahan</value></data>
+  <data name="Preview will appear here." xml:space="preserve"><value>Pratinjau akan muncul di sini.</value></data>
+  <data name="Previewing without translation..." xml:space="preserve"><value>Menyiapkan pratinjau tanpa terjemahan...</value></data>
+  <data name="Provider" xml:space="preserve"><value>Penyedia</value></data>
+  <data name="Providers" xml:space="preserve"><value>Penyedia</value></data>
+  <data name="PvP team" xml:space="preserve"><value>Tim PvP</value></data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve"><value>Perintah berawalan / yang diketik di DhogGPT dikirim langsung dan meninggalkan catatan di Safe tanpa diterjemahkan.</value></data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve"><value>Mode biasa tetap menyediakan antarmuka penerjemah lengkap. Mode ringkas dan superringkas lama kini beralih ke ultraringkas. Jika satu layanan terjemahan gagal, DhogGPT otomatis beralih ke layanan cadangan berikutnya yang dikonfigurasi.</value></data>
+  <data name="Release combined channels" xml:space="preserve"><value>Pisahkan kanal gabungan</value></data>
+  <data name="Reopen recent DM tabs." xml:space="preserve"><value>Buka kembali tab pesan pribadi terbaru.</value></data>
+  <data name="Reopen the first-use guide window." xml:space="preserve"><value>Buka kembali jendela panduan awal.</value></data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve"><value>Otomatis membuka kembali jendela utama saat karakter masuk.</value></data>
+  <data name="Request timeout seconds" xml:space="preserve"><value>Batas waktu permintaan dalam detik</value></data>
+  <data name="Reset fallback endpoints" xml:space="preserve"><value>Reset layanan cadangan</value></data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve"><value>Pulihkan layanan terjemahan cadangan bawaan.</value></data>
+  <data name="Role tints" xml:space="preserve"><value>Warna per peran</value></data>
+  <data name="Safe" xml:space="preserve"><value>Aman</value></data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve"><value>Pesan Safe tetap di DhogGPT dan tidak dikirim ke chat game.</value></data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve"><value>Safe, Echo, System, dan Events adalah kanal DhogGPT. Visibilitasnya diatur dari jendela chat utama, bukan di sini.</value></data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve"><value>Sama seperti tombol kunci di bilah judul jendela utama. Berguna jika DhogGPT hampir selalu harus tetap di tempatnya.</value></data>
+  <data name="Same language" xml:space="preserve"><value>Bahasa sama</value></data>
+  <data name="Saved to Safe." xml:space="preserve"><value>Disimpan di Safe.</value></data>
+  <data name="Say" xml:space="preserve"><value>Say</value></data>
+  <data name="Search recent DMs" xml:space="preserve"><value>Cari pesan pribadi terbaru</value></data>
+  <data name="Select a conversation before sending." xml:space="preserve"><value>Pilih percakapan sebelum mengirim.</value></data>
+  <data name="Selected tab text" xml:space="preserve"><value>Teks tab terpilih</value></data>
+  <data name="Send" xml:space="preserve"><value>Kirim</value></data>
+  <data name="Sending without translation..." xml:space="preserve"><value>Mengirim tanpa terjemahan...</value></data>
+  <data name="Sent translated message to {0}." xml:space="preserve"><value>Pesan terjemahan dikirim ke {0}.</value></data>
+  <data name="Set the language you are writing in." xml:space="preserve"><value>Atur bahasa yang Anda gunakan untuk menulis.</value></data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve"><value>Atur bahasa tujuan terjemahan pesan Anda.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Pengaturan</value></data>
+  <data name="Shout" xml:space="preserve"><value>Shout</value></data>
+  <data name="Show DTR bar entry" xml:space="preserve"><value>Tampilkan entri bilah DTR</value></data>
+  <data name="Show hidden channel tabs." xml:space="preserve"><value>Tampilkan tab kanal tersembunyi.</value></data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve"><value>Tampilkan atau sembunyikan entri DhogGPT di bilah DTR Dalamud.</value></data>
+  <data name="Skip messages from my own character" xml:space="preserve"><value>Lewati pesan dari karakter saya</value></data>
+  <data name="Slash command failed to send." xml:space="preserve"><value>Gagal mengirim perintah /.</value></data>
+  <data name="Slash command sent directly." xml:space="preserve"><value>Perintah / dikirim langsung.</value></data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve"><value>Perintah / dikirim langsung tanpa terjemahan atau pencatatan.</value></data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve"><value>Perintah / melalui DhogGPT melewati terjemahan dan log JSONL, tetapi tetap meninggalkan catatan di Safe.</value></data>
+  <data name="Soft contrast" xml:space="preserve"><value>Kontras lembut</value></data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve"><value>Sumber: {0}  Tujuan: {1}  Penyedia: {2} ({3})</value></data>
+  <data name="Spawn new window" xml:space="preserve"><value>Buka jendela baru</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Status to chat" xml:space="preserve"><value>Kirim status ke chat</value></data>
+  <data name="Success" xml:space="preserve"><value>Berhasil</value></data>
+  <data name="Switch between regular mode and DhogGPT&apos;s supported ultra compact chat surface." xml:space="preserve"><value>Beralih antara mode biasa dan antarmuka chat ultraringkas DhogGPT.</value></data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve"><value>Beralih dari mode biasa ke ultraringkas.</value></data>
+  <data name="System" xml:space="preserve"><value>Sistem</value></data>
+  <data name="Tab" xml:space="preserve"><value>Tab</value></data>
+  <data name="Tab active" xml:space="preserve"><value>Tab aktif</value></data>
+  <data name="Tab hovered" xml:space="preserve"><value>Tab di bawah kursor</value></data>
+  <data name="Tab text" xml:space="preserve"><value>Teks tab</value></data>
+  <data name="Tab unfocused" xml:space="preserve"><value>Tab tanpa fokus</value></data>
+  <data name="Tab unfocused active" xml:space="preserve"><value>Tab aktif tanpa fokus</value></data>
+  <data name="Teal" xml:space="preserve"><value>Hijau kebiruan</value></data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve"><value>Warna teks tab percakapan yang tidak aktif.</value></data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve"><value>Warna teks tab terpilih. Hitam paling cocok jika latar tab aktif terang.</value></data>
+  <data name="Text only" xml:space="preserve"><value>Hanya teks</value></data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve"><value>Pintasan fokus / dan Enter hanya berlaku saat jendela ultraringkas sudah terbuka.</value></data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve"><value>Bahasa tujuan terjemahan teks keluar Anda.</value></data>
+  <data name="Them" xml:space="preserve"><value>Mereka</value></data>
+  <data name="There is no translated text to send." xml:space="preserve"><value>Tidak ada teks terjemahan untuk dikirim.</value></data>
+  <data name="To" xml:space="preserve"><value>Ke</value></data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve"><value>Terjemahkan kanal pesan masuk yang diizinkan ke bahasa tujuan pilihan Anda.</value></data>
+  <data name="Translate and send" xml:space="preserve"><value>Terjemahkan dan kirim</value></data>
+  <data name="Translate incoming chat" xml:space="preserve"><value>Terjemahkan chat masuk</value></data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve"><value>Terjemahkan teks ini dan tekan Enter untuk mengirim</value></data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve"><value>Pesan terjemahan terlalu panjang untuk kolom chat game.</value></data>
+  <data name="Translated preview" xml:space="preserve"><value>Pratinjau terjemahan</value></data>
+  <data name="Translating..." xml:space="preserve"><value>Menerjemahkan...</value></data>
+  <data name="Translation failed: {0}" xml:space="preserve"><value>Terjemahan gagal: {0}</value></data>
+  <data name="Translation preview" xml:space="preserve"><value>Pratinjau terjemahan</value></data>
+  <data name="Translation provider and timeout" xml:space="preserve"><value>Penyedia dan batas waktu terjemahan</value></data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve"><value>Terjemahan berhasil, tetapi DhogGPT tidak dapat menyusun ulang data item/peta untuk dikirim.</value></data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve"><value>Terjemahan berhasil, tetapi pengiriman pesan gagal.</value></data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve"><value>Terjemahan berhasil, tetapi pengiriman yang mempertahankan data gagal.</value></data>
+  <data name="Translation was cancelled." xml:space="preserve"><value>Terjemahan dibatalkan.</value></data>
+  <data name="Turn on ultra compact" xml:space="preserve"><value>Aktifkan ultraringkas</value></data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve"><value>Mengaktifkan diagnostik tambahan DhogGPT. Biarkan nonaktif kecuali sedang menyelidiki masalah.</value></data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve"><value>Gagal memuat font antarmuka. Lihat log plugin.</value></data>
+  <data name="UI language" xml:space="preserve"><value>Bahasa antarmuka</value></data>
+  <data name="Ultra compact chat color theme" xml:space="preserve"><value>Tema warna chat ultraringkas</value></data>
+  <data name="Ultra compact mode" xml:space="preserve"><value>Mode ultraringkas</value></data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve"><value>Mode ultraringkas memakai tab aktif sebagai tujuan, jadi tidak ada daftar jenis chat atau tombol Kirim terpisah.</value></data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve"><value>Ultraringkas: fokus chat dengan /</value></data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve"><value>Ultraringkas: fokus chat dengan Enter</value></data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve"><value>Ultraringkas: pakai warna kepala kanal asli</value></data>
+  <data name="Unexpected error: {0}" xml:space="preserve"><value>Kesalahan tak terduga: {0}</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Tidak diketahui</value></data>
+  <data name="Unlock main window position" xml:space="preserve"><value>Buka kunci posisi jendela utama</value></data>
+  <data name="Unpin conversation" xml:space="preserve"><value>Lepas sematan percakapan</value></data>
+  <data name="Unsupported outgoing channel." xml:space="preserve"><value>Kanal keluar tidak didukung.</value></data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve"><value>Gunakan /dgpt ultra untuk beralih antara mode biasa dan ultraringkas.</value></data>
+  <data name="Use in-game name" xml:space="preserve"><value>Gunakan nama dalam game</value></data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve"><value>Gunakan Krangle untuk mengacak tampilan nama hanya di jendela plugin.</value></data>
+  <data name="Use technical name" xml:space="preserve"><value>Gunakan nama teknis</value></data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve"><value>Gunakan tab kanal tersemat untuk chat umum, + untuk pesan pribadi baru, H untuk kanal tersembunyi, dan R untuk percakapan pribadi terbaru.</value></data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve"><value>Memakai warna kanal bawaan seperti Party, FC, LS, DM, dan Shout untuk kepala pesan; teks terjemahan tetap memakai warna terjemahan/tema pilihan.</value></data>
+  <data name="Visible" xml:space="preserve"><value>Terlihat</value></data>
+  <data name="Welcome To DhogGPT" xml:space="preserve"><value>Selamat datang di DhogGPT</value></data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve"><value>Saat aktif, DhogGPT membatasi pemulihan posisi dan perbaikan jendela otomatis ke area tampilan game aktif. Nonaktifkan jika lebih suka pemulihan manual dengan /dgpt j.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve"><value>Saat ultraringkas aktif dan jendela terbuka tanpa fokus, menekan / memberi fokus ke DhogGPT dan langsung memulai perintah.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve"><value>Saat ultraringkas aktif dan jendela terbuka tanpa fokus, menekan Enter memberi fokus ke kolom DhogGPT.</value></data>
+  <data name="Working..." xml:space="preserve"><value>Memproses...</value></data>
+  <data name="Yell" xml:space="preserve"><value>Yell</value></data>
+  <data name="You" xml:space="preserve"><value>Anda</value></data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve"><value>Bahasa yang Anda ketik sebelum DhogGPT menerjemahkannya.</value></data>
+  <data name="DhogGPT: Open DM" xml:space="preserve"><value>DhogGPT: Buka pesan pribadi</value></data>
+  <data name="(empty)" xml:space="preserve"><value>(kosong)</value></data>
+  <data name="Message was empty." xml:space="preserve"><value>Pesan kosong.</value></data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve"><value>{0}: respons tidak berisi translatedText.</value></data>
+  <data name="Channel" xml:space="preserve"><value>Kanal</value></data>
+  <data name="From (your language)" xml:space="preserve"><value>Dari (bahasa Anda)</value></data>
+  <data name="To (target language)" xml:space="preserve"><value>Ke (bahasa tujuan)</value></data>
+  <data name="Scroll down to &quot;The Dumpster Fire&quot; channel to discuss issues / suggestions for specific plugins." xml:space="preserve"><value>Gulir ke kanal &quot;The Dumpster Fire&quot; untuk membahas masalah atau saran plugin tertentu.</value></data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve"><value>Log chat disimpan per akun dan karakter di folder Data\ChatLogs dalam konfigurasi plugin.</value></data>
+  <data name="Window appearance" xml:space="preserve"><value>Tampilan jendela</value></data>
+  <data name="Compact visible on main window" xml:space="preserve"><value>Tampilkan mode ringkas di jendela utama</value></data>
+  <data name="Language visible on main window" xml:space="preserve"><value>Tampilkan pilihan bahasa di jendela utama</value></data>
+  <data name="Transparency" xml:space="preserve"><value>Transparansi</value></data>
+  <data name="Opacity (%)" xml:space="preserve"><value>Opasitas (%)</value></data>
+  <data name="Auto-fade when unfocused" xml:space="preserve"><value>Redupkan otomatis saat tidak fokus</value></data>
+  <data name="Unfocused opacity (%)" xml:space="preserve"><value>Opasitas saat tidak fokus (%)</value></data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve"><value>Jeda saat tidak fokus (detik)</value></data>
+</root>

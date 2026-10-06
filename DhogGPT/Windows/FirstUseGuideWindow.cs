@@ -1,3 +1,4 @@
+using AethertekUI;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -6,6 +7,8 @@ namespace DhogGPT.Windows;
 
 public sealed class FirstUseGuideWindow : Window, IDisposable
 {
+    private readonly AethertekUI.Dalamud.MaterialWindowMotion windowMotion = new();
+    private readonly AethertekUI.MaterialWindowOpacity windowOpacity = new();
     private readonly Plugin plugin;
 
     public FirstUseGuideWindow(Plugin plugin)
@@ -30,42 +33,55 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
         plugin.MarkFirstUseGuideSeen();
     }
 
+    public override void PreDraw()
+    {
+        windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+    }
+
+    public override void PostDraw()
+    {
+        windowMotion.Restore(this);
+        plugin.ApplyWindowOpacity(windowOpacity, WindowName);
+    }
+
     public override void Draw()
     {
-        ImGui.TextWrapped("DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT.");
+        windowMotion.DrawChrome();
+        UiGui.Title("Welcome To DhogGPT");
+        UiGui.TextWrapped("DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT.");
         ImGui.Separator();
 
-        ImGui.BulletText("Open the main window with /dhoggpt, /dgpt, or /dog.");
-        ImGui.BulletText("Use /dgpt ultra to toggle between regular mode and ultra compact mode.");
-        ImGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
-        ImGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");
-        ImGui.BulletText("Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there.");
-        ImGui.BulletText("Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation.");
-        ImGui.BulletText("Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it.");
-        ImGui.BulletText("Use Krangle if you want display-only name scrambling in the plugin window.");
-        ImGui.BulletText("Click the DTR entry to open the DhogGPT main window.");
+        UiGui.BulletText("Open the main window with /dhoggpt, /dgpt, or /dog.");
+        UiGui.BulletText("Use /dgpt ultra to toggle between regular mode and ultra compact mode.");
+        UiGui.BulletText("Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads.");
+        UiGui.BulletText("Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer.");
+        UiGui.BulletText("Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there.");
+        UiGui.BulletText("Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation.");
+        UiGui.BulletText("Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it.");
+        UiGui.BulletText("Use Krangle if you want display-only name scrambling in the plugin window.");
+        UiGui.BulletText("Click the DTR entry to open the DhogGPT main window.");
 
         ImGui.Spacing();
-        ImGui.TextWrapped("Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
+        UiGui.TextWrapped("Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback.");
 
-        if (ImGui.Button("Open main window"))
+        if (UiGui.Button("Open main window"))
             plugin.OpenMainUi();
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Open the DhogGPT main chat window.");
+            UiGui.SetTooltip("Open the DhogGPT main chat window.");
 
-        ImGui.SameLine();
-        if (ImGui.Button("Open settings"))
+        DhogGptPresentation.SameLineIfFits(MaterialText.Measure(UiText.T("Open settings")).X+ImGui.GetStyle().FramePadding.X*2);
+        if (UiGui.Button("Open settings"))
             plugin.OpenConfigUi();
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Open the DhogGPT settings window.");
+            UiGui.SetTooltip("Open the DhogGPT settings window.");
 
-        ImGui.SameLine();
-        if (ImGui.Button("Got it"))
+        DhogGptPresentation.SameLineIfFits(MaterialText.Measure(UiText.T("Got it")).X+ImGui.GetStyle().FramePadding.X*2);
+        if (UiGui.Button("Got it"))
         {
             plugin.MarkFirstUseGuideSeen();
             IsOpen = false;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Close this guide and mark it as seen.");
+            UiGui.SetTooltip("Close this guide and mark it as seen.");
     }
 }

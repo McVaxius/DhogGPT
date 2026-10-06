@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="{0:F0} ms" xml:space="preserve"><value>{0:F0} ms</value></data>
+  <data name="{0}" xml:space="preserve"><value>{0}</value></data>
+  <data name="{0} / 2000" xml:space="preserve"><value>{0} / 2000</value></data>
+  <data name="A DM target is required." xml:space="preserve"><value>必须指定私信对象。</value></data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT&apos;s Echo mirror output." xml:space="preserve"><value>在 DhogGPT 的 Echo 镜像输出中加入小队、FC 或 Tell 等频道标签。</value></data>
+  <data name="Adds the sender identity into DhogGPT&apos;s Echo mirror for translated incoming chat." xml:space="preserve"><value>在 DhogGPT 的已翻译收件聊天 Echo 镜像中加入发送者身份。</value></data>
+  <data name="Advanced" xml:space="preserve"><value>高级</value></data>
+  <data name="Advanced and diagnostics" xml:space="preserve"><value>高级与诊断</value></data>
+  <data name="Alliance" xml:space="preserve"><value>团队</value></data>
+  <data name="Already detached" xml:space="preserve"><value>已分离</value></data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve"><value>仅对 DhogGPT 界面中的姓名应用 Krangle 混淆，不改变实际游戏聊天。</value></data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve"><value>必须保留至少一个可见频道标签页。</value></data>
+  <data name="Autodetect" xml:space="preserve"><value>自动检测</value></data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve"><value>未选中会话标签页的背景颜色。</value></data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve"><value>窗口失去焦点时，未选中标签页的背景颜色。</value></data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve"><value>所选会话标签页的背景颜色。</value></data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve"><value>窗口失去焦点时，所选标签页的背景颜色。</value></data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve"><value>鼠标悬停在会话标签页上时的背景颜色。</value></data>
+  <data name="Background opacity" xml:space="preserve"><value>背景不透明度</value></data>
+  <data name="Blue" xml:space="preserve"><value>蓝色</value></data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve"><value>检测到新的私聊消息时，将 DhogGPT 置于最前。</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Centered wedges" xml:space="preserve"><value>居中楔形标记</value></data>
+  <data name="Channels" xml:space="preserve"><value>频道</value></data>
+  <data name="Chat" xml:space="preserve"><value>聊天</value></data>
+  <data name="Chat scroll indicator style" xml:space="preserve"><value>聊天滚动提示样式</value></data>
+  <data name="Chat translation for FFXIV" xml:space="preserve"><value>FFXIV 聊天翻译</value></data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve"><value>选择会话正文中隐藏滚动提示的默认样式。</value></data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve"><value>选择 DTR 项目显示文字、图标加文字或仅图标。</value></data>
+  <data name="Clear" xml:space="preserve"><value>清除</value></data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve"><value>点击 DTR 项目打开 DhogGPT 主窗口。</value></data>
+  <data name="Click to pin this DM tab." xml:space="preserve"><value>点击固定此私信标签页。</value></data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve"><value>点击 x 将合并标签页恢复为独立频道。</value></data>
+  <data name="Close DM" xml:space="preserve"><value>关闭私信</value></data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve"><value>关闭固定私信（按住 Ctrl 点击 x）</value></data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve"><value>关闭此指南并标记为已读。</value></data>
+  <data name="Color" xml:space="preserve"><value>颜色</value></data>
+  <data name="Color used for inbound message header lines." xml:space="preserve"><value>收到的消息标题行颜色。</value></data>
+  <data name="Color used for inbound translated lines." xml:space="preserve"><value>收到的消息译文颜色。</value></data>
+  <data name="Color used for outbound message header lines." xml:space="preserve"><value>发出的消息标题行颜色。</value></data>
+  <data name="Color used for outbound translated lines." xml:space="preserve"><value>发出的消息译文颜色。</value></data>
+  <data name="Color used for translation failure text." xml:space="preserve"><value>翻译失败文字的颜色。</value></data>
+  <data name="Combine with" xml:space="preserve"><value>合并到</value></data>
+  <data name="Common DhogGPT settings" xml:space="preserve"><value>DhogGPT 常用设置</value></data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve"><value>紧凑和超级紧凑模式已弃用。DhogGPT 现在支持常规模式和极简模式。</value></data>
+  <data name="Compact mode" xml:space="preserve"><value>紧凑模式</value></data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve"><value>设置极简模式的消息颜色和会话标签页配色。</value></data>
+  <data name="Conversation tabs" xml:space="preserve"><value>会话标签页</value></data>
+  <data name="Copy both" xml:space="preserve"><value>复制两者</value></data>
+  <data name="Copy DM target" xml:space="preserve"><value>复制私信对象</value></data>
+  <data name="Copy original" xml:space="preserve"><value>复制原文</value></data>
+  <data name="Copy translation" xml:space="preserve"><value>复制译文</value></data>
+  <data name="Cross-world linkshells" xml:space="preserve"><value>跨服通讯贝</value></data>
+  <data name="Custom" xml:space="preserve"><value>自定义</value></data>
+  <data name="Custom RGB" xml:space="preserve"><value>自定义 RGB</value></data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve"><value>自定义极简模式消息和标签页颜色</value></data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve"><value>DhogGPT {0}。点击打开主窗口。</value></data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve"><value>DhogGPT 现在默认使用极简模式。翻译后的会话显示在标签页中，底部输入框可在主窗口内直接发送翻译后的聊天。您可以在设置中选择是否同时保留原生聊天。</value></data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve"><value>DhogGPT 设置 v{0}</value></data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve"><value>DhogGPT 会先尝试无需密钥的 Google 风格网页翻译端点。如果失败，则依次使用下面列出的 LibreTranslate 兼容端点，每行一个。</value></data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve"><value>极简模式开启时隐藏原生聊天窗口</value></data>
+  <data name="Discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="DM" xml:space="preserve"><value>私信</value></data>
+  <data name="DM / tell" xml:space="preserve"><value>私信 / 私聊</value></data>
+  <data name="DM target must include a world name after @." xml:space="preserve"><value>私信对象必须在 @ 后包含服务器名称。</value></data>
+  <data name="DM target must include first and last name." xml:space="preserve"><value>私信对象必须包含名和姓。</value></data>
+  <data name="DM target must use First Last@World." xml:space="preserve"><value>私信对象必须使用 First Last@World 格式。</value></data>
+  <data name="DTR Bar" xml:space="preserve"><value>DTR 状态栏</value></data>
+  <data name="DTR disabled glyph" xml:space="preserve"><value>DTR 禁用图标</value></data>
+  <data name="DTR enabled glyph" xml:space="preserve"><value>DTR 启用图标</value></data>
+  <data name="DTR mode" xml:space="preserve"><value>DTR 显示模式</value></data>
+  <data name="Echo" xml:space="preserve"><value>Echo</value></data>
+  <data name="Emote" xml:space="preserve"><value>情感动作</value></data>
+  <data name="Enable debug logging" xml:space="preserve"><value>启用调试日志</value></data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve"><value>启用跨服通讯贝频道 CWLS1-CWLS8 的翻译。</value></data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve"><value>启用部队聊天翻译。</value></data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve"><value>启用收到和发出的私聊翻译。</value></data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve"><value>启用通讯贝频道 LS1-LS8 的翻译。</value></data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve"><value>启用新人频道聊天翻译。</value></data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve"><value>启用小队、跨服小队及团队聊天翻译。</value></data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve"><value>启用 PvP 团队聊天翻译。</value></data>
+  <data name="Enable translation for Say chat." xml:space="preserve"><value>启用说话频道聊天翻译。</value></data>
+  <data name="Enable translation for Shout chat." xml:space="preserve"><value>启用喊话频道聊天翻译。</value></data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve"><value>启用标准及自定义情感动作聊天行的翻译。</value></data>
+  <data name="Enable translation for Yell chat." xml:space="preserve"><value>启用呼喊频道聊天翻译。</value></data>
+  <data name="Enabled" xml:space="preserve"><value>已启用</value></data>
+  <data name="Endpoints" xml:space="preserve"><value>端点</value></data>
+  <data name="Error" xml:space="preserve"><value>错误</value></data>
+  <data name="Events" xml:space="preserve"><value>事件</value></data>
+  <data name="Everyday" xml:space="preserve"><value>日常</value></data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve"><value>淡化时输入框的不透明度</value></data>
+  <data name="Fail" xml:space="preserve"><value>失败</value></data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve"><value>主要网页路径不可用时使用的 LibreTranslate 风格备用端点，每行一个。</value></data>
+  <data name="First Last@World" xml:space="preserve"><value>First Last@World</value></data>
+  <data name="Focused or hovered opacity" xml:space="preserve"><value>获得焦点或悬停时的不透明度</value></data>
+  <data name="Free company" xml:space="preserve"><value>部队</value></data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve"><value>免费试玩账号无法发送私信。</value></data>
+  <data name="From" xml:space="preserve"><value>原文</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve"><value>DhogGPT 禁用时，DTR 项目使用的图标。</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve"><value>DhogGPT 启用时，DTR 项目使用的图标。</value></data>
+  <data name="Got it" xml:space="preserve"><value>知道了</value></data>
+  <data name="Guide" xml:space="preserve"><value>指南</value></data>
+  <data name="Hidden" xml:space="preserve"><value>隐藏</value></data>
+  <data name="High contrast" xml:space="preserve"><value>高对比度</value></data>
+  <data name="History entries to keep" xml:space="preserve"><value>保留的历史条目数</value></data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve"><value>按住 Ctrl 点击 x，隐藏此频道标签页。</value></data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve"><value>按住 Ctrl 点击 x，隐藏频道标签页。</value></data>
+  <data name="Icon + text" xml:space="preserve"><value>图标 + 文字</value></data>
+  <data name="Icon only" xml:space="preserve"><value>仅图标</value></data>
+  <data name="Inbound header" xml:space="preserve"><value>收件标题</value></data>
+  <data name="Inbound translation" xml:space="preserve"><value>收件译文</value></data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve"><value>在已翻译的 Echo 输出中包含频道标签</value></data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve"><value>在已翻译的 Echo 输出中包含发送者姓名</value></data>
+  <data name="Incoming" xml:space="preserve"><value>收件</value></data>
+  <data name="Incoming and channel behavior" xml:space="preserve"><value>收件与频道行为</value></data>
+  <data name="Incoming source language" xml:space="preserve"><value>收件原文语言</value></data>
+  <data name="Incoming target language" xml:space="preserve"><value>收件译文语言</value></data>
+  <data name="Jobs" xml:space="preserve"><value>职业</value></data>
+  <data name="Keep windows on current game screen" xml:space="preserve"><value>将窗口保留在当前游戏屏幕内</value></data>
+  <data name="Keeps the game&apos;s vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve"><value>DhogGPT 极简模式启用时隐藏游戏原生聊天。若想完全使用 DhogGPT，请保持开启；若想同时显示两个聊天窗口，请关闭。</value></data>
+  <data name="Ko-fi" xml:space="preserve"><value>Ko-fi</value></data>
+  <data name="Krangle names in chat UI" xml:space="preserve"><value>在聊天界面中用 Krangle 混淆姓名</value></data>
+  <data name="Krangle names is off." xml:space="preserve"><value>姓名 Krangle 混淆已关闭。</value></data>
+  <data name="Krangle names is on." xml:space="preserve"><value>姓名 Krangle 混淆已开启。</value></data>
+  <data name="Krangle Names: Off" xml:space="preserve"><value>姓名 Krangle：关闭</value></data>
+  <data name="Krangle Names: On" xml:space="preserve"><value>姓名 Krangle：开启</value></data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve"><value>设定收到消息的原文语言。除非事先知道原文语言，否则请保持自动。</value></data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve"><value>收到的消息应翻译成的语言。</value></data>
+  <data name="Last error: {0}" xml:space="preserve"><value>最近错误：{0}</value></data>
+  <data name="Latency" xml:space="preserve"><value>延迟</value></data>
+  <data name="Legacy arrows" xml:space="preserve"><value>旧式箭头</value></data>
+  <data name="Linkshells" xml:space="preserve"><value>通讯贝</value></data>
+  <data name="Loading UI fonts..." xml:space="preserve"><value>正在加载界面字体...</value></data>
+  <data name="Lock main window position" xml:space="preserve"><value>锁定主窗口位置</value></data>
+  <data name="Lock main window position by default" xml:space="preserve"><value>默认锁定主窗口位置</value></data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve"><value>DhogGPT 的总开关。关闭后，收件翻译及相关自动化会停止。</value></data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve"><value>每个已加载聊天日志中，DhogGPT 在内存中保留的翻译历史条目上限。</value></data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve"><value>DhogGPT 将单次翻译请求判定为失败之前等待的最长时间。</value></data>
+  <data name="Me" xml:space="preserve"><value>我</value></data>
+  <data name="Message" xml:space="preserve"><value>消息</value></data>
+  <data name="Messages" xml:space="preserve"><value>消息</value></data>
+  <data name="Neon night" xml:space="preserve"><value>霓虹夜色</value></data>
+  <data name="New DM" xml:space="preserve"><value>新私信</value></data>
+  <data name="No channels are hidden." xml:space="preserve"><value>没有隐藏的频道。</value></data>
+  <data name="No eligible channels" xml:space="preserve"><value>没有可用频道</value></data>
+  <data name="No recent DMs matched." xml:space="preserve"><value>没有匹配的最近私信。</value></data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve"><value>此标签页尚无翻译聊天记录。</value></data>
+  <data name="No translation" xml:space="preserve"><value>不翻译</value></data>
+  <data name="Off" xml:space="preserve"><value>关闭</value></data>
+  <data name="On" xml:space="preserve"><value>开启</value></data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve"><value>点击 DhogGPT 主窗口外部后使用的不透明度。</value></data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve"><value>DhogGPT 淡化且您未在输入时，底部聊天输入区域的不透明度。输入时，该区域保持完全不透明。</value></data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve"><value>鼠标悬停在 DhogGPT 主窗口上或窗口获得焦点时的不透明度。</value></data>
+  <data name="Open" xml:space="preserve"><value>打开</value></data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve"><value>输入 First Last@World 打开私信。</value></data>
+  <data name="Open a new DM." xml:space="preserve"><value>打开新私信。</value></data>
+  <data name="Open chat log folder" xml:space="preserve"><value>打开聊天日志文件夹</value></data>
+  <data name="Open DhogGPT settings." xml:space="preserve"><value>打开 DhogGPT 设置。</value></data>
+  <data name="Open DhogGPT&apos;s per-character chat-log folder on disk." xml:space="preserve"><value>打开磁盘上 DhogGPT 的角色专属聊天日志文件夹。</value></data>
+  <data name="Open first-use guide" xml:space="preserve"><value>打开初次使用指南</value></data>
+  <data name="Open main window" xml:space="preserve"><value>打开主窗口</value></data>
+  <data name="Open main window when a character loads" xml:space="preserve"><value>角色加载时打开主窗口</value></data>
+  <data name="Open main window when a DM arrives" xml:space="preserve"><value>收到私信时打开主窗口</value></data>
+  <data name="Open settings" xml:space="preserve"><value>打开设置</value></data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve"><value>打开 DhogGPT Discord 服务器。</value></data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve"><value>打开 DhogGPT 主聊天窗口。</value></data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve"><value>打开 DhogGPT 设置窗口。</value></data>
+  <data name="Open the DhogGPT support page." xml:space="preserve"><value>打开 DhogGPT 支持页面。</value></data>
+  <data name="Open the first-use guide again." xml:space="preserve"><value>再次打开初次使用指南。</value></data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve"><value>使用 /dhoggpt、/dgpt 或 /dog 打开主窗口。</value></data>
+  <data name="Outbound header" xml:space="preserve"><value>发件标题</value></data>
+  <data name="Outbound translation" xml:space="preserve"><value>发件译文</value></data>
+  <data name="Outgoing" xml:space="preserve"><value>发件</value></data>
+  <data name="Outgoing translation" xml:space="preserve"><value>发件翻译</value></data>
+  <data name="Party" xml:space="preserve"><value>小队</value></data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve"><value>在设置中选择收件和发件语言。除非知道原文语言，否则请保持自动。</value></data>
+  <data name="Pin conversation" xml:space="preserve"><value>固定会话</value></data>
+  <data name="Pink" xml:space="preserve"><value>粉色</value></data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve"><value>已固定的私信标签页。点击取消固定。</value></data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve"><value>关闭固定私信标签页时，需要按住 Ctrl 点击 x。</value></data>
+  <data name="Plugin enabled" xml:space="preserve"><value>启用插件</value></data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve"><value>极简模式窗口已打开但未获得焦点时，按 / 或 Enter 可直接返回 DhogGPT 输入框。</value></data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve"><value>让 DhogGPT 跳过看起来由您自己角色发出的消息。</value></data>
+  <data name="Preview ready from cache." xml:space="preserve"><value>已从缓存准备好预览。</value></data>
+  <data name="Preview ready." xml:space="preserve"><value>预览已就绪。</value></data>
+  <data name="Preview translation" xml:space="preserve"><value>预览翻译</value></data>
+  <data name="Preview will appear here." xml:space="preserve"><value>预览将显示在此处。</value></data>
+  <data name="Previewing without translation..." xml:space="preserve"><value>正在生成不翻译的预览...</value></data>
+  <data name="Provider" xml:space="preserve"><value>提供方</value></data>
+  <data name="Providers" xml:space="preserve"><value>提供方</value></data>
+  <data name="PvP team" xml:space="preserve"><value>PvP 团队</value></data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve"><value>在 DhogGPT 中输入的原始斜杠命令会直接发送，不经过翻译，并在 Safe 频道留下简要记录。</value></data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve"><value>常规模式仍提供完整的翻译界面，但紧凑和超级紧凑模式已弃用，现在会进入极简模式。一个翻译端点失败后，DhogGPT 会自动切换到下一个已配置的备用端点。</value></data>
+  <data name="Release combined channels" xml:space="preserve"><value>拆分合并频道</value></data>
+  <data name="Reopen recent DM tabs." xml:space="preserve"><value>重新打开最近的私信标签页。</value></data>
+  <data name="Reopen the first-use guide window." xml:space="preserve"><value>重新打开初次使用指南窗口。</value></data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve"><value>角色登录时自动重新打开 DhogGPT 主窗口。</value></data>
+  <data name="Request timeout seconds" xml:space="preserve"><value>请求超时秒数</value></data>
+  <data name="Reset fallback endpoints" xml:space="preserve"><value>重设备用端点</value></data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve"><value>恢复默认备用翻译端点。</value></data>
+  <data name="Role tints" xml:space="preserve"><value>角色色调</value></data>
+  <data name="Safe" xml:space="preserve"><value>Safe</value></data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve"><value>Safe 消息仅保留在 DhogGPT 内，不会发送到游戏聊天。</value></data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve"><value>Safe、Echo、系统和事件是 DhogGPT 自有频道。其显示状态在主聊天窗口中控制，而非在此处。</value></data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve"><value>与主窗口标题栏的锁定按钮行为相同。若您通常希望固定 DhogGPT 的位置，此设置很有用。</value></data>
+  <data name="Same language" xml:space="preserve"><value>相同语言</value></data>
+  <data name="Saved to Safe." xml:space="preserve"><value>已保存到 Safe。</value></data>
+  <data name="Say" xml:space="preserve"><value>说话</value></data>
+  <data name="Search recent DMs" xml:space="preserve"><value>搜索最近私信</value></data>
+  <data name="Select a conversation before sending." xml:space="preserve"><value>发送前请选择会话。</value></data>
+  <data name="Selected tab text" xml:space="preserve"><value>所选标签页文字</value></data>
+  <data name="Send" xml:space="preserve"><value>发送</value></data>
+  <data name="Sending without translation..." xml:space="preserve"><value>正在不经翻译发送...</value></data>
+  <data name="Sent translated message to {0}." xml:space="preserve"><value>已将翻译后的消息发送到 {0}。</value></data>
+  <data name="Set the language you are writing in." xml:space="preserve"><value>设置您正在书写的语言。</value></data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve"><value>设置消息应翻译成的语言。</value></data>
+  <data name="Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="Shout" xml:space="preserve"><value>喊话</value></data>
+  <data name="Show DTR bar entry" xml:space="preserve"><value>显示 DTR 状态栏项目</value></data>
+  <data name="Show hidden channel tabs." xml:space="preserve"><value>显示隐藏的频道标签页。</value></data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve"><value>显示或隐藏 Dalamud DTR 状态栏中的 DhogGPT 项目。</value></data>
+  <data name="Skip messages from my own character" xml:space="preserve"><value>跳过我自己角色的消息</value></data>
+  <data name="Slash command failed to send." xml:space="preserve"><value>斜杠命令发送失败。</value></data>
+  <data name="Slash command sent directly." xml:space="preserve"><value>斜杠命令已直接发送。</value></data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve"><value>斜杠命令会直接发送，不会翻译或记录。</value></data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve"><value>通过 DhogGPT 发送的斜杠命令会跳过翻译及 JSONL 日志，但仍在 Safe 频道留下简要记录。</value></data>
+  <data name="Soft contrast" xml:space="preserve"><value>柔和对比度</value></data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve"><value>原文：{0}  译文：{1}  提供方：{2} ({3})</value></data>
+  <data name="Spawn new window" xml:space="preserve"><value>打开新窗口</value></data>
+  <data name="Status" xml:space="preserve"><value>状态</value></data>
+  <data name="Status to chat" xml:space="preserve"><value>状态写入聊天</value></data>
+  <data name="Success" xml:space="preserve"><value>成功</value></data>
+  <data name="Switch between regular mode and DhogGPT&apos;s supported ultra compact chat surface." xml:space="preserve"><value>在常规模式和 DhogGPT 支持的极简聊天界面之间切换。</value></data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve"><value>从常规模式切换到极简模式。</value></data>
+  <data name="System" xml:space="preserve"><value>系统</value></data>
+  <data name="Tab" xml:space="preserve"><value>标签页</value></data>
+  <data name="Tab active" xml:space="preserve"><value>选中标签页</value></data>
+  <data name="Tab hovered" xml:space="preserve"><value>悬停标签页</value></data>
+  <data name="Tab text" xml:space="preserve"><value>标签页文字</value></data>
+  <data name="Tab unfocused" xml:space="preserve"><value>失去焦点的标签页</value></data>
+  <data name="Tab unfocused active" xml:space="preserve"><value>失去焦点的选中标签页</value></data>
+  <data name="Teal" xml:space="preserve"><value>青色</value></data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve"><value>未选中会话标签页的文字颜色。</value></data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve"><value>所选标签页的文字颜色。若选中标签页的背景较亮，黑色最合适。</value></data>
+  <data name="Text only" xml:space="preserve"><value>仅文字</value></data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve"><value>/ 和 Enter 聚焦快捷键仅在极简窗口已经打开时生效。</value></data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve"><value>DhogGPT 应将您的发件文字翻译成的语言。</value></data>
+  <data name="Them" xml:space="preserve"><value>对方</value></data>
+  <data name="There is no translated text to send." xml:space="preserve"><value>没有可发送的译文。</value></data>
+  <data name="To" xml:space="preserve"><value>译文</value></data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve"><value>将允许的收件聊天频道翻译成您选择的目标语言。</value></data>
+  <data name="Translate and send" xml:space="preserve"><value>翻译并发送</value></data>
+  <data name="Translate incoming chat" xml:space="preserve"><value>翻译收到的聊天</value></data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve"><value>翻译此文本，然后按 Enter 发送</value></data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve"><value>翻译后的消息过长，无法放入游戏聊天输入框。</value></data>
+  <data name="Translated preview" xml:space="preserve"><value>译文预览</value></data>
+  <data name="Translating..." xml:space="preserve"><value>正在翻译...</value></data>
+  <data name="Translation failed: {0}" xml:space="preserve"><value>翻译失败：{0}</value></data>
+  <data name="Translation preview" xml:space="preserve"><value>翻译预览</value></data>
+  <data name="Translation provider and timeout" xml:space="preserve"><value>翻译提供方与超时</value></data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve"><value>翻译成功，但 DhogGPT 无法重新构建用于发送的物品/地图载荷。</value></data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve"><value>翻译成功，但消息发送失败。</value></data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve"><value>翻译成功，但保留载荷的发送路径失败。</value></data>
+  <data name="Translation was cancelled." xml:space="preserve"><value>翻译已取消。</value></data>
+  <data name="Turn on ultra compact" xml:space="preserve"><value>开启极简模式</value></data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve"><value>启用额外的 DhogGPT 诊断。除非正在排查问题，否则请保持关闭。</value></data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve"><value>界面字体加载失败。请查看插件日志。</value></data>
+  <data name="UI language" xml:space="preserve"><value>界面语言</value></data>
+  <data name="Ultra compact chat color theme" xml:space="preserve"><value>极简聊天配色主题</value></data>
+  <data name="Ultra compact mode" xml:space="preserve"><value>极简模式</value></data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve"><value>极简模式使用当前标签页作为发送目标，因此没有单独的聊天类型下拉框或发送按钮。</value></data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve"><value>极简：按 / 聚焦聊天</value></data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve"><value>极简：按 Enter 聚焦聊天</value></data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve"><value>极简：使用实际聊天频道的标题颜色</value></data>
+  <data name="Unexpected error: {0}" xml:space="preserve"><value>意外错误：{0}</value></data>
+  <data name="Unknown" xml:space="preserve"><value>未知</value></data>
+  <data name="Unlock main window position" xml:space="preserve"><value>解锁主窗口位置</value></data>
+  <data name="Unpin conversation" xml:space="preserve"><value>取消固定会话</value></data>
+  <data name="Unsupported outgoing channel." xml:space="preserve"><value>不支持的发件频道。</value></data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve"><value>使用 /dgpt ultra 切换常规模式与极简模式。</value></data>
+  <data name="Use in-game name" xml:space="preserve"><value>使用游戏内名称</value></data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve"><value>若只想混淆插件窗口中显示的姓名，请使用 Krangle。</value></data>
+  <data name="Use technical name" xml:space="preserve"><value>使用技术名称</value></data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve"><value>使用固定频道标签页进行普通聊天，使用 + 按钮新建私信标签页，H 查看隐藏频道，R 查看最近私信会话。</value></data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve"><value>为小队、FC、LS、DM、喊话等消息标题行使用原生频道颜色，同时为译文保留所选翻译/主题颜色。</value></data>
+  <data name="Visible" xml:space="preserve"><value>可见</value></data>
+  <data name="Welcome To DhogGPT" xml:space="preserve"><value>欢迎使用 DhogGPT</value></data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve"><value>启用后，DhogGPT 会将已保存窗口的恢复位置及自动窗口修复限制在当前游戏视口内。若更喜欢使用 /dgpt j 手动恢复，请关闭。</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve"><value>极简模式启用且 DhogGPT 窗口已打开但未获得焦点时，按 / 会聚焦 DhogGPT 并立即开始输入斜杠命令。</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve"><value>极简模式启用且 DhogGPT 窗口已打开但未获得焦点时，按 Enter 会聚焦 DhogGPT 输入框。</value></data>
+  <data name="Working..." xml:space="preserve"><value>正在处理...</value></data>
+  <data name="Yell" xml:space="preserve"><value>呼喊</value></data>
+  <data name="You" xml:space="preserve"><value>您</value></data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve"><value>DhogGPT 翻译前您输入的语言。</value></data>
+  <data name="DhogGPT: Open DM" xml:space="preserve"><value>DhogGPT：打开私信</value></data>
+  <data name="(empty)" xml:space="preserve"><value>（空）</value></data>
+  <data name="Message was empty." xml:space="preserve"><value>消息为空。</value></data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve"><value>{0}：响应中未包含 translatedText。</value></data>
+  <data name="Channel" xml:space="preserve"><value>频道</value></data>
+  <data name="From (your language)" xml:space="preserve"><value>源语言（你的语言）</value></data>
+  <data name="To (target language)" xml:space="preserve"><value>目标语言</value></data>
+  <data name='Scroll down to "The Dumpster Fire" channel to discuss issues / suggestions for specific plugins.' xml:space="preserve"><value>向下滚动到“The Dumpster Fire”频道，讨论特定插件的问题或建议。</value></data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve"><value>聊天日志按账号和角色分别保存在插件配置的 Data\ChatLogs 文件夹中。</value></data>
+  <data name="Window appearance" xml:space="preserve"><value>窗口外观</value></data>
+  <data name="Compact visible on main window" xml:space="preserve"><value>在主窗口显示紧凑模式开关</value></data>
+  <data name="Language visible on main window" xml:space="preserve"><value>在主窗口显示语言选择</value></data>
+  <data name="Transparency" xml:space="preserve"><value>透明度</value></data>
+  <data name="Opacity (%)" xml:space="preserve"><value>不透明度 (%)</value></data>
+  <data name="Auto-fade when unfocused" xml:space="preserve"><value>失去焦点后自动淡化</value></data>
+  <data name="Unfocused opacity (%)" xml:space="preserve"><value>未聚焦时的不透明度 (%)</value></data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve"><value>失去焦点后的等待时间 (秒)</value></data>
+</root>

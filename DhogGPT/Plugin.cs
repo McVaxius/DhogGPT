@@ -1,3 +1,6 @@
+using AethertekUI;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using System.Numerics;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Conditions;
@@ -39,6 +42,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IContextMenu ContextMenu { get; private set; } = null!;
     [PluginService] internal static ISeStringEvaluator SeStringEvaluator { get; private set; } = null!;
+    [PluginService] internal static ITextureProvider Textures { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
     private const string CommandName = "/dhoggpt";
@@ -62,6 +66,19 @@ public sealed class Plugin : IDalamudPlugin
     public SupplementalLogChannelService SupplementalLogChannelService { get; }
     public VanillaChatWindowService VanillaChatWindowService { get; }
 
+    private readonly AethertekUI.Dalamud.MaterialTextHost shapedText;
+    private UiText uiText = null!;
+    private DhogGptFonts uiFonts = null!;
+    private MaterialTheme uiTheme = null!;
+    private readonly MaterialWindowFold fontStatusFold = new();
+    private readonly MaterialWindowDecorations fontStatusDecorations = new();
+    private readonly MaterialWindowOpacity fontStatusOpacity = new();
+    private MaterialOptions<string> uiLanguages = null!;
+    private string appliedUiLanguage = "";
+    private uint appliedUiAccent = uint.MaxValue;
+    private Vector3 uiAccentDraft;
+    private int checkedFontGeneration = -1;
+    private bool uiFontIssueLogged;
     private readonly MainWindow mainWindow;
     private readonly ConfigWindow configWindow;
     private readonly FirstUseGuideWindow firstUseGuideWindow;
@@ -76,10 +93,12 @@ public sealed class Plugin : IDalamudPlugin
 
     public Plugin()
     {
+        shapedText = new(Textures);
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         NormalizeLegacyConfiguration();
         NormalizeChatModeConfiguration();
         InitializeConversationVisibilityDefaults();
+        ApplyUiAppearance();
 
         LinkPayloadManager = new LinkPayloadManager();
         LanguageRegistry = new LanguageRegistryService();
@@ -115,7 +134,7 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Short alias for /dhoggpt.",
         });
 
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.Draw += DrawUi;
         PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
 
@@ -131,7 +150,10 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        PluginInterface.UiBuilder.Draw -= DrawUi;
+        uiFonts?.Dispose();
+        uiText?.Dispose();
+        shapedText.Dispose();
         PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
 
@@ -162,6 +184,107 @@ public sealed class Plugin : IDalamudPlugin
         TranslationProvider.Dispose();
 
         Log.Information("[DhogGPT] Plugin unloaded.");
+    }
+
+
+    private void DrawUi()
+    {
+        ApplyUiAppearance();
+        using var shaping = shapedText.Push();
+        using var text = uiText.Enter();
+        if (!uiFonts.Ready)
+        {
+            if (!uiFontIssueLogged && uiFonts.LoadException is { } error)
+            { Log.Error(error, "[DhogGPT] Required UI fonts failed to load."); uiFontIssueLogged = true; }
+            DrawFontStatus(uiFonts.LoadException is null); return;
+        }
+        if (checkedFontGeneration != uiFonts.Generation)
+        {
+            try { var generation=uiFonts.Generation;
+                foreach(var size in DhogGptPresentation.FontSizes) shapedText.Renderer.CheckGlyphs(uiText.RequiredText,size*4/3*ImGuiHelpers.GlobalScale);
+                uiFonts.CheckGlyphs(uiText.RequiredText);checkedFontGeneration=generation; }
+            catch(Exception error) { if(!uiFontIssueLogged) { Log.Error(error,"[DhogGPT] Required UI glyph coverage failed.");uiFontIssueLogged=true; }DrawFontStatus(false);return; }
+        }
+        DhogGptPresentation.Compact=Configuration.UiCompact;
+        using var theme=MaterialTheme.Push(uiTheme,ImGuiHelpers.GlobalScale,MaterialStyleMode.ColorsOnly);
+        using var geometry=new MaterialStyleScope();
+        var s=ImGuiHelpers.GlobalScale;var compact=Configuration.UiCompact;
+        geometry.Style(ImGuiStyleVar.WindowPadding,new Vector2(compact?10:16,compact?8:12)*s);
+        geometry.Style(ImGuiStyleVar.FramePadding,new Vector2(compact?8:12,compact?5:8)*s);
+        geometry.Style(ImGuiStyleVar.ItemSpacing,new Vector2(compact?8:12,compact?6:10)*s);
+        geometry.Style(ImGuiStyleVar.CellPadding,new Vector2(compact?8:14,compact?6:10)*s);
+        geometry.Style(ImGuiStyleVar.FrameRounding,4*s);
+        geometry.Style(ImGuiStyleVar.ChildRounding,4*s);
+        geometry.Style(ImGuiStyleVar.FrameBorderSize,s);
+        using var font=uiFonts.Push(UiFontRole.Body);
+        using var chrome = MaterialWindowChrome.Push();
+        WindowSystem.Draw();
+    }
+    private void DrawFontStatus(bool loading)
+    {
+        using var statusPalette = MaterialTheme.Push(uiTheme, ImGuiHelpers.GlobalScale, MaterialStyleMode.ColorsOnly);
+        using var statusChrome = MaterialWindowChrome.Push();
+        ImGui.SetNextWindowSize(new Vector2(460 * ImGuiHelpers.GlobalScale, 0), ImGuiCond.Always);
+        fontStatusFold.PreDraw("DhogGPT##UiFontStatus", null, null, reducedMotion: false,
+            prepareDecorations: fontStatusDecorations.Prepare);
+        try
+        {
+            if (ImGui.Begin("DhogGPT##UiFontStatus", ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                fontStatusDecorations.Paint();
+                MaterialText.TextWrapped(UiText.T(loading ? "Loading UI fonts..." : "UI fonts failed to load. See the plugin log."));
+            }
+        }
+        finally
+        {
+            ImGui.End();
+            fontStatusDecorations.Paint();
+            fontStatusFold.PostDraw();
+            ApplyWindowOpacity(fontStatusOpacity, "DhogGPT##UiFontStatus");
+        }
+    }
+    private void ApplyUiAppearance()
+    {
+        var language=UiText.Languages.Any(l=>l.Code==Configuration.UiLanguage)?Configuration.UiLanguage:"en";
+        if(language!=appliedUiLanguage)
+        {
+            uiFonts?.Dispose();uiText?.Dispose();
+            uiText=new(language,role=>uiFonts!.Push(role));
+            uiFonts=new(PluginInterface.UiBuilder.FontAtlas,uiText.GlyphRanges(),uiText.GlyphRanges(includeChat:true),language);
+            uiLanguages=new(UiText.Languages.Select(l=>new MaterialOption<string>(l.Code,l.Code,l.Name)).ToArray());
+            appliedUiLanguage=language;checkedFontGeneration=-1;uiFontIssueLogged=false;
+            if (dtrEntry is not null) UpdateDtrBar();
+        }
+        if(uiTheme is null || appliedUiAccent!=(Configuration.UiAccentRgb&0xFFFFFF))
+        {
+            appliedUiAccent=Configuration.UiAccentRgb&0xFFFFFF;
+            uiTheme=DhogGptPresentation.Theme(appliedUiAccent);
+            var rgb=DhogGptPresentation.Rgb(appliedUiAccent);uiAccentDraft=new(rgb.X,rgb.Y,rgb.Z);
+        }
+    }
+    internal void DrawUiAppearance()
+    {
+        var language=appliedUiLanguage;
+        var changed=MaterialAppearanceSelector.Draw("appearance",ref uiAccentDraft,ref language,uiLanguages,
+            new(UiText.T("Color"),UiText.T("UI language"),UiText.T("Teal"),UiText.T("Blue"),UiText.T("Pink"),UiText.T("Custom RGB")),languageWidth:130);
+        if(changed.AccentChanged)Configuration.UiAccentRgb=((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.X*255),0,255)<<16)
+            |((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Y*255),0,255)<<8)|(uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Z*255),0,255);
+        if(changed.LanguageChanged)Configuration.UiLanguage=language;
+        if(changed.AccentChanged || changed.LanguageChanged)Configuration.Save();
+    }
+    internal void DrawUiLanguage()
+    {
+        var language = appliedUiLanguage;
+        if (!MaterialAppearanceSelector.DrawLanguage("appearance", ref language, uiLanguages, 130)) return;
+        Configuration.UiLanguage = language; Configuration.Save();
+    }
+
+    internal void DrawUiCompact(bool header=false)
+    {
+        var value=Configuration.UiCompact;
+        if(UiGui.Checkbox("##UiCompact",ref value,header?"C":"Compact mode"))
+        { Configuration.UiCompact=value;Configuration.Save(); }
+        if(ImGui.IsItemHovered())UiGui.SetTooltip("Compact mode");
     }
 
     public void ToggleMainUi()
@@ -507,6 +630,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void UpdateDtrBar()
     {
+        using var text = uiText.Enter();
         if (dtrEntry == null)
         {
             SetupDtrBar();
@@ -521,7 +645,8 @@ public sealed class Plugin : IDalamudPlugin
                 return;
 
             var glyph = Configuration.PluginEnabled ? Configuration.DtrIconEnabled : Configuration.DtrIconDisabled;
-            var state = Configuration.PluginEnabled ? "On" : "Off";
+            // Game-owned DTR text cannot use the ImGui shaper.
+            var state = uiText.Language == "hi" ? (Configuration.PluginEnabled ? "On" : "Off") : UiText.T(Configuration.PluginEnabled ? "On" : "Off");
 
             dtrEntry.Text = Configuration.DtrBarMode switch
             {
@@ -529,7 +654,9 @@ public sealed class Plugin : IDalamudPlugin
                 2 => new SeString(new TextPayload(glyph)),
                 _ => new SeString(new TextPayload($"DGPT: {state}")),
             };
-            dtrEntry.Tooltip = new SeString(new TextPayload($"{DisplayName} {state}. Click to open the main window."));
+            dtrEntry.Tooltip = new SeString(new TextPayload(uiText.Language == "hi"
+                ? $"DhogGPT {state}. Click to open the main window."
+                : UiText.F("DhogGPT {0}. Click to open the main window.", state)));
         }
         catch (Exception ex)
         {
@@ -557,7 +684,7 @@ public sealed class Plugin : IDalamudPlugin
 
         args.AddMenuItem(new MenuItem
         {
-            Name = new SeString(new TextPayload("DhogGPT: Open DM")),
+            Name = new SeString(new TextPayload(GetDirectMessageMenuLabel())),
             PrefixChar = 'D',
             OnClicked = _args =>
             {
@@ -567,6 +694,12 @@ public sealed class Plugin : IDalamudPlugin
                 });
             },
         });
+    }
+
+    private string GetDirectMessageMenuLabel()
+    {
+        using var text = uiText.Enter();
+        return uiText.Language == "hi" ? "DhogGPT: Open DM" : UiText.T("DhogGPT: Open DM");
     }
 
     private void InitializeConversationVisibilityDefaults()
@@ -735,4 +868,56 @@ public sealed class Plugin : IDalamudPlugin
             $"capturePolicy={capturePolicy}, " +
             $"mainWindowState={mainWindow.DescribeUltraCompactFocusHotkeyState()}");
     }
+    internal void ApplyWindowOpacity(MaterialWindowOpacity opacity, string name)
+    {
+        opacity.Apply(name, float.IsFinite(Configuration.FocusedWindowOpacity) ? Math.Clamp(Configuration.FocusedWindowOpacity, .1f, 1f) : 1, Configuration.UiTransparencyEnabled,
+            Configuration.UiAutoFade, float.IsFinite(Configuration.BackgroundWindowOpacity) ? Math.Clamp(Configuration.BackgroundWindowOpacity, .1f, 1f) : .5f,
+            float.IsFinite(Configuration.UiUnfocusedDelaySeconds) ? Math.Max(0, Configuration.UiUnfocusedDelaySeconds) : 10);
+    }
+
+    internal void DrawWindowAppearance()
+    {
+        UiGui.TextUnformatted("Window appearance");
+        DrawUiAppearance();
+        DrawUiCompact();
+        var config = Configuration;
+        var changed = false;
+        var compactVisibleOnMainWindow = config.UiCompactVisibleOnMainWindow;
+        if (UiGui.Checkbox(UiText.T("Compact visible on main window") + "###UiCompactVisibleOnMainWindowSettings", ref compactVisibleOnMainWindow))
+        { config.UiCompactVisibleOnMainWindow = compactVisibleOnMainWindow; changed = true; }
+        var languageVisibleOnMainWindow = config.UiLanguageVisibleOnMainWindow;
+        if (UiGui.Checkbox(UiText.T("Language visible on main window") + "###UiLanguageVisibleOnMainWindowSettings", ref languageVisibleOnMainWindow))
+        { config.UiLanguageVisibleOnMainWindow = languageVisibleOnMainWindow; changed = true; }
+        var transparencyEnabled = config.UiTransparencyEnabled;
+        if (UiGui.Checkbox(UiText.T("Transparency") + "###UiTransparencyEnabledSettings", ref transparencyEnabled))
+        { config.UiTransparencyEnabled = transparencyEnabled; changed = true; }
+        var autoFade = config.UiAutoFade;
+        if (UiGui.Checkbox(UiText.T("Auto-fade when unfocused") + "###UiAutoFadeSettings", ref autoFade))
+        { config.UiAutoFade = autoFade; changed = true; }
+        ImGui.BeginDisabled(!transparencyEnabled);
+        var opacity = Math.Clamp((int)MathF.Round(config.FocusedWindowOpacity * 100), 10, 100);
+        ImGui.SetNextItemWidth(180 * MaterialTheme.Metrics.Scale);
+        if (UiGui.SliderInt(UiText.T("Opacity (%)") + "###FocusedWindowOpacitySettings", ref opacity, 10, 100, "%d%%", ImGuiSliderFlags.AlwaysClamp))
+        { config.FocusedWindowOpacity = opacity / 100f; changed = true; }
+        var fadedOpacity = Math.Clamp((int)MathF.Round(config.BackgroundWindowOpacity * 100), 10, 100);
+        ImGui.SetNextItemWidth(180 * MaterialTheme.Metrics.Scale);
+        if (UiGui.SliderInt(UiText.T("Unfocused opacity (%)") + "###BackgroundWindowOpacitySettings", ref fadedOpacity, 10, 100, "%d%%", ImGuiSliderFlags.AlwaysClamp))
+        { config.BackgroundWindowOpacity = fadedOpacity / 100f; changed = true; }
+        ImGui.BeginDisabled(!autoFade);
+        var delay = float.IsFinite(config.UiUnfocusedDelaySeconds) ? Math.Max(0, config.UiUnfocusedDelaySeconds) : 10;
+        ImGui.SetNextItemWidth(180 * MaterialTheme.Metrics.Scale);
+        if (UiGui.InputFloat(UiText.T("Unfocused delay (seconds)") + "###UiUnfocusedDelaySecondsSettings", ref delay))
+        { delay = float.IsFinite(delay) ? Math.Max(0, delay) : 10; config.UiUnfocusedDelaySeconds = delay; changed = true; }
+        ImGui.EndDisabled();
+        ImGui.EndDisabled();
+        if (changed) config.Save();
+    }
+
+    internal void DrawTransparency()
+    {
+        var enabled = Configuration.UiTransparencyEnabled;
+        if (UiGui.Checkbox(UiText.T("Transparency") + "###UiTransparencyHeader", ref enabled))
+        { Configuration.UiTransparencyEnabled = enabled; Configuration.Save(); }
+    }
+
 }

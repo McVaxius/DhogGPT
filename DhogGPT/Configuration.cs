@@ -8,6 +8,15 @@ public sealed class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 2;
 
+    public string UiLanguage { get; set; } = "en";
+    public uint UiAccentRgb { get; set; } = 0x5551FF;
+    public bool UiCompact { get; set; }
+    public bool UiCompactVisibleOnMainWindow { get; set; } = true;
+    public bool UiLanguageVisibleOnMainWindow { get; set; } = true;
+    public bool UiTransparencyEnabled { get; set; } = true;
+    public bool UiAutoFade { get; set; } = true;
+    public float UiUnfocusedDelaySeconds { get; set; } = 10;
+
     public bool PluginEnabled { get; set; } = true;
     public bool DtrBarEnabled { get; set; } = true;
     public int DtrBarMode { get; set; } = 1;
@@ -35,7 +44,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool HasInitializedEchoChannelVisibility { get; set; }
     public bool HasInitializedSupplementalChannelVisibility { get; set; }
     public float WindowOpacity { get; set; } = 0.92f;
-    public float FocusedWindowOpacity { get; set; } = 0.75f;
+    public float FocusedWindowOpacity { get; set; } = 1f;
     public float BackgroundWindowOpacity { get; set; } = 0.50f;
     public int CompactChatColorTheme { get; set; }
     public bool UseRealChatColorParity { get; set; }

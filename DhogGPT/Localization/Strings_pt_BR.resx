@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="{0:F0} ms" xml:space="preserve"><value>{0:F0} ms</value></data>
+  <data name="{0}" xml:space="preserve"><value>{0}</value></data>
+  <data name="{0} / 2000" xml:space="preserve"><value>{0} / 2000</value></data>
+  <data name="A DM target is required." xml:space="preserve"><value>É necessário um destinatário para a mensagem privada.</value></data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT&apos;s Echo mirror output." xml:space="preserve"><value>Inclui o nome do canal, como Party, FC ou Tell, na cópia Echo do DhogGPT.</value></data>
+  <data name="Adds the sender identity into DhogGPT&apos;s Echo mirror for translated incoming chat." xml:space="preserve"><value>Inclui a identidade do remetente na cópia Echo das mensagens recebidas e traduzidas.</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Avançado</value></data>
+  <data name="Advanced and diagnostics" xml:space="preserve"><value>Avançado e diagnóstico</value></data>
+  <data name="Alliance" xml:space="preserve"><value>Aliança</value></data>
+  <data name="Already detached" xml:space="preserve"><value>Já separado</value></data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve"><value>Aplica Krangle aos nomes apenas na interface do DhogGPT, sem alterar o chat do jogo.</value></data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve"><value>Pelo menos uma aba de canal deve permanecer visível.</value></data>
+  <data name="Autodetect" xml:space="preserve"><value>Detectar automaticamente</value></data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve"><value>Cor de fundo das abas de conversa inativas.</value></data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve"><value>Cor de fundo das abas inativas quando a janela está sem foco.</value></data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve"><value>Cor de fundo da aba de conversa selecionada.</value></data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve"><value>Cor de fundo da aba selecionada quando a janela está sem foco.</value></data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve"><value>Cor de fundo ao passar o cursor sobre uma aba de conversa.</value></data>
+  <data name="Background opacity" xml:space="preserve"><value>Opacidade do fundo</value></data>
+  <data name="Blue" xml:space="preserve"><value>Azul</value></data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve"><value>Traz o DhogGPT para a frente ao receber uma nova mensagem privada.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Centered wedges" xml:space="preserve"><value>Cunhas centralizadas</value></data>
+  <data name="Channels" xml:space="preserve"><value>Canais</value></data>
+  <data name="Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat scroll indicator style" xml:space="preserve"><value>Estilo do indicador de rolagem do chat</value></data>
+  <data name="Chat translation for FFXIV" xml:space="preserve"><value>Tradução de chat para FFXIV</value></data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve"><value>Escolha o estilo padrão dos indicadores de conteúdo fora da área visível da conversa.</value></data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve"><value>Escolha texto, ícone com texto ou apenas ícone para a entrada DTR.</value></data>
+  <data name="Clear" xml:space="preserve"><value>Limpar</value></data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve"><value>Clique na entrada DTR para abrir a janela principal do DhogGPT.</value></data>
+  <data name="Click to pin this DM tab." xml:space="preserve"><value>Clique para fixar esta aba de mensagem privada.</value></data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve"><value>Clique em x para separar a aba combinada em canais individuais.</value></data>
+  <data name="Close DM" xml:space="preserve"><value>Fechar mensagem privada</value></data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve"><value>Fechar mensagem privada fixada (segure Ctrl + clique em x)</value></data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve"><value>Fecha este guia e o marca como visto.</value></data>
+  <data name="Color" xml:space="preserve"><value>Cor</value></data>
+  <data name="Color used for inbound message header lines." xml:space="preserve"><value>Cor das linhas de cabeçalho das mensagens recebidas.</value></data>
+  <data name="Color used for inbound translated lines." xml:space="preserve"><value>Cor das linhas traduzidas das mensagens recebidas.</value></data>
+  <data name="Color used for outbound message header lines." xml:space="preserve"><value>Cor das linhas de cabeçalho das mensagens enviadas.</value></data>
+  <data name="Color used for outbound translated lines." xml:space="preserve"><value>Cor das linhas traduzidas das mensagens enviadas.</value></data>
+  <data name="Color used for translation failure text." xml:space="preserve"><value>Cor do texto de falha na tradução.</value></data>
+  <data name="Combine with" xml:space="preserve"><value>Combinar com</value></data>
+  <data name="Common DhogGPT settings" xml:space="preserve"><value>Configurações comuns do DhogGPT</value></data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve"><value>Os modos Compacto e Supercompacto foram descontinuados. O DhogGPT agora oferece os modos Regular e Ultracompacto.</value></data>
+  <data name="Compact mode" xml:space="preserve"><value>Modo compacto</value></data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve"><value>Controla as cores das mensagens ultracompactas e a paleta das abas de conversa.</value></data>
+  <data name="Conversation tabs" xml:space="preserve"><value>Abas de conversa</value></data>
+  <data name="Copy both" xml:space="preserve"><value>Copiar ambos</value></data>
+  <data name="Copy DM target" xml:space="preserve"><value>Copiar destinatário</value></data>
+  <data name="Copy original" xml:space="preserve"><value>Copiar original</value></data>
+  <data name="Copy translation" xml:space="preserve"><value>Copiar tradução</value></data>
+  <data name="Cross-world linkshells" xml:space="preserve"><value>Linkshells entre mundos</value></data>
+  <data name="Custom" xml:space="preserve"><value>Personalizado</value></data>
+  <data name="Custom RGB" xml:space="preserve"><value>RGB personalizado</value></data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve"><value>Cores personalizadas de mensagens e abas ultracompactas</value></data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve"><value>DhogGPT {0}. Clique para abrir a janela principal.</value></data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve"><value>O DhogGPT usa o modo ultracompacto por padrão. As conversas traduzidas ficam em abas; o campo inferior envia mensagens traduzidas sem sair da janela principal. Nas configurações, você escolhe se o chat original fica visível junto com o DhogGPT.</value></data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve"><value>Configurações do DhogGPT v{0}</value></data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve"><value>O DhogGPT tenta primeiro um serviço web no estilo Google sem chave. Se falhar, usa os serviços compatíveis com LibreTranslate abaixo, um por linha.</value></data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve"><value>Ocultar o chat original no modo ultracompacto</value></data>
+  <data name="Discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="DM" xml:space="preserve"><value>DM</value></data>
+  <data name="DM / tell" xml:space="preserve"><value>Mensagem privada / tell</value></data>
+  <data name="DM target must include a world name after @." xml:space="preserve"><value>O destinatário deve incluir o nome do mundo após @.</value></data>
+  <data name="DM target must include first and last name." xml:space="preserve"><value>O destinatário deve incluir nome e sobrenome.</value></data>
+  <data name="DM target must use First Last@World." xml:space="preserve"><value>O destinatário deve usar First Last@World.</value></data>
+  <data name="DTR Bar" xml:space="preserve"><value>Barra DTR</value></data>
+  <data name="DTR disabled glyph" xml:space="preserve"><value>Símbolo DTR desativado</value></data>
+  <data name="DTR enabled glyph" xml:space="preserve"><value>Símbolo DTR ativado</value></data>
+  <data name="DTR mode" xml:space="preserve"><value>Modo DTR</value></data>
+  <data name="Echo" xml:space="preserve"><value>Echo</value></data>
+  <data name="Emote" xml:space="preserve"><value>Emote</value></data>
+  <data name="Enable debug logging" xml:space="preserve"><value>Ativar log de depuração</value></data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve"><value>Ativa a tradução dos canais de linkshell entre mundos CWLS1-CWLS8.</value></data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve"><value>Ativa a tradução do chat da Free Company.</value></data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve"><value>Ativa a tradução de mensagens privadas recebidas e enviadas.</value></data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve"><value>Ativa a tradução dos canais de linkshell LS1-LS8.</value></data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve"><value>Ativa a tradução do chat da Novice Network.</value></data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve"><value>Ativa a tradução dos chats de grupo, entre grupos e de aliança.</value></data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve"><value>Ativa a tradução do chat da equipe PvP.</value></data>
+  <data name="Enable translation for Say chat." xml:space="preserve"><value>Ativa a tradução do chat Say.</value></data>
+  <data name="Enable translation for Shout chat." xml:space="preserve"><value>Ativa a tradução do chat Shout.</value></data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve"><value>Ativa a tradução das linhas de emotes padrão e personalizados.</value></data>
+  <data name="Enable translation for Yell chat." xml:space="preserve"><value>Ativa a tradução do chat Yell.</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Ativado</value></data>
+  <data name="Endpoints" xml:space="preserve"><value>Serviços</value></data>
+  <data name="Error" xml:space="preserve"><value>Erro</value></data>
+  <data name="Events" xml:space="preserve"><value>Eventos</value></data>
+  <data name="Everyday" xml:space="preserve"><value>Cotidiano</value></data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve"><value>Opacidade do campo de chat sem foco</value></data>
+  <data name="Fail" xml:space="preserve"><value>Falha</value></data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve"><value>Serviços de reserva no estilo LibreTranslate, um por linha, usados quando a rota web principal está indisponível.</value></data>
+  <data name="First Last@World" xml:space="preserve"><value>First Last@World</value></data>
+  <data name="Focused or hovered opacity" xml:space="preserve"><value>Opacidade com foco ou cursor sobre a janela</value></data>
+  <data name="Free company" xml:space="preserve"><value>Free Company</value></data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve"><value>Contas de avaliação gratuita não podem enviar mensagens privadas.</value></data>
+  <data name="From" xml:space="preserve"><value>De</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve"><value>Símbolo da entrada DTR quando o DhogGPT está desativado.</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve"><value>Símbolo da entrada DTR quando o DhogGPT está ativado.</value></data>
+  <data name="Got it" xml:space="preserve"><value>Entendi</value></data>
+  <data name="Guide" xml:space="preserve"><value>Guia</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Oculto</value></data>
+  <data name="High contrast" xml:space="preserve"><value>Alto contraste</value></data>
+  <data name="History entries to keep" xml:space="preserve"><value>Entradas do histórico a manter</value></data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve"><value>Segure Ctrl e clique em x para ocultar esta aba de canal.</value></data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve"><value>Segure Ctrl ao clicar em x para ocultar uma aba de canal.</value></data>
+  <data name="Icon + text" xml:space="preserve"><value>Ícone + texto</value></data>
+  <data name="Icon only" xml:space="preserve"><value>Apenas ícone</value></data>
+  <data name="Inbound header" xml:space="preserve"><value>Cabeçalho de entrada</value></data>
+  <data name="Inbound translation" xml:space="preserve"><value>Tradução de entrada</value></data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve"><value>Incluir nome do canal no Echo traduzido</value></data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve"><value>Incluir nome do remetente no Echo traduzido</value></data>
+  <data name="Incoming" xml:space="preserve"><value>Recebidas</value></data>
+  <data name="Incoming and channel behavior" xml:space="preserve"><value>Recebimento e comportamento dos canais</value></data>
+  <data name="Incoming source language" xml:space="preserve"><value>Idioma de origem das mensagens recebidas</value></data>
+  <data name="Incoming target language" xml:space="preserve"><value>Idioma de destino das mensagens recebidas</value></data>
+  <data name="Jobs" xml:space="preserve"><value>Jobs</value></data>
+  <data name="Keep windows on current game screen" xml:space="preserve"><value>Manter janelas na tela atual do jogo</value></data>
+  <data name="Keeps the game&apos;s vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve"><value>Oculta o chat original enquanto o modo ultracompacto está ativo. Mantenha ativado para usar apenas o DhogGPT; desative para exibir as duas janelas de chat.</value></data>
+  <data name="Ko-fi" xml:space="preserve"><value>Ko-fi</value></data>
+  <data name="Krangle names in chat UI" xml:space="preserve"><value>Aplicar Krangle aos nomes no chat</value></data>
+  <data name="Krangle names is off." xml:space="preserve"><value>Krangle de nomes desativado.</value></data>
+  <data name="Krangle names is on." xml:space="preserve"><value>Krangle de nomes ativado.</value></data>
+  <data name="Krangle Names: Off" xml:space="preserve"><value>Krangle de nomes: Desativado</value></data>
+  <data name="Krangle Names: On" xml:space="preserve"><value>Krangle de nomes: Ativado</value></data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve"><value>Idioma esperado das mensagens recebidas. Mantenha em Automático, a menos que já saiba o idioma de origem.</value></data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve"><value>Idioma para as traduções das mensagens recebidas.</value></data>
+  <data name="Last error: {0}" xml:space="preserve"><value>Último erro: {0}</value></data>
+  <data name="Latency" xml:space="preserve"><value>Latência</value></data>
+  <data name="Legacy arrows" xml:space="preserve"><value>Setas antigas</value></data>
+  <data name="Linkshells" xml:space="preserve"><value>Linkshells</value></data>
+  <data name="Loading UI fonts..." xml:space="preserve"><value>Carregando fontes da interface...</value></data>
+  <data name="Lock main window position" xml:space="preserve"><value>Travar posição da janela principal</value></data>
+  <data name="Lock main window position by default" xml:space="preserve"><value>Travar posição da janela principal por padrão</value></data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve"><value>Controle principal do DhogGPT. Ao desativar, a tradução de entrada e a automação relacionada param.</value></data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve"><value>Máximo de entradas traduzidas mantidas na memória por cada log de chat carregado.</value></data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve"><value>Tempo máximo de espera por uma tradução antes de considerá-la uma falha.</value></data>
+  <data name="Me" xml:space="preserve"><value>Eu</value></data>
+  <data name="Message" xml:space="preserve"><value>Mensagem</value></data>
+  <data name="Messages" xml:space="preserve"><value>Mensagens</value></data>
+  <data name="Neon night" xml:space="preserve"><value>Noite neon</value></data>
+  <data name="New DM" xml:space="preserve"><value>Nova mensagem privada</value></data>
+  <data name="No channels are hidden." xml:space="preserve"><value>Nenhum canal está oculto.</value></data>
+  <data name="No eligible channels" xml:space="preserve"><value>Nenhum canal compatível</value></data>
+  <data name="No recent DMs matched." xml:space="preserve"><value>Nenhuma mensagem privada recente corresponde.</value></data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve"><value>Nenhum chat traduzido foi registrado nesta aba ainda.</value></data>
+  <data name="No translation" xml:space="preserve"><value>Sem tradução</value></data>
+  <data name="Off" xml:space="preserve"><value>Desativado</value></data>
+  <data name="On" xml:space="preserve"><value>Ativado</value></data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve"><value>Opacidade após clicar fora da janela principal do DhogGPT.</value></data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve"><value>Opacidade do campo inferior quando o DhogGPT está esmaecido e você não está digitando. Durante a digitação, o campo fica totalmente opaco.</value></data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve"><value>Opacidade quando a janela principal do DhogGPT está com foco ou sob o cursor.</value></data>
+  <data name="Open" xml:space="preserve"><value>Abrir</value></data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve"><value>Abra uma mensagem privada digitando First Last@World.</value></data>
+  <data name="Open a new DM." xml:space="preserve"><value>Abre uma nova mensagem privada.</value></data>
+  <data name="Open chat log folder" xml:space="preserve"><value>Abrir pasta de logs de chat</value></data>
+  <data name="Open DhogGPT settings." xml:space="preserve"><value>Abre as configurações do DhogGPT.</value></data>
+  <data name="Open DhogGPT&apos;s per-character chat-log folder on disk." xml:space="preserve"><value>Abre a pasta de logs de chat por personagem do DhogGPT no disco.</value></data>
+  <data name="Open first-use guide" xml:space="preserve"><value>Abrir guia inicial</value></data>
+  <data name="Open main window" xml:space="preserve"><value>Abrir janela principal</value></data>
+  <data name="Open main window when a character loads" xml:space="preserve"><value>Abrir janela principal ao carregar personagem</value></data>
+  <data name="Open main window when a DM arrives" xml:space="preserve"><value>Abrir janela principal ao receber mensagem privada</value></data>
+  <data name="Open settings" xml:space="preserve"><value>Abrir configurações</value></data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve"><value>Abre o servidor Discord do DhogGPT.</value></data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve"><value>Abre a janela principal de chat do DhogGPT.</value></data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve"><value>Abre a janela de configurações do DhogGPT.</value></data>
+  <data name="Open the DhogGPT support page." xml:space="preserve"><value>Abre a página de apoio do DhogGPT.</value></data>
+  <data name="Open the first-use guide again." xml:space="preserve"><value>Abre novamente o guia inicial.</value></data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve"><value>Abra a janela principal com /dhoggpt, /dgpt ou /dog.</value></data>
+  <data name="Outbound header" xml:space="preserve"><value>Cabeçalho de saída</value></data>
+  <data name="Outbound translation" xml:space="preserve"><value>Tradução de saída</value></data>
+  <data name="Outgoing" xml:space="preserve"><value>Enviadas</value></data>
+  <data name="Outgoing translation" xml:space="preserve"><value>Tradução de saída</value></data>
+  <data name="Party" xml:space="preserve"><value>Grupo</value></data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve"><value>Escolha os idiomas de entrada e saída nas Configurações. Deixe a origem em Automático, a menos que saiba o idioma.</value></data>
+  <data name="Pin conversation" xml:space="preserve"><value>Fixar conversa</value></data>
+  <data name="Pink" xml:space="preserve"><value>Rosa</value></data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve"><value>Aba de mensagem privada fixada. Clique para desafixar.</value></data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve"><value>Para fechar abas privadas fixadas, segure Ctrl ao clicar em x.</value></data>
+  <data name="Plugin enabled" xml:space="preserve"><value>Plugin ativado</value></data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve"><value>Com o modo ultracompacto aberto e sem foco, pressione / ou Enter para voltar diretamente ao campo de chat do DhogGPT.</value></data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve"><value>Impede a tradução de mensagens que parecem vir do seu próprio personagem.</value></data>
+  <data name="Preview ready from cache." xml:space="preserve"><value>Prévia pronta a partir do cache.</value></data>
+  <data name="Preview ready." xml:space="preserve"><value>Prévia pronta.</value></data>
+  <data name="Preview translation" xml:space="preserve"><value>Prévia da tradução</value></data>
+  <data name="Preview will appear here." xml:space="preserve"><value>A prévia aparecerá aqui.</value></data>
+  <data name="Previewing without translation..." xml:space="preserve"><value>Preparando prévia sem tradução...</value></data>
+  <data name="Provider" xml:space="preserve"><value>Provedor</value></data>
+  <data name="Providers" xml:space="preserve"><value>Provedores</value></data>
+  <data name="PvP team" xml:space="preserve"><value>Equipe PvP</value></data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve"><value>Comandos iniciados por / são enviados diretamente pelo DhogGPT e deixam um registro em Safe, sem tradução.</value></data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve"><value>O modo regular mantém a interface completa de tradução. Compacto e Supercompacto foram descontinuados e levam ao modo Ultracompacto. Se um serviço falhar, o DhogGPT passa automaticamente ao próximo serviço de reserva configurado.</value></data>
+  <data name="Release combined channels" xml:space="preserve"><value>Separar canais combinados</value></data>
+  <data name="Reopen recent DM tabs." xml:space="preserve"><value>Reabre abas privadas recentes.</value></data>
+  <data name="Reopen the first-use guide window." xml:space="preserve"><value>Reabre a janela do guia inicial.</value></data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve"><value>Reabre automaticamente a janela principal ao entrar com um personagem.</value></data>
+  <data name="Request timeout seconds" xml:space="preserve"><value>Tempo limite da solicitação em segundos</value></data>
+  <data name="Reset fallback endpoints" xml:space="preserve"><value>Redefinir serviços de reserva</value></data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve"><value>Restaura os serviços de tradução de reserva padrão.</value></data>
+  <data name="Role tints" xml:space="preserve"><value>Tons por função</value></data>
+  <data name="Safe" xml:space="preserve"><value>Seguro</value></data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve"><value>As mensagens Safe ficam apenas no DhogGPT e não são enviadas ao chat do jogo.</value></data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve"><value>Safe, Echo, System e Events são canais do DhogGPT. A visibilidade é controlada na janela principal de chat, e não aqui.</value></data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve"><value>Funciona como o botão de trava da barra de título. Útil se você quase sempre mantém o DhogGPT no mesmo lugar.</value></data>
+  <data name="Same language" xml:space="preserve"><value>Mesmo idioma</value></data>
+  <data name="Saved to Safe." xml:space="preserve"><value>Salvo em Safe.</value></data>
+  <data name="Say" xml:space="preserve"><value>Say</value></data>
+  <data name="Search recent DMs" xml:space="preserve"><value>Buscar mensagens privadas recentes</value></data>
+  <data name="Select a conversation before sending." xml:space="preserve"><value>Selecione uma conversa antes de enviar.</value></data>
+  <data name="Selected tab text" xml:space="preserve"><value>Texto da aba selecionada</value></data>
+  <data name="Send" xml:space="preserve"><value>Enviar</value></data>
+  <data name="Sending without translation..." xml:space="preserve"><value>Enviando sem tradução...</value></data>
+  <data name="Sent translated message to {0}." xml:space="preserve"><value>Mensagem traduzida enviada para {0}.</value></data>
+  <data name="Set the language you are writing in." xml:space="preserve"><value>Defina o idioma em que você escreve.</value></data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve"><value>Defina o idioma para traduzir suas mensagens.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Configurações</value></data>
+  <data name="Shout" xml:space="preserve"><value>Shout</value></data>
+  <data name="Show DTR bar entry" xml:space="preserve"><value>Mostrar entrada na barra DTR</value></data>
+  <data name="Show hidden channel tabs." xml:space="preserve"><value>Mostra as abas de canais ocultos.</value></data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve"><value>Mostra ou oculta a entrada do DhogGPT na barra DTR do Dalamud.</value></data>
+  <data name="Skip messages from my own character" xml:space="preserve"><value>Ignorar mensagens do meu personagem</value></data>
+  <data name="Slash command failed to send." xml:space="preserve"><value>Falha ao enviar comando /.</value></data>
+  <data name="Slash command sent directly." xml:space="preserve"><value>Comando / enviado diretamente.</value></data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve"><value>Comandos / são enviados diretamente, sem tradução nem registro.</value></data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve"><value>Comandos / enviados pelo DhogGPT ignoram tradução e logs JSONL, mas deixam um registro em Safe.</value></data>
+  <data name="Soft contrast" xml:space="preserve"><value>Contraste suave</value></data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve"><value>Origem: {0}  Destino: {1}  Provedor: {2} ({3})</value></data>
+  <data name="Spawn new window" xml:space="preserve"><value>Abrir nova janela</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Status to chat" xml:space="preserve"><value>Enviar status ao chat</value></data>
+  <data name="Success" xml:space="preserve"><value>Sucesso</value></data>
+  <data name="Switch between regular mode and DhogGPT&apos;s supported ultra compact chat surface." xml:space="preserve"><value>Alterna entre o modo regular e a interface ultracompacta do DhogGPT.</value></data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve"><value>Alterna do modo regular para o ultracompacto.</value></data>
+  <data name="System" xml:space="preserve"><value>Sistema</value></data>
+  <data name="Tab" xml:space="preserve"><value>Aba</value></data>
+  <data name="Tab active" xml:space="preserve"><value>Aba ativa</value></data>
+  <data name="Tab hovered" xml:space="preserve"><value>Aba sob o cursor</value></data>
+  <data name="Tab text" xml:space="preserve"><value>Texto da aba</value></data>
+  <data name="Tab unfocused" xml:space="preserve"><value>Aba sem foco</value></data>
+  <data name="Tab unfocused active" xml:space="preserve"><value>Aba ativa sem foco</value></data>
+  <data name="Teal" xml:space="preserve"><value>Verde-azulado</value></data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve"><value>Cor do texto das abas de conversa inativas.</value></data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve"><value>Cor do texto da aba selecionada. Preto funciona melhor com fundo claro.</value></data>
+  <data name="Text only" xml:space="preserve"><value>Apenas texto</value></data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve"><value>Os atalhos / e Enter para dar foco funcionam apenas com a janela ultracompacta já aberta.</value></data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve"><value>Idioma para o qual o DhogGPT traduz suas mensagens enviadas.</value></data>
+  <data name="Them" xml:space="preserve"><value>Eles</value></data>
+  <data name="There is no translated text to send." xml:space="preserve"><value>Não há texto traduzido para enviar.</value></data>
+  <data name="To" xml:space="preserve"><value>Para</value></data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve"><value>Traduz os canais de entrada permitidos para o idioma escolhido.</value></data>
+  <data name="Translate and send" xml:space="preserve"><value>Traduzir e enviar</value></data>
+  <data name="Translate incoming chat" xml:space="preserve"><value>Traduzir chat recebido</value></data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve"><value>Traduza este texto e pressione Enter para enviar</value></data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve"><value>A mensagem traduzida é longa demais para o chat do jogo.</value></data>
+  <data name="Translated preview" xml:space="preserve"><value>Prévia traduzida</value></data>
+  <data name="Translating..." xml:space="preserve"><value>Traduzindo...</value></data>
+  <data name="Translation failed: {0}" xml:space="preserve"><value>Falha na tradução: {0}</value></data>
+  <data name="Translation preview" xml:space="preserve"><value>Prévia da tradução</value></data>
+  <data name="Translation provider and timeout" xml:space="preserve"><value>Provedor e tempo limite da tradução</value></data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve"><value>A tradução deu certo, mas o DhogGPT não conseguiu reconstruir os dados de item/mapa para enviar.</value></data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve"><value>A tradução deu certo, mas o envio da mensagem falhou.</value></data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve"><value>A tradução deu certo, mas o envio com preservação de dados falhou.</value></data>
+  <data name="Translation was cancelled." xml:space="preserve"><value>Tradução cancelada.</value></data>
+  <data name="Turn on ultra compact" xml:space="preserve"><value>Ativar ultracompacto</value></data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve"><value>Ativa diagnósticos extras do DhogGPT. Deixe desativado, exceto ao investigar um problema.</value></data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve"><value>Falha ao carregar fontes da interface. Consulte o log do plugin.</value></data>
+  <data name="UI language" xml:space="preserve"><value>Idioma da interface</value></data>
+  <data name="Ultra compact chat color theme" xml:space="preserve"><value>Tema de cores do chat ultracompacto</value></data>
+  <data name="Ultra compact mode" xml:space="preserve"><value>Modo ultracompacto</value></data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve"><value>O modo ultracompacto envia para a aba ativa; não há seletor separado de tipo de chat nem botão Enviar.</value></data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve"><value>Ultracompacto: focar chat com /</value></data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve"><value>Ultracompacto: focar chat com Enter</value></data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve"><value>Ultracompacto: usar cores dos canais originais</value></data>
+  <data name="Unexpected error: {0}" xml:space="preserve"><value>Erro inesperado: {0}</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Desconhecido</value></data>
+  <data name="Unlock main window position" xml:space="preserve"><value>Destravar posição da janela principal</value></data>
+  <data name="Unpin conversation" xml:space="preserve"><value>Desafixar conversa</value></data>
+  <data name="Unsupported outgoing channel." xml:space="preserve"><value>Canal de envio não suportado.</value></data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve"><value>Use /dgpt ultra para alternar entre regular e ultracompacto.</value></data>
+  <data name="Use in-game name" xml:space="preserve"><value>Usar nome do jogo</value></data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve"><value>Use Krangle para embaralhar nomes apenas na janela do plugin.</value></data>
+  <data name="Use technical name" xml:space="preserve"><value>Usar nome técnico</value></data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve"><value>Use abas fixadas para o chat geral, + para novas mensagens privadas, H para canais ocultos e R para conversas privadas recentes.</value></data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve"><value>Usa cores originais de canais como Party, FC, LS, DM e Shout nos cabeçalhos; o texto traduzido mantém as cores de tradução/tema escolhidas.</value></data>
+  <data name="Visible" xml:space="preserve"><value>Visível</value></data>
+  <data name="Welcome To DhogGPT" xml:space="preserve"><value>Boas-vindas ao DhogGPT</value></data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve"><value>Quando ativado, o DhogGPT limita a restauração e os reparos automáticos de janelas à área ativa do jogo. Desative se preferir recuperação manual com /dgpt j.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve"><value>Com o modo ultracompacto ativo e a janela aberta sem foco, pressionar / foca o DhogGPT e inicia um comando imediatamente.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve"><value>Com o modo ultracompacto ativo e a janela aberta sem foco, pressionar Enter foca o campo de chat do DhogGPT.</value></data>
+  <data name="Working..." xml:space="preserve"><value>Processando...</value></data>
+  <data name="Yell" xml:space="preserve"><value>Yell</value></data>
+  <data name="You" xml:space="preserve"><value>Você</value></data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve"><value>Idioma do texto digitado antes da tradução pelo DhogGPT.</value></data>
+  <data name="DhogGPT: Open DM" xml:space="preserve"><value>DhogGPT: Abrir mensagem privada</value></data>
+  <data name="(empty)" xml:space="preserve"><value>(vazio)</value></data>
+  <data name="Message was empty." xml:space="preserve"><value>A mensagem estava vazia.</value></data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve"><value>{0}: a resposta não continha translatedText.</value></data>
+  <data name="Channel" xml:space="preserve"><value>Canal</value></data>
+  <data name="From (your language)" xml:space="preserve"><value>De (seu idioma)</value></data>
+  <data name="To (target language)" xml:space="preserve"><value>Para (idioma de destino)</value></data>
+  <data name="Scroll down to &quot;The Dumpster Fire&quot; channel to discuss issues / suggestions for specific plugins." xml:space="preserve"><value>Role até o canal &quot;The Dumpster Fire&quot; para discutir problemas ou sugestões de plugins específicos.</value></data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve"><value>Os logs de chat são armazenados por conta e personagem na pasta Data\ChatLogs da configuração do plugin.</value></data>
+  <data name="Window appearance" xml:space="preserve"><value>Aparência da janela</value></data>
+  <data name="Compact visible on main window" xml:space="preserve"><value>Mostrar modo compacto na janela principal</value></data>
+  <data name="Language visible on main window" xml:space="preserve"><value>Mostrar idioma na janela principal</value></data>
+  <data name="Transparency" xml:space="preserve"><value>Transparência</value></data>
+  <data name="Opacity (%)" xml:space="preserve"><value>Opacidade (%)</value></data>
+  <data name="Auto-fade when unfocused" xml:space="preserve"><value>Esmaecer automaticamente sem foco</value></data>
+  <data name="Unfocused opacity (%)" xml:space="preserve"><value>Opacidade sem foco (%)</value></data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve"><value>Espera sem foco (segundos)</value></data>
+</root>

@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="{0:F0} ms" xml:space="preserve"><value>{0:F0} ms</value></data>
+  <data name="{0}" xml:space="preserve"><value>{0}</value></data>
+  <data name="{0} / 2000" xml:space="preserve"><value>{0} / 2000</value></data>
+  <data name="A DM target is required." xml:space="preserve"><value>Özel mesaj alıcısı gerekli.</value></data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT&apos;s Echo mirror output." xml:space="preserve"><value>DhogGPT&apos;nin Echo kopyasına Party, FC veya Tell gibi kanal adını ekler.</value></data>
+  <data name="Adds the sender identity into DhogGPT&apos;s Echo mirror for translated incoming chat." xml:space="preserve"><value>Gelen çevrilmiş mesajların Echo kopyasına gönderenin kimliğini ekler.</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Gelişmiş</value></data>
+  <data name="Advanced and diagnostics" xml:space="preserve"><value>Gelişmiş ve tanılama</value></data>
+  <data name="Alliance" xml:space="preserve"><value>İttifak</value></data>
+  <data name="Already detached" xml:space="preserve"><value>Zaten ayrılmış</value></data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve"><value>Adlara yalnızca DhogGPT arayüzünde Krangle uygular; oyun sohbetini değiştirmez.</value></data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve"><value>En az bir kanal sekmesi görünür kalmalı.</value></data>
+  <data name="Autodetect" xml:space="preserve"><value>Otomatik algıla</value></data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve"><value>Etkin olmayan sohbet sekmelerinin arka plan rengi.</value></data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve"><value>Pencere odakta değilken etkin olmayan sekmelerin arka plan rengi.</value></data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve"><value>Seçili sohbet sekmesinin arka plan rengi.</value></data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve"><value>Pencere odakta değilken seçili sekmenin arka plan rengi.</value></data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve"><value>Sohbet sekmesinin üzerine gelindiğinde arka plan rengi.</value></data>
+  <data name="Background opacity" xml:space="preserve"><value>Arka plan opaklığı</value></data>
+  <data name="Blue" xml:space="preserve"><value>Mavi</value></data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve"><value>Yeni bir özel mesaj geldiğinde DhogGPT&apos;yi öne getirir.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>İptal</value></data>
+  <data name="Centered wedges" xml:space="preserve"><value>Ortalanmış kamalar</value></data>
+  <data name="Channels" xml:space="preserve"><value>Kanallar</value></data>
+  <data name="Chat" xml:space="preserve"><value>Sohbet</value></data>
+  <data name="Chat scroll indicator style" xml:space="preserve"><value>Sohbet kaydırma göstergesi stili</value></data>
+  <data name="Chat translation for FFXIV" xml:space="preserve"><value>FFXIV sohbet çevirisi</value></data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve"><value>Sohbet gövdesindeki gizli içeriğin kaydırma ipuçları için varsayılan görünümü seçin.</value></data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve"><value>DTR girdisinde metin, simge ve metin veya yalnızca simge gösterilmesini seçin.</value></data>
+  <data name="Clear" xml:space="preserve"><value>Temizle</value></data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve"><value>DhogGPT ana penceresini açmak için DTR girdisine tıklayın.</value></data>
+  <data name="Click to pin this DM tab." xml:space="preserve"><value>Bu özel mesaj sekmesini sabitlemek için tıklayın.</value></data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve"><value>Birleşik sekmeyi ayrı kanallara bölmek için x&apos;e tıklayın.</value></data>
+  <data name="Close DM" xml:space="preserve"><value>Özel mesajı kapat</value></data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve"><value>Sabitlenmiş özel mesajı kapat (Ctrl tutup x&apos;e tıkla)</value></data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve"><value>Bu kılavuzu kapatıp görülmüş olarak işaretleyin.</value></data>
+  <data name="Color" xml:space="preserve"><value>Renk</value></data>
+  <data name="Color used for inbound message header lines." xml:space="preserve"><value>Gelen mesaj başlık satırlarının rengi.</value></data>
+  <data name="Color used for inbound translated lines." xml:space="preserve"><value>Gelen mesajların çevrilmiş satırlarının rengi.</value></data>
+  <data name="Color used for outbound message header lines." xml:space="preserve"><value>Giden mesaj başlık satırlarının rengi.</value></data>
+  <data name="Color used for outbound translated lines." xml:space="preserve"><value>Giden mesajların çevrilmiş satırlarının rengi.</value></data>
+  <data name="Color used for translation failure text." xml:space="preserve"><value>Çeviri hatası metninin rengi.</value></data>
+  <data name="Combine with" xml:space="preserve"><value>Şununla birleştir</value></data>
+  <data name="Common DhogGPT settings" xml:space="preserve"><value>Genel DhogGPT ayarları</value></data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve"><value>Kompakt ve süper kompakt modlar kullanımdan kaldırıldı. DhogGPT artık normal ve ultra kompakt modları destekler.</value></data>
+  <data name="Compact mode" xml:space="preserve"><value>Kompakt mod</value></data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve"><value>Ultra kompakt mesaj renklerini ve sohbet sekmesi paletini ayarlar.</value></data>
+  <data name="Conversation tabs" xml:space="preserve"><value>Sohbet sekmeleri</value></data>
+  <data name="Copy both" xml:space="preserve"><value>İkisini kopyala</value></data>
+  <data name="Copy DM target" xml:space="preserve"><value>Alıcıyı kopyala</value></data>
+  <data name="Copy original" xml:space="preserve"><value>Aslını kopyala</value></data>
+  <data name="Copy translation" xml:space="preserve"><value>Çeviriyi kopyala</value></data>
+  <data name="Cross-world linkshells" xml:space="preserve"><value>Dünyalar arası linkshell&apos;ler</value></data>
+  <data name="Custom" xml:space="preserve"><value>Özel</value></data>
+  <data name="Custom RGB" xml:space="preserve"><value>Özel RGB</value></data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve"><value>Özel ultra kompakt mesaj ve sekme renkleri</value></data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve"><value>DhogGPT {0}. Ana pencereyi açmak için tıklayın.</value></data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve"><value>DhogGPT artık varsayılan olarak ultra kompakt modu kullanır. Çevrilmiş sohbetler sekmelerde yer alır; alttaki yazma alanı ana pencereden çıkmadan çevrilmiş mesaj gönderir. Ayarlardan oyun sohbetinin DhogGPT ile birlikte görünmesini seçebilirsiniz.</value></data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve"><value>DhogGPT Ayarları v{0}</value></data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve"><value>DhogGPT önce anahtarsız Google tarzı web çeviri uç noktasını dener. Başarısız olursa aşağıdaki LibreTranslate uyumlu uç noktalara geçer; her satırda bir adres bulunur.</value></data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve"><value>Ultra kompakt açıkken oyun sohbetini gizle</value></data>
+  <data name="Discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="DM" xml:space="preserve"><value>DM</value></data>
+  <data name="DM / tell" xml:space="preserve"><value>Özel mesaj / tell</value></data>
+  <data name="DM target must include a world name after @." xml:space="preserve"><value>Alıcı, @ işaretinden sonra dünya adını içermeli.</value></data>
+  <data name="DM target must include first and last name." xml:space="preserve"><value>Alıcı, ad ve soyadı içermeli.</value></data>
+  <data name="DM target must use First Last@World." xml:space="preserve"><value>Alıcı, First Last@World biçimini kullanmalı.</value></data>
+  <data name="DTR Bar" xml:space="preserve"><value>DTR Çubuğu</value></data>
+  <data name="DTR disabled glyph" xml:space="preserve"><value>Devre dışı DTR simgesi</value></data>
+  <data name="DTR enabled glyph" xml:space="preserve"><value>Etkin DTR simgesi</value></data>
+  <data name="DTR mode" xml:space="preserve"><value>DTR modu</value></data>
+  <data name="Echo" xml:space="preserve"><value>Echo</value></data>
+  <data name="Emote" xml:space="preserve"><value>İfade</value></data>
+  <data name="Enable debug logging" xml:space="preserve"><value>Hata ayıklama günlüğünü etkinleştir</value></data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve"><value>Dünyalar arası linkshell kanalları CWLS1-CWLS8 için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve"><value>Free Company sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve"><value>Gelen ve giden özel mesajlar için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve"><value>Linkshell kanalları LS1-LS8 için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve"><value>Novice Network sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve"><value>Grup, gruplar arası ve ittifak sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve"><value>PvP takım sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Say chat." xml:space="preserve"><value>Say sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Shout chat." xml:space="preserve"><value>Shout sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve"><value>Standart ve özel ifade satırları için çeviriyi etkinleştirir.</value></data>
+  <data name="Enable translation for Yell chat." xml:space="preserve"><value>Yell sohbeti için çeviriyi etkinleştirir.</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Etkin</value></data>
+  <data name="Endpoints" xml:space="preserve"><value>Uç noktalar</value></data>
+  <data name="Error" xml:space="preserve"><value>Hata</value></data>
+  <data name="Events" xml:space="preserve"><value>Olaylar</value></data>
+  <data name="Everyday" xml:space="preserve"><value>Günlük</value></data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve"><value>Soluk sohbet yazma alanı opaklığı</value></data>
+  <data name="Fail" xml:space="preserve"><value>Başarısız</value></data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve"><value>Ana web yolu kullanılamadığında kullanılan LibreTranslate tarzı yedek uç noktalar; her satırda bir adres.</value></data>
+  <data name="First Last@World" xml:space="preserve"><value>First Last@World</value></data>
+  <data name="Focused or hovered opacity" xml:space="preserve"><value>Odakta veya üzerine gelindiğinde opaklık</value></data>
+  <data name="Free company" xml:space="preserve"><value>Free Company</value></data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve"><value>Ücretsiz deneme hesapları özel mesaj gönderemez.</value></data>
+  <data name="From" xml:space="preserve"><value>Kaynak</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve"><value>DhogGPT devre dışıyken DTR girdisinde kullanılan simge.</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve"><value>DhogGPT etkinken DTR girdisinde kullanılan simge.</value></data>
+  <data name="Got it" xml:space="preserve"><value>Anladım</value></data>
+  <data name="Guide" xml:space="preserve"><value>Kılavuz</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Gizli</value></data>
+  <data name="High contrast" xml:space="preserve"><value>Yüksek kontrast</value></data>
+  <data name="History entries to keep" xml:space="preserve"><value>Saklanacak geçmiş girdileri</value></data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve"><value>Bu kanal sekmesini gizlemek için Ctrl tutup x&apos;e tıklayın.</value></data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve"><value>Bir kanal sekmesini gizlemek için x&apos;e tıklarken Ctrl tutun.</value></data>
+  <data name="Icon + text" xml:space="preserve"><value>Simge + metin</value></data>
+  <data name="Icon only" xml:space="preserve"><value>Yalnızca simge</value></data>
+  <data name="Inbound header" xml:space="preserve"><value>Gelen başlık</value></data>
+  <data name="Inbound translation" xml:space="preserve"><value>Gelen çeviri</value></data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve"><value>Çevrilmiş Echo çıktısına kanal adını ekle</value></data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve"><value>Çevrilmiş Echo çıktısına gönderen adını ekle</value></data>
+  <data name="Incoming" xml:space="preserve"><value>Gelen</value></data>
+  <data name="Incoming and channel behavior" xml:space="preserve"><value>Gelen mesajlar ve kanal davranışı</value></data>
+  <data name="Incoming source language" xml:space="preserve"><value>Gelen mesaj kaynak dili</value></data>
+  <data name="Incoming target language" xml:space="preserve"><value>Gelen mesaj hedef dili</value></data>
+  <data name="Jobs" xml:space="preserve"><value>Meslekler</value></data>
+  <data name="Keep windows on current game screen" xml:space="preserve"><value>Pencereleri mevcut oyun ekranında tut</value></data>
+  <data name="Keeps the game&apos;s vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve"><value>Ultra kompakt mod etkin olduğunda oyun sohbetini gizler. DhogGPT&apos;nin tamamen devralması için açık tutun; iki sohbet penceresini de görmek için kapatın.</value></data>
+  <data name="Ko-fi" xml:space="preserve"><value>Ko-fi</value></data>
+  <data name="Krangle names in chat UI" xml:space="preserve"><value>Sohbet arayüzündeki adlara Krangle uygula</value></data>
+  <data name="Krangle names is off." xml:space="preserve"><value>Adlara Krangle uygulanmıyor.</value></data>
+  <data name="Krangle names is on." xml:space="preserve"><value>Adlara Krangle uygulanıyor.</value></data>
+  <data name="Krangle Names: Off" xml:space="preserve"><value>Adlara Krangle: Kapalı</value></data>
+  <data name="Krangle Names: On" xml:space="preserve"><value>Adlara Krangle: Açık</value></data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve"><value>Gelen mesajlar için varsayılan dil. Kaynak dili önceden bilmiyorsanız Otomatik seçeneğinde bırakın.</value></data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve"><value>Gelen mesajların çevrileceği dil.</value></data>
+  <data name="Last error: {0}" xml:space="preserve"><value>Son hata: {0}</value></data>
+  <data name="Latency" xml:space="preserve"><value>Gecikme</value></data>
+  <data name="Legacy arrows" xml:space="preserve"><value>Eski oklar</value></data>
+  <data name="Linkshells" xml:space="preserve"><value>Linkshell&apos;ler</value></data>
+  <data name="Loading UI fonts..." xml:space="preserve"><value>Arayüz yazı tipleri yükleniyor...</value></data>
+  <data name="Lock main window position" xml:space="preserve"><value>Ana pencere konumunu kilitle</value></data>
+  <data name="Lock main window position by default" xml:space="preserve"><value>Ana pencere konumunu varsayılan olarak kilitle</value></data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve"><value>DhogGPT&apos;nin ana etkinleştirme düğmesi. Kapalıyken gelen çeviriler ve ilgili otomasyon durur.</value></data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve"><value>Yüklenen her sohbet günlüğü için bellekte tutulan en fazla çevrilmiş geçmiş girdisi.</value></data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve"><value>Bir çeviri isteğinin başarısız sayılmadan önce beklenen en uzun süresi.</value></data>
+  <data name="Me" xml:space="preserve"><value>Ben</value></data>
+  <data name="Message" xml:space="preserve"><value>Mesaj</value></data>
+  <data name="Messages" xml:space="preserve"><value>Mesajlar</value></data>
+  <data name="Neon night" xml:space="preserve"><value>Neon gece</value></data>
+  <data name="New DM" xml:space="preserve"><value>Yeni özel mesaj</value></data>
+  <data name="No channels are hidden." xml:space="preserve"><value>Gizli kanal yok.</value></data>
+  <data name="No eligible channels" xml:space="preserve"><value>Uygun kanal yok</value></data>
+  <data name="No recent DMs matched." xml:space="preserve"><value>Eşleşen son özel mesaj yok.</value></data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve"><value>Bu sekme için henüz çevrilmiş sohbet kaydedilmedi.</value></data>
+  <data name="No translation" xml:space="preserve"><value>Çeviri yok</value></data>
+  <data name="Off" xml:space="preserve"><value>Kapalı</value></data>
+  <data name="On" xml:space="preserve"><value>Açık</value></data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve"><value>DhogGPT ana penceresi dışına tıkladıktan sonraki opaklık.</value></data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve"><value>DhogGPT solukken ve yazmıyorken alt sohbet alanının opaklığı. Yazarken alan tamamen opak kalır.</value></data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve"><value>DhogGPT ana penceresi odaktayken veya üzerine gelindiğinde opaklık.</value></data>
+  <data name="Open" xml:space="preserve"><value>Aç</value></data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve"><value>First Last@World girerek özel mesaj açın.</value></data>
+  <data name="Open a new DM." xml:space="preserve"><value>Yeni bir özel mesaj açın.</value></data>
+  <data name="Open chat log folder" xml:space="preserve"><value>Sohbet günlüğü klasörünü aç</value></data>
+  <data name="Open DhogGPT settings." xml:space="preserve"><value>DhogGPT ayarlarını açın.</value></data>
+  <data name="Open DhogGPT&apos;s per-character chat-log folder on disk." xml:space="preserve"><value>DhogGPT&apos;nin diskteki karaktere özgü sohbet günlüğü klasörünü açın.</value></data>
+  <data name="Open first-use guide" xml:space="preserve"><value>İlk kullanım kılavuzunu aç</value></data>
+  <data name="Open main window" xml:space="preserve"><value>Ana pencereyi aç</value></data>
+  <data name="Open main window when a character loads" xml:space="preserve"><value>Karakter yüklendiğinde ana pencereyi aç</value></data>
+  <data name="Open main window when a DM arrives" xml:space="preserve"><value>Özel mesaj geldiğinde ana pencereyi aç</value></data>
+  <data name="Open settings" xml:space="preserve"><value>Ayarları aç</value></data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve"><value>DhogGPT Discord sunucusunu açın.</value></data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve"><value>DhogGPT ana sohbet penceresini açın.</value></data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve"><value>DhogGPT ayarlar penceresini açın.</value></data>
+  <data name="Open the DhogGPT support page." xml:space="preserve"><value>DhogGPT destek sayfasını açın.</value></data>
+  <data name="Open the first-use guide again." xml:space="preserve"><value>İlk kullanım kılavuzunu yeniden açın.</value></data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve"><value>Ana pencereyi /dhoggpt, /dgpt veya /dog ile açın.</value></data>
+  <data name="Outbound header" xml:space="preserve"><value>Giden başlık</value></data>
+  <data name="Outbound translation" xml:space="preserve"><value>Giden çeviri</value></data>
+  <data name="Outgoing" xml:space="preserve"><value>Giden</value></data>
+  <data name="Outgoing translation" xml:space="preserve"><value>Giden çeviri</value></data>
+  <data name="Party" xml:space="preserve"><value>Grup</value></data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve"><value>Gelen ve giden dilleri Ayarlar&apos;dan seçin. Dili bilmiyorsanız kaynağı Otomatik olarak bırakın.</value></data>
+  <data name="Pin conversation" xml:space="preserve"><value>Sohbeti sabitle</value></data>
+  <data name="Pink" xml:space="preserve"><value>Pembe</value></data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve"><value>Sabitlenmiş özel mesaj sekmesi. Kaldırmak için tıklayın.</value></data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve"><value>Sabitlenmiş özel mesaj sekmesini kapatmak için x&apos;e tıklarken Ctrl tutun.</value></data>
+  <data name="Plugin enabled" xml:space="preserve"><value>Eklenti etkin</value></data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve"><value>Ultra kompakt mod açıkken ancak odakta değilken doğrudan DhogGPT yazma alanına dönmek için / veya Enter&apos;a basın.</value></data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve"><value>Kendi karakterinizden gelmiş gibi görünen mesajların çevrilmesini engeller.</value></data>
+  <data name="Preview ready from cache." xml:space="preserve"><value>Önbellekten önizleme hazır.</value></data>
+  <data name="Preview ready." xml:space="preserve"><value>Önizleme hazır.</value></data>
+  <data name="Preview translation" xml:space="preserve"><value>Çeviri önizlemesi</value></data>
+  <data name="Preview will appear here." xml:space="preserve"><value>Önizleme burada görünecek.</value></data>
+  <data name="Previewing without translation..." xml:space="preserve"><value>Çevirisiz önizleme hazırlanıyor...</value></data>
+  <data name="Provider" xml:space="preserve"><value>Sağlayıcı</value></data>
+  <data name="Providers" xml:space="preserve"><value>Sağlayıcılar</value></data>
+  <data name="PvP team" xml:space="preserve"><value>PvP takımı</value></data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve"><value>DhogGPT&apos;ye yazılan / komutları doğrudan gönderilir ve çeviri yerine Safe kanalında bir iz bırakır.</value></data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve"><value>Normal mod, tam çeviri arayüzünü sunmaya devam eder. Eski kompakt ve süper kompakt modlar artık ultra kompakt moda yönlendirilir. Bir çeviri uç noktası başarısız olursa DhogGPT yapılandırılmış sonraki yedek uç noktaya otomatik geçer.</value></data>
+  <data name="Release combined channels" xml:space="preserve"><value>Birleşik kanalları ayır</value></data>
+  <data name="Reopen recent DM tabs." xml:space="preserve"><value>Son özel mesaj sekmelerini yeniden açın.</value></data>
+  <data name="Reopen the first-use guide window." xml:space="preserve"><value>İlk kullanım kılavuzu penceresini yeniden açın.</value></data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve"><value>Karakter giriş yaptığında ana pencereyi otomatik yeniden açar.</value></data>
+  <data name="Request timeout seconds" xml:space="preserve"><value>İstek zaman aşımı saniyesi</value></data>
+  <data name="Reset fallback endpoints" xml:space="preserve"><value>Yedek uç noktaları sıfırla</value></data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve"><value>Varsayılan yedek çeviri uç noktalarını geri yükler.</value></data>
+  <data name="Role tints" xml:space="preserve"><value>Rol tonları</value></data>
+  <data name="Safe" xml:space="preserve"><value>Güvenli</value></data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve"><value>Safe mesajları DhogGPT içinde kalır ve oyun sohbetine gönderilmez.</value></data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve"><value>Safe, Echo, System ve Events, DhogGPT&apos;ye ait kanallardır. Görünürlükleri buradan değil ana sohbet penceresinden ayarlanır.</value></data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve"><value>Ana pencerenin başlık çubuğundaki kilit düğmesiyle aynı davranır. DhogGPT&apos;yi çoğunlukla sabit tutmak istiyorsanız kullanışlıdır.</value></data>
+  <data name="Same language" xml:space="preserve"><value>Aynı dil</value></data>
+  <data name="Saved to Safe." xml:space="preserve"><value>Safe kanalına kaydedildi.</value></data>
+  <data name="Say" xml:space="preserve"><value>Say</value></data>
+  <data name="Search recent DMs" xml:space="preserve"><value>Son özel mesajlarda ara</value></data>
+  <data name="Select a conversation before sending." xml:space="preserve"><value>Göndermeden önce bir sohbet seçin.</value></data>
+  <data name="Selected tab text" xml:space="preserve"><value>Seçili sekme metni</value></data>
+  <data name="Send" xml:space="preserve"><value>Gönder</value></data>
+  <data name="Sending without translation..." xml:space="preserve"><value>Çevirisiz gönderiliyor...</value></data>
+  <data name="Sent translated message to {0}." xml:space="preserve"><value>Çevrilmiş mesaj {0} alıcısına gönderildi.</value></data>
+  <data name="Set the language you are writing in." xml:space="preserve"><value>Yazdığınız dili seçin.</value></data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve"><value>Mesajlarınızın çevrileceği dili seçin.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Ayarlar</value></data>
+  <data name="Shout" xml:space="preserve"><value>Shout</value></data>
+  <data name="Show DTR bar entry" xml:space="preserve"><value>DTR çubuğu girdisini göster</value></data>
+  <data name="Show hidden channel tabs." xml:space="preserve"><value>Gizli kanal sekmelerini gösterin.</value></data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve"><value>Dalamud DTR çubuğundaki DhogGPT girdisini gösterir veya gizler.</value></data>
+  <data name="Skip messages from my own character" xml:space="preserve"><value>Kendi karakterimin mesajlarını atla</value></data>
+  <data name="Slash command failed to send." xml:space="preserve"><value>/ komutu gönderilemedi.</value></data>
+  <data name="Slash command sent directly." xml:space="preserve"><value>/ komutu doğrudan gönderildi.</value></data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve"><value>/ komutları doğrudan gönderilir; çevrilmez veya günlüğe kaydedilmez.</value></data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve"><value>DhogGPT üzerinden gönderilen / komutları çeviriyi ve JSONL günlüğünü atlar, ancak Safe kanalında bir iz bırakır.</value></data>
+  <data name="Soft contrast" xml:space="preserve"><value>Yumuşak kontrast</value></data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve"><value>Kaynak: {0}  Hedef: {1}  Sağlayıcı: {2} ({3})</value></data>
+  <data name="Spawn new window" xml:space="preserve"><value>Yeni pencere aç</value></data>
+  <data name="Status" xml:space="preserve"><value>Durum</value></data>
+  <data name="Status to chat" xml:space="preserve"><value>Durumu sohbete gönder</value></data>
+  <data name="Success" xml:space="preserve"><value>Başarılı</value></data>
+  <data name="Switch between regular mode and DhogGPT&apos;s supported ultra compact chat surface." xml:space="preserve"><value>Normal mod ile DhogGPT&apos;nin desteklenen ultra kompakt sohbet arayüzü arasında geçiş yapar.</value></data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve"><value>Normal moddan ultra kompakt moda geçin.</value></data>
+  <data name="System" xml:space="preserve"><value>Sistem</value></data>
+  <data name="Tab" xml:space="preserve"><value>Sekme</value></data>
+  <data name="Tab active" xml:space="preserve"><value>Etkin sekme</value></data>
+  <data name="Tab hovered" xml:space="preserve"><value>Üzerine gelinen sekme</value></data>
+  <data name="Tab text" xml:space="preserve"><value>Sekme metni</value></data>
+  <data name="Tab unfocused" xml:space="preserve"><value>Odakta olmayan sekme</value></data>
+  <data name="Tab unfocused active" xml:space="preserve"><value>Odakta olmayan etkin sekme</value></data>
+  <data name="Teal" xml:space="preserve"><value>Turkuaz</value></data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve"><value>Etkin olmayan sohbet sekmelerinin metin rengi.</value></data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve"><value>Seçili sekmenin metin rengi. Sekme arka planı açıksa siyah en uygunudur.</value></data>
+  <data name="Text only" xml:space="preserve"><value>Yalnızca metin</value></data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve"><value>/ ve Enter odak kısayolları yalnızca ultra kompakt pencere zaten açıkken çalışır.</value></data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve"><value>DhogGPT&apos;nin giden metninizi çevireceği dil.</value></data>
+  <data name="Them" xml:space="preserve"><value>Onlar</value></data>
+  <data name="There is no translated text to send." xml:space="preserve"><value>Gönderilecek çevrilmiş metin yok.</value></data>
+  <data name="To" xml:space="preserve"><value>Hedef</value></data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve"><value>İzin verilen gelen sohbet kanallarını seçtiğiniz hedef dile çevirir.</value></data>
+  <data name="Translate and send" xml:space="preserve"><value>Çevir ve gönder</value></data>
+  <data name="Translate incoming chat" xml:space="preserve"><value>Gelen sohbeti çevir</value></data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve"><value>Bu metni çevirin ve göndermek için Enter&apos;a basın</value></data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve"><value>Çevrilmiş mesaj oyun sohbeti kutusu için fazla uzun.</value></data>
+  <data name="Translated preview" xml:space="preserve"><value>Çevrilmiş önizleme</value></data>
+  <data name="Translating..." xml:space="preserve"><value>Çevriliyor...</value></data>
+  <data name="Translation failed: {0}" xml:space="preserve"><value>Çeviri başarısız: {0}</value></data>
+  <data name="Translation preview" xml:space="preserve"><value>Çeviri önizlemesi</value></data>
+  <data name="Translation provider and timeout" xml:space="preserve"><value>Çeviri sağlayıcısı ve zaman aşımı</value></data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve"><value>Çeviri başarılı, ancak DhogGPT göndermek için eşya/harita verisini yeniden oluşturamadı.</value></data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve"><value>Çeviri başarılı, ancak mesaj gönderilemedi.</value></data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve"><value>Çeviri başarılı, ancak verileri koruyan gönderim yolu başarısız oldu.</value></data>
+  <data name="Translation was cancelled." xml:space="preserve"><value>Çeviri iptal edildi.</value></data>
+  <data name="Turn on ultra compact" xml:space="preserve"><value>Ultra kompaktı aç</value></data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve"><value>Ek DhogGPT tanılamasını açar. Sorun araştırmıyorsanız kapalı tutun.</value></data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve"><value>Arayüz yazı tipleri yüklenemedi. Eklenti günlüğüne bakın.</value></data>
+  <data name="UI language" xml:space="preserve"><value>Arayüz dili</value></data>
+  <data name="Ultra compact chat color theme" xml:space="preserve"><value>Ultra kompakt sohbet renk teması</value></data>
+  <data name="Ultra compact mode" xml:space="preserve"><value>Ultra kompakt mod</value></data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve"><value>Ultra kompakt mod, hedef olarak etkin sekmeyi kullanır; ayrı sohbet türü listesi veya Gönder düğmesi bulunmaz.</value></data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve"><value>Ultra kompakt: / ile sohbete odaklan</value></data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve"><value>Ultra kompakt: Enter ile sohbete odaklan</value></data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve"><value>Ultra kompakt: gerçek sohbet kanalı başlık renklerini kullan</value></data>
+  <data name="Unexpected error: {0}" xml:space="preserve"><value>Beklenmeyen hata: {0}</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Bilinmiyor</value></data>
+  <data name="Unlock main window position" xml:space="preserve"><value>Ana pencere konumu kilidini aç</value></data>
+  <data name="Unpin conversation" xml:space="preserve"><value>Sohbet sabitlemesini kaldır</value></data>
+  <data name="Unsupported outgoing channel." xml:space="preserve"><value>Giden kanal desteklenmiyor.</value></data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve"><value>Normal ve ultra kompakt modlar arasında geçmek için /dgpt ultra kullanın.</value></data>
+  <data name="Use in-game name" xml:space="preserve"><value>Oyun içi adı kullan</value></data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve"><value>Adları yalnızca eklenti penceresinde karıştırmak için Krangle kullanın.</value></data>
+  <data name="Use technical name" xml:space="preserve"><value>Teknik adı kullan</value></data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve"><value>Genel sohbet için sabitlenmiş kanal sekmelerini, yeni özel mesajlar için +, gizli kanallar için H ve son özel sohbetler için R kullanın.</value></data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve"><value>Party, FC, LS, DM ve Shout gibi mesaj başlıklarında oyun kanalı renklerini kullanır; çevrilmiş metin seçili çeviri/tema renklerini korur.</value></data>
+  <data name="Visible" xml:space="preserve"><value>Görünür</value></data>
+  <data name="Welcome To DhogGPT" xml:space="preserve"><value>DhogGPT&apos;ye hoş geldiniz</value></data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve"><value>Açıkken DhogGPT, kayıtlı pencere geri yüklemelerini ve otomatik düzeltmeleri etkin oyun görünümüne sınırlar. /dgpt j ile elle kurtarmayı tercih ediyorsanız kapatın.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve"><value>Ultra kompakt etkin ve DhogGPT penceresi açık ancak odakta değilken / tuşu DhogGPT&apos;ye odaklanır ve hemen bir komut başlatır.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve"><value>Ultra kompakt etkin ve DhogGPT penceresi açık ancak odakta değilken Enter tuşu DhogGPT yazma alanına odaklanır.</value></data>
+  <data name="Working..." xml:space="preserve"><value>İşleniyor...</value></data>
+  <data name="Yell" xml:space="preserve"><value>Yell</value></data>
+  <data name="You" xml:space="preserve"><value>Sen</value></data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve"><value>DhogGPT çevirmeden önce yazdığınız dil.</value></data>
+  <data name="DhogGPT: Open DM" xml:space="preserve"><value>DhogGPT: Özel mesaj aç</value></data>
+  <data name="(empty)" xml:space="preserve"><value>(boş)</value></data>
+  <data name="Message was empty." xml:space="preserve"><value>Mesaj boştu.</value></data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve"><value>{0}: yanıt translatedText içermiyordu.</value></data>
+  <data name="Channel" xml:space="preserve"><value>Kanal</value></data>
+  <data name="From (your language)" xml:space="preserve"><value>Kaynak (diliniz)</value></data>
+  <data name="To (target language)" xml:space="preserve"><value>Hedef (hedef dil)</value></data>
+  <data name="Scroll down to &quot;The Dumpster Fire&quot; channel to discuss issues / suggestions for specific plugins." xml:space="preserve"><value>Belirli eklentilerle ilgili sorunları veya önerileri görüşmek için &quot;The Dumpster Fire&quot; kanalına kaydırın.</value></data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve"><value>Sohbet günlükleri hesap ve karakter bazında eklenti yapılandırmasının Data\ChatLogs klasöründe saklanır.</value></data>
+  <data name="Window appearance" xml:space="preserve"><value>Pencere görünümü</value></data>
+  <data name="Compact visible on main window" xml:space="preserve"><value>Ana pencerede kompakt modu göster</value></data>
+  <data name="Language visible on main window" xml:space="preserve"><value>Ana pencerede dil seçimini göster</value></data>
+  <data name="Transparency" xml:space="preserve"><value>Saydamlık</value></data>
+  <data name="Opacity (%)" xml:space="preserve"><value>Opaklık (%)</value></data>
+  <data name="Auto-fade when unfocused" xml:space="preserve"><value>Odak yokken otomatik soldur</value></data>
+  <data name="Unfocused opacity (%)" xml:space="preserve"><value>Odak yokken opaklık (%)</value></data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve"><value>Odak kaybı gecikmesi (saniye)</value></data>
+</root>

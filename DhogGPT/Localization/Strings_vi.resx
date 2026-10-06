@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="{0:F0} ms" xml:space="preserve"><value>{0:F0} ms</value></data>
+  <data name="{0}" xml:space="preserve"><value>{0}</value></data>
+  <data name="{0} / 2000" xml:space="preserve"><value>{0} / 2000</value></data>
+  <data name="A DM target is required." xml:space="preserve"><value>Cần chỉ định người nhận tin nhắn riêng.</value></data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT&apos;s Echo mirror output." xml:space="preserve"><value>Thêm nhãn kênh như Party, FC hoặc Tell vào bản sao Echo của DhogGPT.</value></data>
+  <data name="Adds the sender identity into DhogGPT&apos;s Echo mirror for translated incoming chat." xml:space="preserve"><value>Thêm danh tính người gửi vào bản sao Echo của tin nhắn đến đã dịch.</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Nâng cao</value></data>
+  <data name="Advanced and diagnostics" xml:space="preserve"><value>Nâng cao và chẩn đoán</value></data>
+  <data name="Alliance" xml:space="preserve"><value>Liên minh</value></data>
+  <data name="Already detached" xml:space="preserve"><value>Đã tách cửa sổ</value></data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve"><value>Xáo trộn tên bằng Krangle chỉ trong giao diện DhogGPT, không thay đổi trò chuyện trong game.</value></data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve"><value>Phải giữ ít nhất một thẻ kênh hiển thị.</value></data>
+  <data name="Autodetect" xml:space="preserve"><value>Tự nhận diện</value></data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve"><value>Màu nền của thẻ hội thoại chưa chọn.</value></data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve"><value>Màu nền của thẻ chưa chọn khi cửa sổ mất tiêu điểm.</value></data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve"><value>Màu nền của thẻ hội thoại đang chọn.</value></data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve"><value>Màu nền của thẻ đang chọn khi cửa sổ mất tiêu điểm.</value></data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve"><value>Màu nền khi trỏ chuột lên thẻ hội thoại.</value></data>
+  <data name="Background opacity" xml:space="preserve"><value>Độ mờ nền</value></data>
+  <data name="Blue" xml:space="preserve"><value>Xanh dương</value></data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve"><value>Đưa DhogGPT lên trước khi nhận được tin nhắn riêng mới.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Centered wedges" xml:space="preserve"><value>Nêm ở giữa</value></data>
+  <data name="Channels" xml:space="preserve"><value>Kênh</value></data>
+  <data name="Chat" xml:space="preserve"><value>Trò chuyện</value></data>
+  <data name="Chat scroll indicator style" xml:space="preserve"><value>Kiểu chỉ báo cuộn trò chuyện</value></data>
+  <data name="Chat translation for FFXIV" xml:space="preserve"><value>Dịch trò chuyện cho FFXIV</value></data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve"><value>Chọn kiểu mặc định của chỉ báo phần hội thoại ngoài màn hình.</value></data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve"><value>Chọn hiển thị chữ, biểu tượng kèm chữ hoặc chỉ biểu tượng trong DTR.</value></data>
+  <data name="Clear" xml:space="preserve"><value>Xóa</value></data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve"><value>Nhấp mục DTR để mở cửa sổ chính DhogGPT.</value></data>
+  <data name="Click to pin this DM tab." xml:space="preserve"><value>Nhấp để ghim thẻ tin nhắn riêng này.</value></data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve"><value>Nhấp x để tách thẻ gộp thành các kênh riêng.</value></data>
+  <data name="Close DM" xml:space="preserve"><value>Đóng tin nhắn riêng</value></data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve"><value>Đóng tin nhắn riêng đã ghim (giữ Ctrl + nhấp x)</value></data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve"><value>Đóng hướng dẫn và đánh dấu đã xem.</value></data>
+  <data name="Color" xml:space="preserve"><value>Màu</value></data>
+  <data name="Color used for inbound message header lines." xml:space="preserve"><value>Màu của dòng tiêu đề tin nhắn đến.</value></data>
+  <data name="Color used for inbound translated lines." xml:space="preserve"><value>Màu của bản dịch tin nhắn đến.</value></data>
+  <data name="Color used for outbound message header lines." xml:space="preserve"><value>Màu của dòng tiêu đề tin nhắn đi.</value></data>
+  <data name="Color used for outbound translated lines." xml:space="preserve"><value>Màu của bản dịch tin nhắn đi.</value></data>
+  <data name="Color used for translation failure text." xml:space="preserve"><value>Màu chữ khi dịch thất bại.</value></data>
+  <data name="Combine with" xml:space="preserve"><value>Gộp với</value></data>
+  <data name="Common DhogGPT settings" xml:space="preserve"><value>Thiết lập DhogGPT thường dùng</value></data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve"><value>Chế độ gọn và siêu gọn cũ đã ngừng dùng. DhogGPT hiện hỗ trợ chế độ thường và cực gọn.</value></data>
+  <data name="Compact mode" xml:space="preserve"><value>Chế độ gọn</value></data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve"><value>Điều chỉnh màu tin nhắn cực gọn và bảng màu thẻ hội thoại.</value></data>
+  <data name="Conversation tabs" xml:space="preserve"><value>Thẻ hội thoại</value></data>
+  <data name="Copy both" xml:space="preserve"><value>Sao chép cả hai</value></data>
+  <data name="Copy DM target" xml:space="preserve"><value>Sao chép người nhận</value></data>
+  <data name="Copy original" xml:space="preserve"><value>Sao chép bản gốc</value></data>
+  <data name="Copy translation" xml:space="preserve"><value>Sao chép bản dịch</value></data>
+  <data name="Cross-world linkshells" xml:space="preserve"><value>Linkshell liên máy chủ</value></data>
+  <data name="Custom" xml:space="preserve"><value>Tùy chỉnh</value></data>
+  <data name="Custom RGB" xml:space="preserve"><value>RGB tùy chỉnh</value></data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve"><value>Màu tin nhắn và thẻ cực gọn tùy chỉnh</value></data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve"><value>DhogGPT {0}. Nhấp để mở cửa sổ chính.</value></data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve"><value>DhogGPT mặc định dùng chế độ cực gọn. Hội thoại đã dịch nằm trong các thẻ; ô soạn phía dưới gửi tin đã dịch ngay trong cửa sổ chính. Trong thiết lập, bạn có thể chọn hiển thị trò chuyện gốc cùng DhogGPT.</value></data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve"><value>Thiết lập DhogGPT v{0}</value></data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve"><value>DhogGPT thử điểm dịch web kiểu Google không cần khóa trước. Nếu thất bại, chương trình dùng các điểm tương thích LibreTranslate bên dưới, mỗi dòng một địa chỉ.</value></data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve"><value>Ẩn cửa sổ trò chuyện gốc khi bật cực gọn</value></data>
+  <data name="Discord" xml:space="preserve"><value>Discord</value></data>
+  <data name="DM" xml:space="preserve"><value>DM</value></data>
+  <data name="DM / tell" xml:space="preserve"><value>Tin nhắn riêng / tell</value></data>
+  <data name="DM target must include a world name after @." xml:space="preserve"><value>Người nhận phải có tên máy chủ sau @.</value></data>
+  <data name="DM target must include first and last name." xml:space="preserve"><value>Người nhận phải có cả tên và họ.</value></data>
+  <data name="DM target must use First Last@World." xml:space="preserve"><value>Người nhận phải dùng định dạng First Last@World.</value></data>
+  <data name="DTR Bar" xml:space="preserve"><value>Thanh DTR</value></data>
+  <data name="DTR disabled glyph" xml:space="preserve"><value>Biểu tượng DTR khi tắt</value></data>
+  <data name="DTR enabled glyph" xml:space="preserve"><value>Biểu tượng DTR khi bật</value></data>
+  <data name="DTR mode" xml:space="preserve"><value>Chế độ DTR</value></data>
+  <data name="Echo" xml:space="preserve"><value>Echo</value></data>
+  <data name="Emote" xml:space="preserve"><value>Biểu cảm</value></data>
+  <data name="Enable debug logging" xml:space="preserve"><value>Bật nhật ký gỡ lỗi</value></data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve"><value>Bật dịch cho các kênh linkshell liên máy chủ CWLS1-CWLS8.</value></data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve"><value>Bật dịch cho kênh Free Company.</value></data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve"><value>Bật dịch cho tin nhắn riêng đến và đi.</value></data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve"><value>Bật dịch cho các kênh linkshell LS1-LS8.</value></data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve"><value>Bật dịch cho kênh Novice Network.</value></data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve"><value>Bật dịch cho các kênh tổ đội, liên tổ đội và liên minh.</value></data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve"><value>Bật dịch cho kênh đội PvP.</value></data>
+  <data name="Enable translation for Say chat." xml:space="preserve"><value>Bật dịch cho kênh Say.</value></data>
+  <data name="Enable translation for Shout chat." xml:space="preserve"><value>Bật dịch cho kênh Shout.</value></data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve"><value>Bật dịch cho dòng biểu cảm thường và tùy chỉnh.</value></data>
+  <data name="Enable translation for Yell chat." xml:space="preserve"><value>Bật dịch cho kênh Yell.</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Đã bật</value></data>
+  <data name="Endpoints" xml:space="preserve"><value>Điểm dịch</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="Events" xml:space="preserve"><value>Sự kiện</value></data>
+  <data name="Everyday" xml:space="preserve"><value>Hằng ngày</value></data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve"><value>Độ mờ ô soạn khi cửa sổ mờ</value></data>
+  <data name="Fail" xml:space="preserve"><value>Thất bại</value></data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve"><value>Điểm dự phòng kiểu LibreTranslate, mỗi dòng một địa chỉ, dùng khi dịch web chính không khả dụng.</value></data>
+  <data name="First Last@World" xml:space="preserve"><value>First Last@World</value></data>
+  <data name="Focused or hovered opacity" xml:space="preserve"><value>Độ mờ khi có tiêu điểm hoặc trỏ chuột</value></data>
+  <data name="Free company" xml:space="preserve"><value>Free Company</value></data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve"><value>Tài khoản chơi thử không thể gửi tin nhắn riêng.</value></data>
+  <data name="From" xml:space="preserve"><value>Từ</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve"><value>Biểu tượng trong DTR khi DhogGPT tắt.</value></data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve"><value>Biểu tượng trong DTR khi DhogGPT bật.</value></data>
+  <data name="Got it" xml:space="preserve"><value>Đã hiểu</value></data>
+  <data name="Guide" xml:space="preserve"><value>Hướng dẫn</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Đã ẩn</value></data>
+  <data name="High contrast" xml:space="preserve"><value>Tương phản cao</value></data>
+  <data name="History entries to keep" xml:space="preserve"><value>Số mục lịch sử giữ lại</value></data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve"><value>Giữ Ctrl và nhấp x để ẩn thẻ kênh này.</value></data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve"><value>Giữ Ctrl khi nhấp x để ẩn thẻ kênh.</value></data>
+  <data name="Icon + text" xml:space="preserve"><value>Biểu tượng + chữ</value></data>
+  <data name="Icon only" xml:space="preserve"><value>Chỉ biểu tượng</value></data>
+  <data name="Inbound header" xml:space="preserve"><value>Tiêu đề tin đến</value></data>
+  <data name="Inbound translation" xml:space="preserve"><value>Bản dịch tin đến</value></data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve"><value>Thêm nhãn kênh vào Echo đã dịch</value></data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve"><value>Thêm tên người gửi vào Echo đã dịch</value></data>
+  <data name="Incoming" xml:space="preserve"><value>Tin đến</value></data>
+  <data name="Incoming and channel behavior" xml:space="preserve"><value>Tin đến và hoạt động kênh</value></data>
+  <data name="Incoming source language" xml:space="preserve"><value>Ngôn ngữ nguồn tin đến</value></data>
+  <data name="Incoming target language" xml:space="preserve"><value>Ngôn ngữ đích tin đến</value></data>
+  <data name="Jobs" xml:space="preserve"><value>Nghề</value></data>
+  <data name="Keep windows on current game screen" xml:space="preserve"><value>Giữ cửa sổ trong màn hình game hiện tại</value></data>
+  <data name="Keeps the game&apos;s vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve"><value>Ẩn trò chuyện gốc khi chế độ cực gọn hoạt động. Bật nếu muốn chỉ dùng DhogGPT; tắt nếu muốn hiển thị cả hai cửa sổ trò chuyện.</value></data>
+  <data name="Ko-fi" xml:space="preserve"><value>Ko-fi</value></data>
+  <data name="Krangle names in chat UI" xml:space="preserve"><value>Xáo trộn tên trong giao diện trò chuyện</value></data>
+  <data name="Krangle names is off." xml:space="preserve"><value>Xáo trộn tên đang tắt.</value></data>
+  <data name="Krangle names is on." xml:space="preserve"><value>Xáo trộn tên đang bật.</value></data>
+  <data name="Krangle Names: Off" xml:space="preserve"><value>Xáo trộn tên: Tắt</value></data>
+  <data name="Krangle Names: On" xml:space="preserve"><value>Xáo trộn tên: Bật</value></data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve"><value>Ngôn ngữ dự kiến của tin nhắn đến. Giữ Tự nhận diện trừ khi bạn biết trước ngôn ngữ nguồn.</value></data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve"><value>Ngôn ngữ dùng cho bản dịch tin nhắn đến.</value></data>
+  <data name="Last error: {0}" xml:space="preserve"><value>Lỗi gần nhất: {0}</value></data>
+  <data name="Latency" xml:space="preserve"><value>Độ trễ</value></data>
+  <data name="Legacy arrows" xml:space="preserve"><value>Mũi tên cũ</value></data>
+  <data name="Linkshells" xml:space="preserve"><value>Linkshell</value></data>
+  <data name="Loading UI fonts..." xml:space="preserve"><value>Đang tải phông giao diện...</value></data>
+  <data name="Lock main window position" xml:space="preserve"><value>Khóa vị trí cửa sổ chính</value></data>
+  <data name="Lock main window position by default" xml:space="preserve"><value>Mặc định khóa vị trí cửa sổ chính</value></data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve"><value>Công tắc bật chính của DhogGPT. Khi tắt, dịch tin đến và các hoạt động tự động liên quan dừng lại.</value></data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve"><value>Số mục lịch sử đã dịch tối đa được giữ trong bộ nhớ cho mỗi nhật ký trò chuyện đã tải.</value></data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve"><value>Thời gian chờ tối đa cho một yêu cầu dịch trước khi coi là thất bại.</value></data>
+  <data name="Me" xml:space="preserve"><value>Tôi</value></data>
+  <data name="Message" xml:space="preserve"><value>Tin nhắn</value></data>
+  <data name="Messages" xml:space="preserve"><value>Tin nhắn</value></data>
+  <data name="Neon night" xml:space="preserve"><value>Đêm neon</value></data>
+  <data name="New DM" xml:space="preserve"><value>Tin nhắn riêng mới</value></data>
+  <data name="No channels are hidden." xml:space="preserve"><value>Không có kênh nào bị ẩn.</value></data>
+  <data name="No eligible channels" xml:space="preserve"><value>Không có kênh phù hợp</value></data>
+  <data name="No recent DMs matched." xml:space="preserve"><value>Không tìm thấy tin nhắn riêng gần đây phù hợp.</value></data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve"><value>Chưa lưu trò chuyện đã dịch cho thẻ này.</value></data>
+  <data name="No translation" xml:space="preserve"><value>Không dịch</value></data>
+  <data name="Off" xml:space="preserve"><value>Tắt</value></data>
+  <data name="On" xml:space="preserve"><value>Bật</value></data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve"><value>Độ mờ sau khi bạn nhấp ra ngoài cửa sổ chính DhogGPT.</value></data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve"><value>Độ mờ của ô soạn phía dưới khi DhogGPT mờ và bạn không gõ. Khi gõ, ô soạn luôn hoàn toàn rõ.</value></data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve"><value>Độ mờ khi cửa sổ chính có tiêu điểm hoặc chuột ở trên.</value></data>
+  <data name="Open" xml:space="preserve"><value>Mở</value></data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve"><value>Mở tin nhắn riêng bằng First Last@World.</value></data>
+  <data name="Open a new DM." xml:space="preserve"><value>Mở tin nhắn riêng mới.</value></data>
+  <data name="Open chat log folder" xml:space="preserve"><value>Mở thư mục nhật ký trò chuyện</value></data>
+  <data name="Open DhogGPT settings." xml:space="preserve"><value>Mở thiết lập DhogGPT.</value></data>
+  <data name="Open DhogGPT&apos;s per-character chat-log folder on disk." xml:space="preserve"><value>Mở thư mục nhật ký trò chuyện theo nhân vật của DhogGPT trên ổ đĩa.</value></data>
+  <data name="Open first-use guide" xml:space="preserve"><value>Mở hướng dẫn lần đầu</value></data>
+  <data name="Open main window" xml:space="preserve"><value>Mở cửa sổ chính</value></data>
+  <data name="Open main window when a character loads" xml:space="preserve"><value>Mở cửa sổ chính khi nhân vật tải xong</value></data>
+  <data name="Open main window when a DM arrives" xml:space="preserve"><value>Mở cửa sổ chính khi nhận tin nhắn riêng</value></data>
+  <data name="Open settings" xml:space="preserve"><value>Mở thiết lập</value></data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve"><value>Mở máy chủ Discord của DhogGPT.</value></data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve"><value>Mở cửa sổ trò chuyện chính của DhogGPT.</value></data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve"><value>Mở cửa sổ thiết lập DhogGPT.</value></data>
+  <data name="Open the DhogGPT support page." xml:space="preserve"><value>Mở trang hỗ trợ DhogGPT.</value></data>
+  <data name="Open the first-use guide again." xml:space="preserve"><value>Mở lại hướng dẫn lần đầu.</value></data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve"><value>Mở cửa sổ chính bằng /dhoggpt, /dgpt hoặc /dog.</value></data>
+  <data name="Outbound header" xml:space="preserve"><value>Tiêu đề tin đi</value></data>
+  <data name="Outbound translation" xml:space="preserve"><value>Bản dịch tin đi</value></data>
+  <data name="Outgoing" xml:space="preserve"><value>Tin đi</value></data>
+  <data name="Outgoing translation" xml:space="preserve"><value>Dịch tin nhắn đi</value></data>
+  <data name="Party" xml:space="preserve"><value>Tổ đội</value></data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve"><value>Chọn ngôn ngữ tin đến và đi trong Thiết lập. Giữ nguồn ở Tự nhận diện trừ khi bạn biết ngôn ngữ.</value></data>
+  <data name="Pin conversation" xml:space="preserve"><value>Ghim hội thoại</value></data>
+  <data name="Pink" xml:space="preserve"><value>Hồng</value></data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve"><value>Thẻ tin nhắn riêng đã ghim. Nhấp để bỏ ghim.</value></data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve"><value>Phải giữ Ctrl khi nhấp x để đóng thẻ tin nhắn riêng đã ghim.</value></data>
+  <data name="Plugin enabled" xml:space="preserve"><value>Plugin đã bật</value></data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve"><value>Khi chế độ cực gọn đang mở nhưng không có tiêu điểm, nhấn / hoặc Enter để quay ngay về ô soạn DhogGPT.</value></data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve"><value>Không dịch các tin nhắn được nhận diện là từ nhân vật của bạn.</value></data>
+  <data name="Preview ready from cache." xml:space="preserve"><value>Bản xem trước đã sẵn sàng từ bộ nhớ đệm.</value></data>
+  <data name="Preview ready." xml:space="preserve"><value>Bản xem trước đã sẵn sàng.</value></data>
+  <data name="Preview translation" xml:space="preserve"><value>Xem trước bản dịch</value></data>
+  <data name="Preview will appear here." xml:space="preserve"><value>Bản xem trước sẽ hiện ở đây.</value></data>
+  <data name="Previewing without translation..." xml:space="preserve"><value>Đang xem trước không dịch...</value></data>
+  <data name="Provider" xml:space="preserve"><value>Nhà cung cấp</value></data>
+  <data name="Providers" xml:space="preserve"><value>Nhà cung cấp</value></data>
+  <data name="PvP team" xml:space="preserve"><value>Đội PvP</value></data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve"><value>Lệnh bắt đầu bằng / nhập trong DhogGPT được gửi trực tiếp và để lại dấu trong Safe, không qua dịch.</value></data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve"><value>Chế độ thường vẫn cung cấp đầy đủ giao diện dịch. Chế độ gọn và siêu gọn cũ đã ngừng dùng và chuyển sang cực gọn. Nếu một điểm dịch thất bại, DhogGPT tự chuyển sang điểm dự phòng tiếp theo đã thiết lập.</value></data>
+  <data name="Release combined channels" xml:space="preserve"><value>Tách các kênh đã gộp</value></data>
+  <data name="Reopen recent DM tabs." xml:space="preserve"><value>Mở lại thẻ tin nhắn riêng gần đây.</value></data>
+  <data name="Reopen the first-use guide window." xml:space="preserve"><value>Mở lại cửa sổ hướng dẫn lần đầu.</value></data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve"><value>Tự mở lại cửa sổ chính khi nhân vật đăng nhập.</value></data>
+  <data name="Request timeout seconds" xml:space="preserve"><value>Thời gian chờ yêu cầu (giây)</value></data>
+  <data name="Reset fallback endpoints" xml:space="preserve"><value>Đặt lại điểm dịch dự phòng</value></data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve"><value>Khôi phục điểm dịch dự phòng mặc định.</value></data>
+  <data name="Role tints" xml:space="preserve"><value>Màu theo vai trò</value></data>
+  <data name="Safe" xml:space="preserve"><value>An toàn</value></data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve"><value>Tin nhắn Safe chỉ lưu trong DhogGPT, không gửi vào trò chuyện game.</value></data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve"><value>Safe, Echo, System và Events là kênh của DhogGPT. Bật hoặc ẩn chúng trong cửa sổ trò chuyện chính, không phải ở đây.</value></data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve"><value>Hoạt động như nút khóa ở thanh tiêu đề cửa sổ chính. Hữu ích nếu bạn thường giữ DhogGPT cố định.</value></data>
+  <data name="Same language" xml:space="preserve"><value>Cùng ngôn ngữ</value></data>
+  <data name="Saved to Safe." xml:space="preserve"><value>Đã lưu vào Safe.</value></data>
+  <data name="Say" xml:space="preserve"><value>Say</value></data>
+  <data name="Search recent DMs" xml:space="preserve"><value>Tìm tin nhắn riêng gần đây</value></data>
+  <data name="Select a conversation before sending." xml:space="preserve"><value>Chọn hội thoại trước khi gửi.</value></data>
+  <data name="Selected tab text" xml:space="preserve"><value>Chữ thẻ đang chọn</value></data>
+  <data name="Send" xml:space="preserve"><value>Gửi</value></data>
+  <data name="Sending without translation..." xml:space="preserve"><value>Đang gửi không dịch...</value></data>
+  <data name="Sent translated message to {0}." xml:space="preserve"><value>Đã gửi tin nhắn đã dịch tới {0}.</value></data>
+  <data name="Set the language you are writing in." xml:space="preserve"><value>Chọn ngôn ngữ bạn đang viết.</value></data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve"><value>Chọn ngôn ngữ muốn dịch tin nhắn của bạn sang.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Thiết lập</value></data>
+  <data name="Shout" xml:space="preserve"><value>Shout</value></data>
+  <data name="Show DTR bar entry" xml:space="preserve"><value>Hiện mục trên thanh DTR</value></data>
+  <data name="Show hidden channel tabs." xml:space="preserve"><value>Hiện các thẻ kênh đã ẩn.</value></data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve"><value>Hiện hoặc ẩn mục DhogGPT trên thanh DTR của Dalamud.</value></data>
+  <data name="Skip messages from my own character" xml:space="preserve"><value>Bỏ qua tin từ nhân vật của tôi</value></data>
+  <data name="Slash command failed to send." xml:space="preserve"><value>Không gửi được lệnh /.</value></data>
+  <data name="Slash command sent directly." xml:space="preserve"><value>Đã gửi lệnh / trực tiếp.</value></data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve"><value>Lệnh / được gửi trực tiếp, không dịch hoặc ghi nhật ký.</value></data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve"><value>Lệnh / gửi qua DhogGPT bỏ qua dịch và nhật ký JSONL, nhưng vẫn để lại dấu trong Safe.</value></data>
+  <data name="Soft contrast" xml:space="preserve"><value>Tương phản nhẹ</value></data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve"><value>Nguồn: {0}  Đích: {1}  Nhà cung cấp: {2} ({3})</value></data>
+  <data name="Spawn new window" xml:space="preserve"><value>Tách ra cửa sổ mới</value></data>
+  <data name="Status" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="Status to chat" xml:space="preserve"><value>Gửi trạng thái vào trò chuyện</value></data>
+  <data name="Success" xml:space="preserve"><value>Thành công</value></data>
+  <data name="Switch between regular mode and DhogGPT&apos;s supported ultra compact chat surface." xml:space="preserve"><value>Chuyển giữa chế độ thường và giao diện trò chuyện cực gọn được hỗ trợ.</value></data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve"><value>Chuyển từ chế độ thường sang cực gọn.</value></data>
+  <data name="System" xml:space="preserve"><value>Hệ thống</value></data>
+  <data name="Tab" xml:space="preserve"><value>Thẻ</value></data>
+  <data name="Tab active" xml:space="preserve"><value>Thẻ đang chọn</value></data>
+  <data name="Tab hovered" xml:space="preserve"><value>Thẻ khi trỏ chuột</value></data>
+  <data name="Tab text" xml:space="preserve"><value>Chữ thẻ</value></data>
+  <data name="Tab unfocused" xml:space="preserve"><value>Thẻ khi mất tiêu điểm</value></data>
+  <data name="Tab unfocused active" xml:space="preserve"><value>Thẻ đang chọn khi mất tiêu điểm</value></data>
+  <data name="Teal" xml:space="preserve"><value>Xanh ngọc</value></data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve"><value>Màu chữ của thẻ hội thoại chưa chọn.</value></data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve"><value>Màu chữ của thẻ đang chọn. Nên dùng đen khi nền thẻ sáng.</value></data>
+  <data name="Text only" xml:space="preserve"><value>Chỉ chữ</value></data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve"><value>Phím tắt lấy tiêu điểm / và Enter chỉ hoạt động khi cửa sổ cực gọn đã mở.</value></data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve"><value>Ngôn ngữ DhogGPT dùng để dịch tin nhắn đi của bạn.</value></data>
+  <data name="Them" xml:space="preserve"><value>Họ</value></data>
+  <data name="There is no translated text to send." xml:space="preserve"><value>Không có bản dịch để gửi.</value></data>
+  <data name="To" xml:space="preserve"><value>Sang</value></data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve"><value>Dịch các kênh tin đến được phép sang ngôn ngữ đích bạn chọn.</value></data>
+  <data name="Translate and send" xml:space="preserve"><value>Dịch và gửi</value></data>
+  <data name="Translate incoming chat" xml:space="preserve"><value>Dịch trò chuyện đến</value></data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve"><value>Dịch văn bản này rồi nhấn Enter để gửi</value></data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve"><value>Bản dịch quá dài cho ô trò chuyện game.</value></data>
+  <data name="Translated preview" xml:space="preserve"><value>Bản dịch xem trước</value></data>
+  <data name="Translating..." xml:space="preserve"><value>Đang dịch...</value></data>
+  <data name="Translation failed: {0}" xml:space="preserve"><value>Dịch thất bại: {0}</value></data>
+  <data name="Translation preview" xml:space="preserve"><value>Xem trước bản dịch</value></data>
+  <data name="Translation provider and timeout" xml:space="preserve"><value>Nhà cung cấp và thời gian chờ dịch</value></data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve"><value>Dịch thành công nhưng DhogGPT không thể dựng lại dữ liệu liên kết vật phẩm/bản đồ để gửi.</value></data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve"><value>Dịch thành công nhưng gửi tin nhắn thất bại.</value></data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve"><value>Dịch thành công nhưng gửi giữ nguyên dữ liệu liên kết thất bại.</value></data>
+  <data name="Translation was cancelled." xml:space="preserve"><value>Đã hủy dịch.</value></data>
+  <data name="Turn on ultra compact" xml:space="preserve"><value>Bật cực gọn</value></data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve"><value>Bật chẩn đoán bổ sung của DhogGPT. Giữ tắt trừ khi đang tìm lỗi.</value></data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve"><value>Không tải được phông giao diện. Xem nhật ký plugin.</value></data>
+  <data name="UI language" xml:space="preserve"><value>Ngôn ngữ giao diện</value></data>
+  <data name="Ultra compact chat color theme" xml:space="preserve"><value>Bảng màu trò chuyện cực gọn</value></data>
+  <data name="Ultra compact mode" xml:space="preserve"><value>Chế độ cực gọn</value></data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve"><value>Chế độ cực gọn gửi tới thẻ đang chọn, nên không có danh sách loại trò chuyện hay nút Gửi riêng.</value></data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve"><value>Cực gọn: lấy tiêu điểm bằng /</value></data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve"><value>Cực gọn: lấy tiêu điểm bằng Enter</value></data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve"><value>Cực gọn: dùng màu tiêu đề kênh gốc</value></data>
+  <data name="Unexpected error: {0}" xml:space="preserve"><value>Lỗi không mong đợi: {0}</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Không rõ</value></data>
+  <data name="Unlock main window position" xml:space="preserve"><value>Mở khóa vị trí cửa sổ chính</value></data>
+  <data name="Unpin conversation" xml:space="preserve"><value>Bỏ ghim hội thoại</value></data>
+  <data name="Unsupported outgoing channel." xml:space="preserve"><value>Kênh gửi không được hỗ trợ.</value></data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve"><value>Dùng /dgpt ultra để chuyển giữa chế độ thường và cực gọn.</value></data>
+  <data name="Use in-game name" xml:space="preserve"><value>Dùng tên trong game</value></data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve"><value>Dùng Krangle nếu chỉ muốn xáo trộn tên hiển thị trong cửa sổ plugin.</value></data>
+  <data name="Use technical name" xml:space="preserve"><value>Dùng tên kỹ thuật</value></data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve"><value>Dùng thẻ kênh đã ghim để trò chuyện chung, + cho tin nhắn riêng mới, H cho kênh ẩn và R cho hội thoại riêng gần đây.</value></data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve"><value>Dùng màu kênh gốc cho tiêu đề tin nhắn Party, FC, LS, DM và Shout; bản dịch vẫn dùng màu dịch/chủ đề đã chọn.</value></data>
+  <data name="Visible" xml:space="preserve"><value>Hiển thị</value></data>
+  <data name="Welcome To DhogGPT" xml:space="preserve"><value>Chào mừng đến với DhogGPT</value></data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve"><value>Khi bật, DhogGPT giới hạn khôi phục vị trí và tự sửa cửa sổ trong vùng hiển thị game hiện tại. Tắt nếu muốn tự khôi phục bằng /dgpt j.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve"><value>Khi chế độ cực gọn hoạt động và cửa sổ mở nhưng không có tiêu điểm, nhấn / để lấy tiêu điểm và bắt đầu lệnh ngay.</value></data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve"><value>Khi chế độ cực gọn hoạt động và cửa sổ mở nhưng không có tiêu điểm, nhấn Enter để lấy tiêu điểm ô soạn.</value></data>
+  <data name="Working..." xml:space="preserve"><value>Đang xử lý...</value></data>
+  <data name="Yell" xml:space="preserve"><value>Yell</value></data>
+  <data name="You" xml:space="preserve"><value>Bạn</value></data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve"><value>Ngôn ngữ bạn gõ trước khi DhogGPT dịch.</value></data>
+  <data name="DhogGPT: Open DM" xml:space="preserve"><value>DhogGPT: Mở tin nhắn riêng</value></data>
+  <data name="(empty)" xml:space="preserve"><value>(trống)</value></data>
+  <data name="Message was empty." xml:space="preserve"><value>Tin nhắn trống.</value></data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve"><value>{0}: phản hồi không có translatedText.</value></data>
+  <data name="Channel" xml:space="preserve"><value>Kênh</value></data>
+  <data name="From (your language)" xml:space="preserve"><value>Từ (ngôn ngữ của bạn)</value></data>
+  <data name="To (target language)" xml:space="preserve"><value>Sang (ngôn ngữ đích)</value></data>
+  <data name="Scroll down to &quot;The Dumpster Fire&quot; channel to discuss issues / suggestions for specific plugins." xml:space="preserve"><value>Cuộn xuống kênh &quot;The Dumpster Fire&quot; để trao đổi lỗi hoặc đề xuất cho từng plugin.</value></data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve"><value>Nhật ký trò chuyện được lưu theo tài khoản và nhân vật trong thư mục Data\ChatLogs của cấu hình plugin.</value></data>
+  <data name="Window appearance" xml:space="preserve"><value>Giao diện cửa sổ</value></data>
+  <data name="Compact visible on main window" xml:space="preserve"><value>Hiển thị chế độ gọn trên cửa sổ chính</value></data>
+  <data name="Language visible on main window" xml:space="preserve"><value>Hiển thị lựa chọn ngôn ngữ trên cửa sổ chính</value></data>
+  <data name="Transparency" xml:space="preserve"><value>Độ trong suốt</value></data>
+  <data name="Opacity (%)" xml:space="preserve"><value>Độ đục (%)</value></data>
+  <data name="Auto-fade when unfocused" xml:space="preserve"><value>Tự giảm độ đục khi mất tiêu điểm</value></data>
+  <data name="Unfocused opacity (%)" xml:space="preserve"><value>Độ đục khi mất tiêu điểm (%)</value></data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve"><value>Độ trễ khi mất tiêu điểm (giây)</value></data>
+</root>

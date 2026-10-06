@@ -1,3 +1,4 @@
+using AethertekUI;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -10,6 +11,8 @@ namespace DhogGPT.Windows;
 
 public sealed class ConfigWindow : Window, IDisposable
 {
+    private readonly AethertekUI.Dalamud.MaterialWindowMotion windowMotion = new();
+    private readonly AethertekUI.MaterialWindowOpacity windowOpacity = new();
     private const float WindowRepairTolerance = 4f;
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
     private static readonly string[] ScrollIndicatorStyles = { "Centered wedges", "Legacy arrows" };
@@ -47,6 +50,7 @@ public sealed class ConfigWindow : Window, IDisposable
         };
         Size = new Vector2(900f, 550f);
         SizeCondition = ImGuiCond.FirstUseEver;
+        Flags |= ImGuiWindowFlags.HorizontalScrollbar;
     }
 
     public void Dispose()
@@ -56,31 +60,47 @@ public sealed class ConfigWindow : Window, IDisposable
     public override void PreDraw()
     {
         ApplyPendingViewportPlacement();
+        windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+    }
+
+    public override void PostDraw()
+    {
+        windowMotion.Restore(this);
+        plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
-        if (ImGui.BeginTabBar("DhogGPTSettingsTabs"))
+        windowMotion.DrawChrome();
+        UiGui.Title(VersionedWindowTitle.Split("###",2)[0]);
+        ImGui.Separator();
+        if (UiGui.BeginTabBar("DhogGPTSettingsTabs", new[]{"Window appearance","Everyday","Channels","Providers","Advanced"}.Select(UiText.T).ToArray()))
         {
-            if (ImGui.BeginTabItem("Everyday"))
+            if (UiGui.BeginTabItem("Window appearance", ImGuiTabItemFlags.NoPushId))
+            {
+                plugin.DrawWindowAppearance();
+                ImGui.EndTabItem();
+            }
+
+            if (UiGui.BeginTabItem("Everyday"))
             {
                 DrawEverydaySettings();
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Channels"))
+            if (UiGui.BeginTabItem("Channels"))
             {
                 DrawIncomingChannelSettings();
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Providers"))
+            if (UiGui.BeginTabItem("Providers"))
             {
                 DrawProviderSettings();
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Advanced"))
+            if (UiGui.BeginTabItem("Advanced"))
             {
                 DrawAdvancedSettings();
                 ImGui.EndTabItem();
@@ -124,23 +144,23 @@ public sealed class ConfigWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         var changed = false;
 
-        ImGui.TextUnformatted("Common DhogGPT settings");
-        if (ImGui.SmallButton("Ko-fi##Settings"))
+        UiGui.TextUnformatted("Common DhogGPT settings");
+        if (UiGui.SmallButton("Ko-fi##Settings"))
             Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
         DrawTooltipOnLastItem("Open the DhogGPT support page.");
 
         ImGui.SameLine();
-        if (ImGui.SmallButton("Discord##Settings"))
+        if (UiGui.SmallButton("Discord##Settings"))
             Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
         DrawTooltipOnLastItem("Open the DhogGPT Discord server.");
 
         ImGui.SameLine();
-        if (ImGui.SmallButton("Guide##Settings"))
+        if (UiGui.SmallButton("Guide##Settings"))
             plugin.OpenFirstUseGuide();
         DrawTooltipOnLastItem("Open the first-use guide again.");
 
         var ultraCompactMode = plugin.IsUltraCompactModeConfigured();
-        if (ImGui.Checkbox("Ultra compact mode", ref ultraCompactMode))
+        if (UiGui.Checkbox("Ultra compact mode", ref ultraCompactMode))
             plugin.SetUltraCompactMode(ultraCompactMode);
         DrawTooltipOnLastItem("Switch between regular mode and DhogGPT's supported ultra compact chat surface.");
 
@@ -204,24 +224,8 @@ public sealed class ConfigWindow : Window, IDisposable
             includeAuto: false,
             "Language that incoming translations should be rendered into.");
 
-        var focusedOpacity = Math.Clamp(configuration.FocusedWindowOpacity, 0.20f, 1.0f);
-        if (ImGui.SliderFloat("Focused or hovered opacity", ref focusedOpacity, 0.20f, 1.0f, "%.2f"))
-        {
-            configuration.FocusedWindowOpacity = focusedOpacity;
-            changed = true;
-        }
-        DrawTooltipOnLastItem("Opacity while the DhogGPT main window is hovered or focused.");
-
-        var backgroundOpacity = Math.Clamp(configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
-        if (ImGui.SliderFloat("Background opacity", ref backgroundOpacity, 0.20f, 1.0f, "%.2f"))
-        {
-            configuration.BackgroundWindowOpacity = backgroundOpacity;
-            changed = true;
-        }
-        DrawTooltipOnLastItem("Opacity after you click away from the DhogGPT main window.");
-
         var fadedComposerOpacity = Math.Clamp(configuration.WindowOpacity, 0.20f, 1.0f);
-        if (ImGui.SliderFloat("Faded chatbox edit opacity", ref fadedComposerOpacity, 0.20f, 1.0f, "%.2f"))
+        if (UiGui.SliderFloat("Faded chatbox edit opacity", ref fadedComposerOpacity, 0.20f, 1.0f, "%.2f"))
         {
             configuration.WindowOpacity = fadedComposerOpacity;
             changed = true;
@@ -229,7 +233,7 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque.");
 
         var compactChatColorTheme = Math.Clamp(configuration.CompactChatColorTheme, 0, CompactChatColorThemes.Length - 1);
-        if (ImGui.Combo("Ultra compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
+        if (UiGui.Combo("Ultra compact chat color theme", ref compactChatColorTheme, CompactChatColorThemes, CompactChatColorThemes.Length))
         {
             configuration.CompactChatColorTheme = compactChatColorTheme;
             changed = true;
@@ -243,7 +247,7 @@ public sealed class ConfigWindow : Window, IDisposable
             "Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text.");
 
         var scrollIndicatorStyle = Math.Clamp(configuration.ScrollIndicatorStyle, 0, ScrollIndicatorStyles.Length - 1);
-        if (ImGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
+        if (UiGui.Combo("Chat scroll indicator style", ref scrollIndicatorStyle, ScrollIndicatorStyles, ScrollIndicatorStyles.Length))
         {
             configuration.ScrollIndicatorStyle = scrollIndicatorStyle;
             changed = true;
@@ -257,9 +261,9 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.Separator();
-        ImGui.TextDisabled("Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode.");
-        ImGui.TextDisabled("The / and Enter focus shortcuts only apply while the ultra compact window is already open.");
-        ImGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb.");
+        UiGui.TextDisabled("Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode.");
+        UiGui.TextDisabled("The / and Enter focus shortcuts only apply while the ultra compact window is already open.");
+        UiGui.TextDisabled("Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb.");
     }
 
     private void DrawIncomingChannelSettings()
@@ -267,7 +271,7 @@ public sealed class ConfigWindow : Window, IDisposable
         var changed = false;
         var configuration = plugin.Configuration;
 
-        ImGui.TextUnformatted("Incoming and channel behavior");
+        UiGui.TextUnformatted("Incoming and channel behavior");
         changed |= DrawCheckbox(
             "Skip messages from my own character",
             configuration.SkipOwnMessages,
@@ -299,7 +303,7 @@ public sealed class ConfigWindow : Window, IDisposable
             configuration.Save();
 
         ImGui.Separator();
-        ImGui.TextDisabled("Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
+        UiGui.TextDisabled("Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here.");
     }
 
     private void DrawProviderSettings()
@@ -307,11 +311,11 @@ public sealed class ConfigWindow : Window, IDisposable
         var changed = false;
         var configuration = plugin.Configuration;
 
-        ImGui.TextUnformatted("Translation provider and timeout");
-        ImGui.TextWrapped("DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line.");
+        UiGui.TextUnformatted("Translation provider and timeout");
+        UiGui.TextWrapped("DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line.");
 
         var requestTimeoutSeconds = configuration.RequestTimeoutSeconds;
-        if (ImGui.SliderInt("Request timeout seconds", ref requestTimeoutSeconds, 5, 60))
+        if (UiGui.SliderInt("Request timeout seconds", ref requestTimeoutSeconds, 5, 60))
         {
             configuration.RequestTimeoutSeconds = requestTimeoutSeconds;
             changed = true;
@@ -319,14 +323,14 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Maximum time DhogGPT waits for a single translation request before treating it as failed.");
 
         var providerEndpoints = configuration.ProviderEndpoints;
-        if (ImGui.InputTextMultiline("Endpoints", ref providerEndpoints, 4000, new Vector2(-1f, 140f)))
+        if (UiGui.InputTextMultiline("Endpoints", ref providerEndpoints, 4000, new Vector2(-1f, 140f)))
         {
             configuration.ProviderEndpoints = providerEndpoints;
             changed = true;
         }
         DrawTooltipOnLastItem("Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable.");
 
-        if (ImGui.Button("Reset fallback endpoints"))
+        if (UiGui.Button("Reset fallback endpoints"))
         {
             configuration.ProviderEndpoints =
                 "https://translate.argosopentech.com" + Environment.NewLine +
@@ -344,13 +348,13 @@ public sealed class ConfigWindow : Window, IDisposable
         var configuration = plugin.Configuration;
         var changed = false;
 
-        ImGui.TextUnformatted("Advanced and diagnostics");
-        if (ImGui.Button("Open first-use guide"))
+        UiGui.TextUnformatted("Advanced and diagnostics");
+        if (UiGui.Button("Open first-use guide"))
             plugin.OpenFirstUseGuide();
         DrawTooltipOnLastItem("Reopen the first-use guide window.");
 
         var dtrBarEnabled = configuration.DtrBarEnabled;
-        if (ImGui.Checkbox("Show DTR bar entry", ref dtrBarEnabled))
+        if (UiGui.Checkbox("Show DTR bar entry", ref dtrBarEnabled))
         {
             configuration.DtrBarEnabled = dtrBarEnabled;
             changed = true;
@@ -358,7 +362,7 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Show or hide the DhogGPT entry in the Dalamud DTR bar.");
 
         var dtrMode = configuration.DtrBarMode;
-        if (ImGui.Combo("DTR mode", ref dtrMode, DtrModes, DtrModes.Length))
+        if (UiGui.Combo("DTR mode", ref dtrMode, DtrModes, DtrModes.Length))
         {
             configuration.DtrBarMode = dtrMode;
             changed = true;
@@ -366,7 +370,7 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Choose whether the DTR entry shows text, icon plus text, or icon only.");
 
         var enabledGlyph = configuration.DtrIconEnabled;
-        if (ImGui.InputText("DTR enabled glyph", ref enabledGlyph, 8))
+        if (UiGui.InputText("DTR enabled glyph", ref enabledGlyph, 8))
         {
             configuration.DtrIconEnabled = enabledGlyph.Length <= 3 ? enabledGlyph : enabledGlyph[..3];
             changed = true;
@@ -374,7 +378,7 @@ public sealed class ConfigWindow : Window, IDisposable
         DrawTooltipOnLastItem("Glyph used for the DTR entry while DhogGPT is enabled.");
 
         var disabledGlyph = configuration.DtrIconDisabled;
-        if (ImGui.InputText("DTR disabled glyph", ref disabledGlyph, 8))
+        if (UiGui.InputText("DTR disabled glyph", ref disabledGlyph, 8))
         {
             configuration.DtrIconDisabled = disabledGlyph.Length <= 3 ? disabledGlyph : disabledGlyph[..3];
             changed = true;
@@ -393,7 +397,7 @@ public sealed class ConfigWindow : Window, IDisposable
             "Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem.");
 
         var historyLimit = configuration.HistoryLimit;
-        if (ImGui.SliderInt("History entries to keep", ref historyLimit, 5, 200))
+        if (UiGui.SliderInt("History entries to keep", ref historyLimit, 5, 200))
         {
             configuration.HistoryLimit = historyLimit;
             changed = true;
@@ -406,7 +410,7 @@ public sealed class ConfigWindow : Window, IDisposable
             plugin.UpdateDtrBar();
         }
 
-        if (ImGui.SmallButton("Open chat log folder"))
+        if (UiGui.SmallButton("Open chat log folder"))
         {
             var logDirectory = Path.Combine(Plugin.PluginInterface.ConfigDirectory.FullName, "Data", "ChatLogs");
             Directory.CreateDirectory(logDirectory);
@@ -414,14 +418,14 @@ public sealed class ConfigWindow : Window, IDisposable
         }
         DrawTooltipOnLastItem("Open DhogGPT's per-character chat-log folder on disk.");
 
-        ImGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
-        ImGui.TextDisabled(Plugin.DiscordFeedbackNote);
+        UiGui.TextDisabled("Chat logs are stored per account and character under the plugin config Data\\ChatLogs folder.");
+        UiGui.TextDisabled(Plugin.DiscordFeedbackNote);
     }
 
     private void TrackWindowPosition()
     {
         var currentPosition = ImGui.GetWindowPos();
-        var currentSize = ImGui.GetWindowSize();
+        var currentSize = windowMotion.GetLogicalSize();
         lastObservedWindowSize = currentSize;
         if (pendingSavedPositionApply)
         {
@@ -549,7 +553,7 @@ public sealed class ConfigWindow : Window, IDisposable
     private static bool DrawCheckbox(string label, bool value, Action<bool> setter, string tooltip)
     {
         var localValue = value;
-        var changed = ImGui.Checkbox(label, ref localValue);
+        var changed = UiGui.Checkbox(label, ref localValue);
         DrawTooltipOnLastItem(tooltip);
         if (!changed)
             return false;
@@ -564,12 +568,12 @@ public sealed class ConfigWindow : Window, IDisposable
         var options = includeAuto ? languageRegistry.GetSourceLanguages() : languageRegistry.GetTargetLanguages();
         var displayName = languageRegistry.GetName(currentCode);
 
-        if (ImGui.BeginCombo(label, displayName))
+        if (UiGui.BeginCombo(label, displayName))
         {
             foreach (var option in options)
             {
                 var isSelected = option.Code.Equals(currentCode, StringComparison.OrdinalIgnoreCase);
-                if (ImGui.Selectable(option.Name, isSelected))
+                if (UiGui.Selectable(option.Name, isSelected))
                 {
                     setter(option.Code);
                     changed = true;
@@ -590,16 +594,16 @@ public sealed class ConfigWindow : Window, IDisposable
     {
         var changed = false;
         ImGui.Separator();
-        ImGui.TextUnformatted("Custom ultra compact message and tab colors");
+        UiGui.TextUnformatted("Custom ultra compact message and tab colors");
         ImGui.Spacing();
-        ImGui.TextUnformatted("Messages");
+        UiGui.TextUnformatted("Messages");
         changed |= DrawColorPicker("Inbound header", colors.GetInboundHeader(), colors.SetInboundHeader, "Color used for inbound message header lines.");
         changed |= DrawColorPicker("Inbound translation", colors.GetInboundTranslation(), colors.SetInboundTranslation, "Color used for inbound translated lines.");
         changed |= DrawColorPicker("Outbound header", colors.GetOutboundHeader(), colors.SetOutboundHeader, "Color used for outbound message header lines.");
         changed |= DrawColorPicker("Outbound translation", colors.GetOutboundTranslation(), colors.SetOutboundTranslation, "Color used for outbound translated lines.");
         changed |= DrawColorPicker("Error", colors.GetError(), colors.SetError, "Color used for translation failure text.");
         ImGui.Spacing();
-        ImGui.TextUnformatted("Conversation tabs");
+        UiGui.TextUnformatted("Conversation tabs");
         changed |= DrawColorPicker("Tab", colors.GetTab(), colors.SetTab, "Background color for inactive conversation tabs.");
         changed |= DrawColorPicker("Tab hovered", colors.GetTabHovered(), colors.SetTabHovered, "Background color when hovering a conversation tab.");
         changed |= DrawColorPicker("Tab active", colors.GetTabActive(), colors.SetTabActive, "Background color for the selected conversation tab.");
@@ -613,7 +617,7 @@ public sealed class ConfigWindow : Window, IDisposable
     private static bool DrawColorPicker(string label, Vector4 currentValue, Action<Vector4> setter, string tooltip)
     {
         var color = currentValue;
-        var changed = ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar);
+        var changed = UiGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar);
         DrawTooltipOnLastItem(tooltip);
         if (!changed)
             return false;
@@ -628,6 +632,6 @@ public sealed class ConfigWindow : Window, IDisposable
             return;
 
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-            ImGui.SetTooltip(tooltip);
+            UiGui.SetTooltip(tooltip);
     }
 }

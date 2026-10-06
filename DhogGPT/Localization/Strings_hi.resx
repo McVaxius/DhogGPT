@@ -1,0 +1,948 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="{0:F0} ms" xml:space="preserve">
+    <value>{0:F0} ms</value>
+  </data>
+  <data name="{0}" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="{0} / 2000" xml:space="preserve">
+    <value>{0} / 2000</value>
+  </data>
+  <data name="A DM target is required." xml:space="preserve">
+    <value>DM का प्राप्तकर्ता आवश्यक है।</value>
+  </data>
+  <data name="Adds the channel label such as Party, FC, or Tell into DhogGPT's Echo mirror output." xml:space="preserve">
+    <value>DhogGPT के Echo आउटपुट में Party, FC या Tell जैसे चैनल का नाम जोड़ता है।</value>
+  </data>
+  <data name="Adds the sender identity into DhogGPT's Echo mirror for translated incoming chat." xml:space="preserve">
+    <value>अनुवादित आने वाले चैट के लिए DhogGPT के Echo आउटपुट में भेजने वाले की पहचान जोड़ता है।</value>
+  </data>
+  <data name="Advanced" xml:space="preserve">
+    <value>उन्नत</value>
+  </data>
+  <data name="Advanced and diagnostics" xml:space="preserve">
+    <value>उन्नत और निदान</value>
+  </data>
+  <data name="Alliance" xml:space="preserve">
+    <value>एलायंस</value>
+  </data>
+  <data name="Already detached" xml:space="preserve">
+    <value>पहले से अलग विंडो में</value>
+  </data>
+  <data name="Applies display-only Krangling to names inside the DhogGPT UI without changing the real game chat." xml:space="preserve">
+    <value>वास्तविक गेम चैट बदले बिना DhogGPT UI में नामों पर केवल दिखने वाला Krangling लागू करता है।</value>
+  </data>
+  <data name="At least one channel tab must remain visible." xml:space="preserve">
+    <value>कम से कम एक चैनल टैब दिखाई देना चाहिए।</value>
+  </data>
+  <data name="Autodetect" xml:space="preserve">
+    <value>अपने आप पहचानें</value>
+  </data>
+  <data name="Background color for inactive conversation tabs." xml:space="preserve">
+    <value>निष्क्रिय बातचीत टैब की पृष्ठभूमि का रंग।</value>
+  </data>
+  <data name="Background color for inactive tabs while the window is unfocused." xml:space="preserve">
+    <value>विंडो पर फोकस न होने पर निष्क्रिय टैब की पृष्ठभूमि का रंग।</value>
+  </data>
+  <data name="Background color for the selected conversation tab." xml:space="preserve">
+    <value>चुने गए बातचीत टैब की पृष्ठभूमि का रंग।</value>
+  </data>
+  <data name="Background color for the selected tab while the window is unfocused." xml:space="preserve">
+    <value>विंडो पर फोकस न होने पर चुने गए टैब की पृष्ठभूमि का रंग।</value>
+  </data>
+  <data name="Background color when hovering a conversation tab." xml:space="preserve">
+    <value>बातचीत टैब पर माउस रखने पर पृष्ठभूमि का रंग।</value>
+  </data>
+  <data name="Background opacity" xml:space="preserve">
+    <value>पृष्ठभूमि की अपारदर्शिता</value>
+  </data>
+  <data name="Blue" xml:space="preserve">
+    <value>नीला</value>
+  </data>
+  <data name="Brings DhogGPT to the front when a new incoming tell is observed." xml:space="preserve">
+    <value>नया आने वाला Tell मिलने पर DhogGPT को सामने लाता है।</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Centered wedges" xml:space="preserve">
+    <value>बीच में पच्चर</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>चैनल</value>
+  </data>
+  <data name="Chat" xml:space="preserve">
+    <value>चैट</value>
+  </data>
+  <data name="Chat scroll indicator style" xml:space="preserve">
+    <value>चैट स्क्रॉल संकेतक की शैली</value>
+  </data>
+  <data name="Chat translation for FFXIV" xml:space="preserve">
+    <value>FFXIV के लिए चैट अनुवाद</value>
+  </data>
+  <data name="Choose the default look for hidden-scroll hints in the conversation body." xml:space="preserve">
+    <value>बातचीत में छिपे स्क्रॉल संकेतों का डिफ़ॉल्ट रूप चुनें।</value>
+  </data>
+  <data name="Choose whether the DTR entry shows text, icon plus text, or icon only." xml:space="preserve">
+    <value>चुनें कि DTR प्रविष्टि में टेक्स्ट, आइकन और टेक्स्ट या केवल आइकन दिखे।</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>साफ़ करें</value>
+  </data>
+  <data name="Click the DTR entry to open the DhogGPT main window." xml:space="preserve">
+    <value>DhogGPT की मुख्य विंडो खोलने के लिए DTR प्रविष्टि पर क्लिक करें।</value>
+  </data>
+  <data name="Click to pin this DM tab." xml:space="preserve">
+    <value>इस DM टैब को पिन करने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Click x to release the combined tab back into separate channels." xml:space="preserve">
+    <value>जुड़े टैब को अलग चैनलों में वापस बाँटने के लिए x पर क्लिक करें।</value>
+  </data>
+  <data name="Close DM" xml:space="preserve">
+    <value>DM बंद करें</value>
+  </data>
+  <data name="Close pinned DM (hold Ctrl + click x)" xml:space="preserve">
+    <value>पिन किया DM बंद करें (Ctrl दबाकर x पर क्लिक करें)</value>
+  </data>
+  <data name="Close this guide and mark it as seen." xml:space="preserve">
+    <value>यह मार्गदर्शिका बंद करें और इसे देखा हुआ चिह्नित करें।</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>रंग</value>
+  </data>
+  <data name="Color used for inbound message header lines." xml:space="preserve">
+    <value>आने वाले संदेशों की शीर्षक पंक्तियों का रंग।</value>
+  </data>
+  <data name="Color used for inbound translated lines." xml:space="preserve">
+    <value>आने वाली अनुवादित पंक्तियों का रंग।</value>
+  </data>
+  <data name="Color used for outbound message header lines." xml:space="preserve">
+    <value>भेजे गए संदेशों की शीर्षक पंक्तियों का रंग।</value>
+  </data>
+  <data name="Color used for outbound translated lines." xml:space="preserve">
+    <value>भेजी गई अनुवादित पंक्तियों का रंग।</value>
+  </data>
+  <data name="Color used for translation failure text." xml:space="preserve">
+    <value>अनुवाद विफलता के टेक्स्ट का रंग।</value>
+  </data>
+  <data name="Combine with" xml:space="preserve">
+    <value>इसके साथ जोड़ें</value>
+  </data>
+  <data name="Common DhogGPT settings" xml:space="preserve">
+    <value>DhogGPT की सामान्य सेटिंग्स</value>
+  </data>
+  <data name="Compact and Super Compact are deprecated. DhogGPT now supports Regular mode and Ultra compact mode." xml:space="preserve">
+    <value>Compact और Super Compact पुराने मोड हैं। DhogGPT अब सामान्य मोड और अत्यंत संक्षिप्त मोड का समर्थन करता है।</value>
+  </data>
+  <data name="Compact mode" xml:space="preserve">
+    <value>संक्षिप्त मोड</value>
+  </data>
+  <data name="Controls ultra compact message colors and the conversation tab palette." xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड के संदेश रंग और बातचीत टैब के रंग नियंत्रित करता है।</value>
+  </data>
+  <data name="Conversation tabs" xml:space="preserve">
+    <value>बातचीत टैब</value>
+  </data>
+  <data name="Copy both" xml:space="preserve">
+    <value>दोनों कॉपी करें</value>
+  </data>
+  <data name="Copy DM target" xml:space="preserve">
+    <value>DM प्राप्तकर्ता कॉपी करें</value>
+  </data>
+  <data name="Copy original" xml:space="preserve">
+    <value>मूल कॉपी करें</value>
+  </data>
+  <data name="Copy translation" xml:space="preserve">
+    <value>अनुवाद कॉपी करें</value>
+  </data>
+  <data name="Cross-world linkshells" xml:space="preserve">
+    <value>क्रॉस-वर्ल्ड लिंकशेल</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>कस्टम</value>
+  </data>
+  <data name="Custom RGB" xml:space="preserve">
+    <value>कस्टम RGB</value>
+  </data>
+  <data name="Custom ultra compact message and tab colors" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड के कस्टम संदेश और टैब रंग</value>
+  </data>
+  <data name="DhogGPT {0}. Click to open the main window." xml:space="preserve">
+    <value>DhogGPT {0}। मुख्य विंडो खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT." xml:space="preserve">
+    <value>DhogGPT अब डिफ़ॉल्ट रूप से अत्यंत संक्षिप्त मोड में चलता है। अनुवादित बातचीत टैब में दिखती है, नीचे का संदेश बॉक्स मुख्य विंडो से अनुवादित चैट भेजता है, और सेटिंग्स में आप चुन सकते हैं कि गेम की मूल चैट DhogGPT के साथ दिखे या नहीं।</value>
+  </data>
+  <data name="DhogGPT Settings v{0}" xml:space="preserve">
+    <value>DhogGPT सेटिंग्स v{0}</value>
+  </data>
+  <data name="DhogGPT tries a Google-style no-key web translation endpoint first. If that path fails, it falls back to the LibreTranslate-compatible endpoints listed below, one per line." xml:space="preserve">
+    <value>DhogGPT पहले Google जैसी बिना कुंजी वाली वेब अनुवाद सेवा आज़माता है। उसके विफल होने पर नीचे दिए LibreTranslate-संगत एंडपॉइंट इस्तेमाल करता है, हर पंक्ति में एक।</value>
+  </data>
+  <data name="Disable vanilla chat window while Ultra Compact is on" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड में गेम की मूल चैट विंडो छिपाएँ</value>
+  </data>
+  <data name="Discord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DM" xml:space="preserve">
+    <value>DM</value>
+  </data>
+  <data name="DM / tell" xml:space="preserve">
+    <value>DM / Tell</value>
+  </data>
+  <data name="DM target must include a world name after @." xml:space="preserve">
+    <value>DM प्राप्तकर्ता में @ के बाद वर्ल्ड का नाम होना चाहिए।</value>
+  </data>
+  <data name="DM target must include first and last name." xml:space="preserve">
+    <value>DM प्राप्तकर्ता में पहला और अंतिम नाम होना चाहिए।</value>
+  </data>
+  <data name="DM target must use First Last@World." xml:space="preserve">
+    <value>DM प्राप्तकर्ता का रूप First Last@World होना चाहिए।</value>
+  </data>
+  <data name="DTR Bar" xml:space="preserve">
+    <value>DTR बार</value>
+  </data>
+  <data name="DTR disabled glyph" xml:space="preserve">
+    <value>बंद होने पर DTR चिह्न</value>
+  </data>
+  <data name="DTR enabled glyph" xml:space="preserve">
+    <value>चालू होने पर DTR चिह्न</value>
+  </data>
+  <data name="DTR mode" xml:space="preserve">
+    <value>DTR मोड</value>
+  </data>
+  <data name="Echo" xml:space="preserve">
+    <value>Echo</value>
+  </data>
+  <data name="Emote" xml:space="preserve">
+    <value>भाव-क्रिया</value>
+  </data>
+  <data name="Enable debug logging" xml:space="preserve">
+    <value>डिबग लॉगिंग चालू करें</value>
+  </data>
+  <data name="Enable translation for cross-world linkshell channels CWLS1-CWLS8." xml:space="preserve">
+    <value>क्रॉस-वर्ल्ड लिंकशेल चैनल CWLS1-CWLS8 के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Free Company chat." xml:space="preserve">
+    <value>Free Company चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for incoming and outgoing tells." xml:space="preserve">
+    <value>आने और जाने वाले Tell के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for linkshell channels LS1-LS8." xml:space="preserve">
+    <value>लिंकशेल चैनल LS1-LS8 के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Novice Network chat." xml:space="preserve">
+    <value>Novice Network चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Party, Cross-party, and Alliance chat." xml:space="preserve">
+    <value>Party, Cross-party और Alliance चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for PvP Team chat." xml:space="preserve">
+    <value>PvP Team चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Say chat." xml:space="preserve">
+    <value>Say चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Shout chat." xml:space="preserve">
+    <value>Shout चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for standard and custom emote chat lines." xml:space="preserve">
+    <value>मानक और कस्टम भाव-क्रिया चैट पंक्तियों के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enable translation for Yell chat." xml:space="preserve">
+    <value>Yell चैट के लिए अनुवाद चालू करें।</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>चालू</value>
+  </data>
+  <data name="Endpoints" xml:space="preserve">
+    <value>एंडपॉइंट</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>त्रुटि</value>
+  </data>
+  <data name="Events" xml:space="preserve">
+    <value>घटनाएँ</value>
+  </data>
+  <data name="Everyday" xml:space="preserve">
+    <value>रोज़मर्रा</value>
+  </data>
+  <data name="Faded chatbox edit opacity" xml:space="preserve">
+    <value>फीके चैट बॉक्स की संपादन अपारदर्शिता</value>
+  </data>
+  <data name="Fail" xml:space="preserve">
+    <value>विफल</value>
+  </data>
+  <data name="Fallback LibreTranslate-style endpoints, one per line, used when the primary web route is unavailable." xml:space="preserve">
+    <value>मुख्य वेब सेवा अनुपलब्ध होने पर इस्तेमाल होने वाले LibreTranslate जैसे वैकल्पिक एंडपॉइंट, हर पंक्ति में एक।</value>
+  </data>
+  <data name="First Last@World" xml:space="preserve">
+    <value>First Last@World</value>
+  </data>
+  <data name="Focused or hovered opacity" xml:space="preserve">
+    <value>फोकस या माउस होने पर अपारदर्शिता</value>
+  </data>
+  <data name="Free company" xml:space="preserve">
+    <value>Free Company</value>
+  </data>
+  <data name="Free trial accounts cannot send DMs." xml:space="preserve">
+    <value>फ़्री ट्रायल खाते DM नहीं भेज सकते।</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>से</value>
+  </data>
+  <data name="Glyph used for the DTR entry while DhogGPT is disabled." xml:space="preserve">
+    <value>DhogGPT बंद होने पर DTR प्रविष्टि में दिखने वाला चिह्न।</value>
+  </data>
+  <data name="Glyph used for the DTR entry while DhogGPT is enabled." xml:space="preserve">
+    <value>DhogGPT चालू होने पर DTR प्रविष्टि में दिखने वाला चिह्न।</value>
+  </data>
+  <data name="Got it" xml:space="preserve">
+    <value>समझ गया</value>
+  </data>
+  <data name="Guide" xml:space="preserve">
+    <value>मार्गदर्शिका</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>छिपा हुआ</value>
+  </data>
+  <data name="High contrast" xml:space="preserve">
+    <value>अधिक कंट्रास्ट</value>
+  </data>
+  <data name="History entries to keep" xml:space="preserve">
+    <value>रखने वाली इतिहास प्रविष्टियाँ</value>
+  </data>
+  <data name="Hold Ctrl and click x to hide this channel tab." xml:space="preserve">
+    <value>यह चैनल टैब छिपाने के लिए Ctrl दबाकर x पर क्लिक करें।</value>
+  </data>
+  <data name="Hold Ctrl while clicking x to hide a channel tab." xml:space="preserve">
+    <value>चैनल टैब छिपाने के लिए x पर क्लिक करते समय Ctrl दबाएँ।</value>
+  </data>
+  <data name="Icon + text" xml:space="preserve">
+    <value>आइकन और टेक्स्ट</value>
+  </data>
+  <data name="Icon only" xml:space="preserve">
+    <value>केवल आइकन</value>
+  </data>
+  <data name="Inbound header" xml:space="preserve">
+    <value>आने वाले संदेश का शीर्षक</value>
+  </data>
+  <data name="Inbound translation" xml:space="preserve">
+    <value>आने वाला अनुवाद</value>
+  </data>
+  <data name="Include channel label in translated Echo output" xml:space="preserve">
+    <value>अनुवादित Echo आउटपुट में चैनल का नाम जोड़ें</value>
+  </data>
+  <data name="Include sender name in translated Echo output" xml:space="preserve">
+    <value>अनुवादित Echo आउटपुट में भेजने वाले का नाम जोड़ें</value>
+  </data>
+  <data name="Incoming" xml:space="preserve">
+    <value>आने वाला</value>
+  </data>
+  <data name="Incoming and channel behavior" xml:space="preserve">
+    <value>आने वाले संदेश और चैनल का व्यवहार</value>
+  </data>
+  <data name="Incoming source language" xml:space="preserve">
+    <value>आने वाले संदेश की स्रोत भाषा</value>
+  </data>
+  <data name="Incoming target language" xml:space="preserve">
+    <value>आने वाले संदेश की लक्ष्य भाषा</value>
+  </data>
+  <data name="Jobs" xml:space="preserve">
+    <value>जॉब</value>
+  </data>
+  <data name="Keep windows on current game screen" xml:space="preserve">
+    <value>विंडो वर्तमान गेम स्क्रीन पर रखें</value>
+  </data>
+  <data name="Keeps the game's vanilla chat hidden while DhogGPT ultra compact mode is active. Leave this on if you want DhogGPT to fully take over; turn it off if you want both chat windows visible." xml:space="preserve">
+    <value>DhogGPT के अत्यंत संक्षिप्त मोड में गेम की मूल चैट छिपाता है। केवल DhogGPT इस्तेमाल करने के लिए इसे चालू रखें; दोनों चैट विंडो दिखाने के लिए बंद करें।</value>
+  </data>
+  <data name="Ko-fi" xml:space="preserve">
+    <value>Ko-fi</value>
+  </data>
+  <data name="Krangle names in chat UI" xml:space="preserve">
+    <value>चैट UI में नामों पर Krangle लागू करें</value>
+  </data>
+  <data name="Krangle names is off." xml:space="preserve">
+    <value>नामों पर Krangle बंद है।</value>
+  </data>
+  <data name="Krangle names is on." xml:space="preserve">
+    <value>नामों पर Krangle चालू है।</value>
+  </data>
+  <data name="Krangle Names: Off" xml:space="preserve">
+    <value>नामों पर Krangle: बंद</value>
+  </data>
+  <data name="Krangle Names: On" xml:space="preserve">
+    <value>नामों पर Krangle: चालू</value>
+  </data>
+  <data name="Language assumption for incoming messages. Leave this on Auto unless you know the source language ahead of time." xml:space="preserve">
+    <value>आने वाले संदेशों की अनुमानित भाषा। स्रोत भाषा पहले से न पता हो तो इसे अपने आप पहचानने पर रखें।</value>
+  </data>
+  <data name="Language that incoming translations should be rendered into." xml:space="preserve">
+    <value>जिस भाषा में आने वाले अनुवाद दिखाए जाएँ।</value>
+  </data>
+  <data name="Last error: {0}" xml:space="preserve">
+    <value>पिछली त्रुटि: {0}</value>
+  </data>
+  <data name="Latency" xml:space="preserve">
+    <value>विलंब</value>
+  </data>
+  <data name="Legacy arrows" xml:space="preserve">
+    <value>पुराने तीर</value>
+  </data>
+  <data name="Linkshells" xml:space="preserve">
+    <value>लिंकशेल</value>
+  </data>
+  <data name="Loading UI fonts..." xml:space="preserve">
+    <value>UI फ़ॉन्ट लोड हो रहे हैं...</value>
+  </data>
+  <data name="Lock main window position" xml:space="preserve">
+    <value>मुख्य विंडो की स्थिति लॉक करें</value>
+  </data>
+  <data name="Lock main window position by default" xml:space="preserve">
+    <value>मुख्य विंडो की स्थिति डिफ़ॉल्ट रूप से लॉक करें</value>
+  </data>
+  <data name="Master DhogGPT enable switch. Incoming translation and related automation stop when this is off." xml:space="preserve">
+    <value>DhogGPT का मुख्य चालू/बंद स्विच। बंद करने पर आने वाला अनुवाद और उससे जुड़ा स्वचालन रुक जाता है।</value>
+  </data>
+  <data name="Maximum number of translated history items DhogGPT keeps in memory per loaded chat log." xml:space="preserve">
+    <value>हर लोड हुए चैट लॉग के लिए DhogGPT की मेमोरी में रखी जाने वाली अधिकतम अनुवादित इतिहास प्रविष्टियाँ।</value>
+  </data>
+  <data name="Maximum time DhogGPT waits for a single translation request before treating it as failed." xml:space="preserve">
+    <value>एक अनुवाद अनुरोध को विफल मानने से पहले DhogGPT जितना अधिकतम समय प्रतीक्षा करता है।</value>
+  </data>
+  <data name="Me" xml:space="preserve">
+    <value>मैं</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>संदेश</value>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>संदेश</value>
+  </data>
+  <data name="Neon night" xml:space="preserve">
+    <value>नियॉन रात</value>
+  </data>
+  <data name="New DM" xml:space="preserve">
+    <value>नया DM</value>
+  </data>
+  <data name="No channels are hidden." xml:space="preserve">
+    <value>कोई चैनल छिपा नहीं है।</value>
+  </data>
+  <data name="No eligible channels" xml:space="preserve">
+    <value>कोई पात्र चैनल नहीं</value>
+  </data>
+  <data name="No recent DMs matched." xml:space="preserve">
+    <value>हाल का कोई DM मेल नहीं खाता।</value>
+  </data>
+  <data name="No translated chat has been logged for this tab yet." xml:space="preserve">
+    <value>इस टैब में अभी कोई अनुवादित चैट दर्ज नहीं हुई है।</value>
+  </data>
+  <data name="No translation" xml:space="preserve">
+    <value>कोई अनुवाद नहीं</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>बंद</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>चालू</value>
+  </data>
+  <data name="Opacity after you click away from the DhogGPT main window." xml:space="preserve">
+    <value>DhogGPT की मुख्य विंडो से बाहर क्लिक करने के बाद की अपारदर्शिता।</value>
+  </data>
+  <data name="Opacity of the bottom chatbox entry area when DhogGPT is faded and you are not actively typing. While you are typing, the composer stays fully opaque." xml:space="preserve">
+    <value>DhogGPT फीका होने और टाइप न करने पर नीचे के चैट बॉक्स की अपारदर्शिता। टाइप करते समय संदेश बॉक्स पूरी तरह अपारदर्शी रहता है।</value>
+  </data>
+  <data name="Opacity while the DhogGPT main window is hovered or focused." xml:space="preserve">
+    <value>DhogGPT की मुख्य विंडो पर माउस या फोकस होने पर की अपारदर्शिता।</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>खोलें</value>
+  </data>
+  <data name="Open a DM by entering First Last@World." xml:space="preserve">
+    <value>First Last@World लिखकर DM खोलें।</value>
+  </data>
+  <data name="Open a new DM." xml:space="preserve">
+    <value>नया DM खोलें।</value>
+  </data>
+  <data name="Open chat log folder" xml:space="preserve">
+    <value>चैट लॉग फ़ोल्डर खोलें</value>
+  </data>
+  <data name="Open DhogGPT settings." xml:space="preserve">
+    <value>DhogGPT सेटिंग्स खोलें।</value>
+  </data>
+  <data name="Open DhogGPT's per-character chat-log folder on disk." xml:space="preserve">
+    <value>डिस्क पर DhogGPT का इस कैरेक्टर का चैट लॉग फ़ोल्डर खोलें।</value>
+  </data>
+  <data name="Open first-use guide" xml:space="preserve">
+    <value>पहली बार की मार्गदर्शिका खोलें</value>
+  </data>
+  <data name="Open main window" xml:space="preserve">
+    <value>मुख्य विंडो खोलें</value>
+  </data>
+  <data name="Open main window when a character loads" xml:space="preserve">
+    <value>कैरेक्टर लोड होने पर मुख्य विंडो खोलें</value>
+  </data>
+  <data name="Open main window when a DM arrives" xml:space="preserve">
+    <value>DM आने पर मुख्य विंडो खोलें</value>
+  </data>
+  <data name="Open settings" xml:space="preserve">
+    <value>सेटिंग्स खोलें</value>
+  </data>
+  <data name="Open the DhogGPT Discord server." xml:space="preserve">
+    <value>DhogGPT का Discord सर्वर खोलें।</value>
+  </data>
+  <data name="Open the DhogGPT main chat window." xml:space="preserve">
+    <value>DhogGPT की मुख्य चैट विंडो खोलें।</value>
+  </data>
+  <data name="Open the DhogGPT settings window." xml:space="preserve">
+    <value>DhogGPT की सेटिंग्स विंडो खोलें।</value>
+  </data>
+  <data name="Open the DhogGPT support page." xml:space="preserve">
+    <value>DhogGPT का सहायता पेज खोलें।</value>
+  </data>
+  <data name="Open the first-use guide again." xml:space="preserve">
+    <value>पहली बार की मार्गदर्शिका फिर खोलें।</value>
+  </data>
+  <data name="Open the main window with /dhoggpt, /dgpt, or /dog." xml:space="preserve">
+    <value>/dhoggpt, /dgpt या /dog से मुख्य विंडो खोलें।</value>
+  </data>
+  <data name="Outbound header" xml:space="preserve">
+    <value>भेजे गए संदेश का शीर्षक</value>
+  </data>
+  <data name="Outbound translation" xml:space="preserve">
+    <value>भेजा गया अनुवाद</value>
+  </data>
+  <data name="Outgoing" xml:space="preserve">
+    <value>जाने वाला</value>
+  </data>
+  <data name="Outgoing translation" xml:space="preserve">
+    <value>जाने वाले संदेश का अनुवाद</value>
+  </data>
+  <data name="Party" xml:space="preserve">
+    <value>पार्टी</value>
+  </data>
+  <data name="Pick incoming and outgoing languages in Settings. Leave source on Auto unless you know it." xml:space="preserve">
+    <value>सेटिंग्स में आने और जाने वाले संदेशों की भाषाएँ चुनें। स्रोत न पता हो तो उसे अपने आप पहचानने पर रखें।</value>
+  </data>
+  <data name="Pin conversation" xml:space="preserve">
+    <value>बातचीत पिन करें</value>
+  </data>
+  <data name="Pink" xml:space="preserve">
+    <value>गुलाबी</value>
+  </data>
+  <data name="Pinned DM tab. Click to unpin." xml:space="preserve">
+    <value>पिन किया DM टैब। अनपिन करने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Pinned DM tabs require Ctrl while clicking x to close." xml:space="preserve">
+    <value>पिन किए DM टैब को बंद करने के लिए x पर क्लिक करते समय Ctrl दबाना होगा।</value>
+  </data>
+  <data name="Plugin enabled" xml:space="preserve">
+    <value>प्लगइन चालू</value>
+  </data>
+  <data name="Press / or Enter while ultra compact mode is open but unfocused to jump straight back into the DhogGPT composer." xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड की खुली विंडो पर फोकस न हो तो / या Enter दबाकर सीधे DhogGPT के संदेश बॉक्स में लौटें।</value>
+  </data>
+  <data name="Prevents DhogGPT from translating messages that appear to come from your own character." xml:space="preserve">
+    <value>आपके अपने कैरेक्टर से आए लगने वाले संदेशों का DhogGPT में अनुवाद रोकता है।</value>
+  </data>
+  <data name="Preview ready from cache." xml:space="preserve">
+    <value>कैश से पूर्वावलोकन तैयार है।</value>
+  </data>
+  <data name="Preview ready." xml:space="preserve">
+    <value>पूर्वावलोकन तैयार है।</value>
+  </data>
+  <data name="Preview translation" xml:space="preserve">
+    <value>अनुवाद का पूर्वावलोकन</value>
+  </data>
+  <data name="Preview will appear here." xml:space="preserve">
+    <value>पूर्वावलोकन यहाँ दिखेगा।</value>
+  </data>
+  <data name="Previewing without translation..." xml:space="preserve">
+    <value>बिना अनुवाद के पूर्वावलोकन हो रहा है...</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>प्रदाता</value>
+  </data>
+  <data name="Providers" xml:space="preserve">
+    <value>प्रदाता</value>
+  </data>
+  <data name="PvP team" xml:space="preserve">
+    <value>PvP टीम</value>
+  </data>
+  <data name="Raw slash commands typed into DhogGPT send directly and leave a Safe breadcrumb instead of going through translation." xml:space="preserve">
+    <value>DhogGPT में लिखे स्लैश कमांड सीधे भेजे जाते हैं और अनुवाद करने के बजाय Safe में निशान छोड़ते हैं।</value>
+  </data>
+  <data name="Regular mode still keeps the fuller translator surface available, but compact and super compact are deprecated and now route into ultra compact. If one translation endpoint fails, DhogGPT automatically rolls to the next configured fallback." xml:space="preserve">
+    <value>सामान्य मोड में पूरा अनुवाद इंटरफ़ेस उपलब्ध है, लेकिन पुराने Compact और Super Compact मोड अब अत्यंत संक्षिप्त मोड खोलते हैं। एक अनुवाद एंडपॉइंट विफल होने पर DhogGPT अगले निर्धारित विकल्प पर जाता है।</value>
+  </data>
+  <data name="Release combined channels" xml:space="preserve">
+    <value>जुड़े चैनल अलग करें</value>
+  </data>
+  <data name="Reopen recent DM tabs." xml:space="preserve">
+    <value>हाल के DM टैब फिर खोलें।</value>
+  </data>
+  <data name="Reopen the first-use guide window." xml:space="preserve">
+    <value>पहली बार की मार्गदर्शिका विंडो फिर खोलें।</value>
+  </data>
+  <data name="Reopens the DhogGPT main window automatically on character login." xml:space="preserve">
+    <value>कैरेक्टर लॉगिन पर DhogGPT की मुख्य विंडो अपने आप खोलता है।</value>
+  </data>
+  <data name="Request timeout seconds" xml:space="preserve">
+    <value>अनुरोध का टाइमआउट (सेकंड)</value>
+  </data>
+  <data name="Reset fallback endpoints" xml:space="preserve">
+    <value>वैकल्पिक एंडपॉइंट रीसेट करें</value>
+  </data>
+  <data name="Restore the default fallback translation endpoints." xml:space="preserve">
+    <value>डिफ़ॉल्ट वैकल्पिक अनुवाद एंडपॉइंट वापस लाएँ।</value>
+  </data>
+  <data name="Role tints" xml:space="preserve">
+    <value>भूमिका के रंग</value>
+  </data>
+  <data name="Safe" xml:space="preserve">
+    <value>Safe</value>
+  </data>
+  <data name="Safe messages stay inside DhogGPT and are not sent to game chat." xml:space="preserve">
+    <value>Safe के संदेश DhogGPT के भीतर रहते हैं और गेम चैट में नहीं भेजे जाते।</value>
+  </data>
+  <data name="Safe, Echo, System, and Events are DhogGPT-owned channels. Their visibility is controlled from the main chat window instead of here." xml:space="preserve">
+    <value>Safe, Echo, System और Events DhogGPT के अपने चैनल हैं। उनकी दृश्यता यहाँ की जगह मुख्य चैट विंडो से नियंत्रित होती है।</value>
+  </data>
+  <data name="Same behavior as the main-window titlebar lock button. Useful if you almost always want DhogGPT pinned in place." xml:space="preserve">
+    <value>मुख्य विंडो की शीर्षक पट्टी के लॉक बटन जैसा व्यवहार। DhogGPT को लगभग हमेशा एक जगह रखना हो तो उपयोगी है।</value>
+  </data>
+  <data name="Same language" xml:space="preserve">
+    <value>एक ही भाषा</value>
+  </data>
+  <data name="Saved to Safe." xml:space="preserve">
+    <value>Safe में सहेजा गया।</value>
+  </data>
+  <data name="Say" xml:space="preserve">
+    <value>Say</value>
+  </data>
+  <data name="Search recent DMs" xml:space="preserve">
+    <value>हाल के DM खोजें</value>
+  </data>
+  <data name="Select a conversation before sending." xml:space="preserve">
+    <value>भेजने से पहले बातचीत चुनें।</value>
+  </data>
+  <data name="Selected tab text" xml:space="preserve">
+    <value>चुने गए टैब का टेक्स्ट</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>भेजें</value>
+  </data>
+  <data name="Sending without translation..." xml:space="preserve">
+    <value>बिना अनुवाद भेजा जा रहा है...</value>
+  </data>
+  <data name="Sent translated message to {0}." xml:space="preserve">
+    <value>अनुवादित संदेश {0} को भेजा गया।</value>
+  </data>
+  <data name="Set the language you are writing in." xml:space="preserve">
+    <value>जिस भाषा में आप लिख रहे हैं, वह चुनें।</value>
+  </data>
+  <data name="Set the language your messages should be translated to." xml:space="preserve">
+    <value>जिस भाषा में आपके संदेशों का अनुवाद हो, वह चुनें।</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>सेटिंग्स</value>
+  </data>
+  <data name="Shout" xml:space="preserve">
+    <value>Shout</value>
+  </data>
+  <data name="Show DTR bar entry" xml:space="preserve">
+    <value>DTR बार प्रविष्टि दिखाएँ</value>
+  </data>
+  <data name="Show hidden channel tabs." xml:space="preserve">
+    <value>छिपे चैनल टैब दिखाएँ।</value>
+  </data>
+  <data name="Show or hide the DhogGPT entry in the Dalamud DTR bar." xml:space="preserve">
+    <value>Dalamud के DTR बार में DhogGPT प्रविष्टि दिखाएँ या छिपाएँ।</value>
+  </data>
+  <data name="Skip messages from my own character" xml:space="preserve">
+    <value>अपने कैरेक्टर के संदेश छोड़ें</value>
+  </data>
+  <data name="Slash command failed to send." xml:space="preserve">
+    <value>स्लैश कमांड भेजने में विफल।</value>
+  </data>
+  <data name="Slash command sent directly." xml:space="preserve">
+    <value>स्लैश कमांड सीधे भेजा गया।</value>
+  </data>
+  <data name="Slash commands are sent directly and are not translated or logged." xml:space="preserve">
+    <value>स्लैश कमांड सीधे भेजे जाते हैं और उनका अनुवाद या लॉग नहीं बनता।</value>
+  </data>
+  <data name="Slash commands sent through DhogGPT skip translation and JSONL logging, but they still leave a Safe breadcrumb." xml:space="preserve">
+    <value>DhogGPT से भेजे स्लैश कमांड अनुवाद और JSONL लॉगिंग छोड़ते हैं, लेकिन Safe में निशान छोड़ते हैं।</value>
+  </data>
+  <data name="Soft contrast" xml:space="preserve">
+    <value>हल्का कंट्रास्ट</value>
+  </data>
+  <data name="Source: {0}  Target: {1}  Provider: {2} ({3})" xml:space="preserve">
+    <value>स्रोत: {0}  लक्ष्य: {1}  प्रदाता: {2} ({3})</value>
+  </data>
+  <data name="Spawn new window" xml:space="preserve">
+    <value>नई विंडो खोलें</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>स्थिति</value>
+  </data>
+  <data name="Status to chat" xml:space="preserve">
+    <value>स्थिति चैट में भेजें</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>सफल</value>
+  </data>
+  <data name="Switch between regular mode and DhogGPT's supported ultra compact chat surface." xml:space="preserve">
+    <value>सामान्य मोड और DhogGPT के समर्थित अत्यंत संक्षिप्त चैट इंटरफ़ेस के बीच बदलें।</value>
+  </data>
+  <data name="Switch from regular mode to ultra compact mode." xml:space="preserve">
+    <value>सामान्य मोड से अत्यंत संक्षिप्त मोड में बदलें।</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>सिस्टम</value>
+  </data>
+  <data name="Tab" xml:space="preserve">
+    <value>टैब</value>
+  </data>
+  <data name="Tab active" xml:space="preserve">
+    <value>सक्रिय टैब</value>
+  </data>
+  <data name="Tab hovered" xml:space="preserve">
+    <value>माउस वाला टैब</value>
+  </data>
+  <data name="Tab text" xml:space="preserve">
+    <value>टैब का टेक्स्ट</value>
+  </data>
+  <data name="Tab unfocused" xml:space="preserve">
+    <value>बिना फोकस वाला टैब</value>
+  </data>
+  <data name="Tab unfocused active" xml:space="preserve">
+    <value>बिना फोकस वाला सक्रिय टैब</value>
+  </data>
+  <data name="Teal" xml:space="preserve">
+    <value>नीलहरित</value>
+  </data>
+  <data name="Text color used on inactive conversation tabs." xml:space="preserve">
+    <value>निष्क्रिय बातचीत टैब के टेक्स्ट का रंग।</value>
+  </data>
+  <data name="Text color used on the selected tab. Black is best when the active tab background is bright." xml:space="preserve">
+    <value>चुने गए टैब के टेक्स्ट का रंग। सक्रिय टैब की पृष्ठभूमि चमकीली हो तो काला सबसे अच्छा है।</value>
+  </data>
+  <data name="Text only" xml:space="preserve">
+    <value>केवल टेक्स्ट</value>
+  </data>
+  <data name="The / and Enter focus shortcuts only apply while the ultra compact window is already open." xml:space="preserve">
+    <value>/ और Enter के फोकस शॉर्टकट केवल पहले से खुली अत्यंत संक्षिप्त विंडो पर लागू होते हैं।</value>
+  </data>
+  <data name="The language DhogGPT should translate your outgoing text into." xml:space="preserve">
+    <value>वह भाषा जिसमें DhogGPT आपके जाने वाले संदेशों का अनुवाद करे।</value>
+  </data>
+  <data name="Them" xml:space="preserve">
+    <value>वे</value>
+  </data>
+  <data name="There is no translated text to send." xml:space="preserve">
+    <value>भेजने के लिए अनुवादित टेक्स्ट नहीं है।</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>तक</value>
+  </data>
+  <data name="Translate allowed incoming chat channels into your chosen target language." xml:space="preserve">
+    <value>अनुमत आने वाले चैट चैनलों का अनुवाद अपनी चुनी लक्ष्य भाषा में करें।</value>
+  </data>
+  <data name="Translate and send" xml:space="preserve">
+    <value>अनुवाद करके भेजें</value>
+  </data>
+  <data name="Translate incoming chat" xml:space="preserve">
+    <value>आने वाले चैट का अनुवाद करें</value>
+  </data>
+  <data name="Translate this text and press Enter to send" xml:space="preserve">
+    <value>इस टेक्स्ट का अनुवाद करें और भेजने के लिए Enter दबाएँ</value>
+  </data>
+  <data name="Translated message is too long for the game chat box." xml:space="preserve">
+    <value>अनुवादित संदेश गेम के चैट बॉक्स के लिए बहुत लंबा है।</value>
+  </data>
+  <data name="Translated preview" xml:space="preserve">
+    <value>अनुवादित पूर्वावलोकन</value>
+  </data>
+  <data name="Translating..." xml:space="preserve">
+    <value>अनुवाद हो रहा है...</value>
+  </data>
+  <data name="Translation failed: {0}" xml:space="preserve">
+    <value>अनुवाद विफल: {0}</value>
+  </data>
+  <data name="Translation preview" xml:space="preserve">
+    <value>अनुवाद का पूर्वावलोकन</value>
+  </data>
+  <data name="Translation provider and timeout" xml:space="preserve">
+    <value>अनुवाद प्रदाता और टाइमआउट</value>
+  </data>
+  <data name="Translation succeeded, but DhogGPT could not rebuild the item/map payload for sending." xml:space="preserve">
+    <value>अनुवाद सफल हुआ, लेकिन DhogGPT भेजने के लिए आइटम/मैप पेलोड फिर नहीं बना पाया।</value>
+  </data>
+  <data name="Translation succeeded, but sending the message failed." xml:space="preserve">
+    <value>अनुवाद सफल हुआ, लेकिन संदेश भेजने में विफल।</value>
+  </data>
+  <data name="Translation succeeded, but the payload-preserving send path failed." xml:space="preserve">
+    <value>अनुवाद सफल हुआ, लेकिन पेलोड सुरक्षित रखने वाला भेजने का तरीका विफल हुआ।</value>
+  </data>
+  <data name="Translation was cancelled." xml:space="preserve">
+    <value>अनुवाद रद्द किया गया।</value>
+  </data>
+  <data name="Turn on ultra compact" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड चालू करें</value>
+  </data>
+  <data name="Turns on extra DhogGPT diagnostics. Keep this off unless you are investigating a problem." xml:space="preserve">
+    <value>अतिरिक्त DhogGPT निदान चालू करता है। समस्या जाँचते समय ही इसे चालू करें।</value>
+  </data>
+  <data name="UI fonts failed to load. See the plugin log." xml:space="preserve">
+    <value>UI फ़ॉन्ट लोड नहीं हुए। प्लगइन लॉग देखें।</value>
+  </data>
+  <data name="UI language" xml:space="preserve">
+    <value>UI भाषा</value>
+  </data>
+  <data name="Ultra compact chat color theme" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त चैट का रंग थीम</value>
+  </data>
+  <data name="Ultra compact mode" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड</value>
+  </data>
+  <data name="Ultra compact mode uses the active tab as the destination, so there is no separate chat-type dropdown or Send button there." xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड में सक्रिय टैब ही गंतव्य है, इसलिए वहाँ अलग चैट प्रकार सूची या भेजें बटन नहीं है।</value>
+  </data>
+  <data name="Ultra compact: focus chat on /" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त: / पर चैट फोकस करें</value>
+  </data>
+  <data name="Ultra compact: focus chat on Enter" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त: Enter पर चैट फोकस करें</value>
+  </data>
+  <data name="Ultra compact: use real-chat channel header colors" xml:space="preserve">
+    <value>अत्यंत संक्षिप्त: वास्तविक चैट के चैनल शीर्षक रंग इस्तेमाल करें</value>
+  </data>
+  <data name="Unexpected error: {0}" xml:space="preserve">
+    <value>अनपेक्षित त्रुटि: {0}</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>अज्ञात</value>
+  </data>
+  <data name="Unlock main window position" xml:space="preserve">
+    <value>मुख्य विंडो की स्थिति अनलॉक करें</value>
+  </data>
+  <data name="Unpin conversation" xml:space="preserve">
+    <value>बातचीत अनपिन करें</value>
+  </data>
+  <data name="Unsupported outgoing channel." xml:space="preserve">
+    <value>जाने वाला चैनल समर्थित नहीं है।</value>
+  </data>
+  <data name="Use /dgpt ultra to toggle between regular mode and ultra compact mode." xml:space="preserve">
+    <value>सामान्य और अत्यंत संक्षिप्त मोड के बीच बदलने के लिए /dgpt ultra इस्तेमाल करें।</value>
+  </data>
+  <data name="Use in-game name" xml:space="preserve">
+    <value>गेम का नाम इस्तेमाल करें</value>
+  </data>
+  <data name="Use Krangle if you want display-only name scrambling in the plugin window." xml:space="preserve">
+    <value>प्लगइन विंडो में नाम केवल दिखने के लिए बदलने हों तो Krangle इस्तेमाल करें।</value>
+  </data>
+  <data name="Use technical name" xml:space="preserve">
+    <value>तकनीकी नाम इस्तेमाल करें</value>
+  </data>
+  <data name="Use the pinned channel tabs for general chat, the + button for New DM tabs, H for hidden channels, and R for recent DM threads." xml:space="preserve">
+    <value>सामान्य चैट के लिए पिन किए चैनल टैब, नए DM के लिए + बटन, छिपे चैनलों के लिए H और हाल के DM के लिए R इस्तेमाल करें।</value>
+  </data>
+  <data name="Uses vanilla-style channel colors for message header lines like Party, FC, LS, DM, and Shout while keeping the selected translation/theme colors for translated text." xml:space="preserve">
+    <value>अनुवादित टेक्स्ट के चुने रंग रखते हुए Party, FC, LS, DM और Shout जैसी संदेश शीर्षक पंक्तियों में गेम जैसे चैनल रंग इस्तेमाल करता है।</value>
+  </data>
+  <data name="Visible" xml:space="preserve">
+    <value>दिखाई दे रहा</value>
+  </data>
+  <data name="Welcome To DhogGPT" xml:space="preserve">
+    <value>DhogGPT में आपका स्वागत है</value>
+  </data>
+  <data name="When enabled, DhogGPT clamps saved window restores and automatic window repairs to the active game viewport. Leave this off if you prefer manual recovery with /dgpt j." xml:space="preserve">
+    <value>चालू होने पर DhogGPT सहेजी विंडो बहाली और अपने आप सुधार को सक्रिय गेम क्षेत्र के भीतर रखता है। /dgpt j से खुद बहाल करना चाहें तो इसे बंद रखें।</value>
+  </data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing / focuses DhogGPT and starts a slash command immediately." xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड की खुली विंडो पर फोकस न हो तो / दबाने पर DhogGPT पर फोकस आता है और स्लैश कमांड तुरंत शुरू होता है।</value>
+  </data>
+  <data name="When ultra compact mode is active and the DhogGPT window is open but unfocused, pressing Enter focuses the DhogGPT composer." xml:space="preserve">
+    <value>अत्यंत संक्षिप्त मोड की खुली विंडो पर फोकस न हो तो Enter दबाने पर DhogGPT के संदेश बॉक्स पर फोकस आता है।</value>
+  </data>
+  <data name="Working..." xml:space="preserve">
+    <value>काम चल रहा है...</value>
+  </data>
+  <data name="Yell" xml:space="preserve">
+    <value>Yell</value>
+  </data>
+  <data name="You" xml:space="preserve">
+    <value>आप</value>
+  </data>
+  <data name="Your typed language before DhogGPT translates it." xml:space="preserve">
+    <value>DhogGPT के अनुवाद करने से पहले आपकी लिखी भाषा।</value>
+  </data>
+  <data name="DhogGPT: Open DM" xml:space="preserve">
+    <value>DhogGPT: DM खोलें</value>
+  </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(खाली)</value>
+  </data>
+  <data name="Message was empty." xml:space="preserve">
+    <value>संदेश खाली था।</value>
+  </data>
+  <data name="{0}: response did not contain translatedText." xml:space="preserve">
+    <value>{0}: जवाब में translatedText नहीं था।</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>चैनल</value>
+  </data>
+  <data name="From (your language)" xml:space="preserve">
+    <value>से (आपकी भाषा)</value>
+  </data>
+  <data name="To (target language)" xml:space="preserve">
+    <value>तक (लक्ष्य भाषा)</value>
+  </data>
+  <data name="Scroll down to &quot;The Dumpster Fire&quot; channel to discuss issues / suggestions for specific plugins." xml:space="preserve">
+    <value>खास प्लगइन की समस्याओं / सुझावों पर चर्चा के लिए नीचे "The Dumpster Fire" चैनल तक स्क्रॉल करें।</value>
+  </data>
+  <data name="Chat logs are stored per account and character under the plugin config Data\ChatLogs folder." xml:space="preserve">
+    <value>चैट लॉग हर खाते और कैरेक्टर के लिए प्लगइन कॉन्फ़िग के Data\ChatLogs फ़ोल्डर में रखे जाते हैं।</value>
+  </data>
+  <data name="Window appearance" xml:space="preserve">
+    <value>विंडो का रूप</value>
+  </data>
+  <data name="Compact visible on main window" xml:space="preserve">
+    <value>मुख्य विंडो पर संक्षिप्त मोड दिखाएँ</value>
+  </data>
+  <data name="Language visible on main window" xml:space="preserve">
+    <value>मुख्य विंडो पर भाषा दिखाएँ</value>
+  </data>
+  <data name="Transparency" xml:space="preserve">
+    <value>पारदर्शिता</value>
+  </data>
+  <data name="Opacity (%)" xml:space="preserve">
+    <value>अपारदर्शिता (%)</value>
+  </data>
+  <data name="Auto-fade when unfocused" xml:space="preserve">
+    <value>फोकस हटने पर अपने आप फीका करें</value>
+  </data>
+  <data name="Unfocused opacity (%)" xml:space="preserve">
+    <value>बिना फोकस की अपारदर्शिता (%)</value>
+  </data>
+  <data name="Unfocused delay (seconds)" xml:space="preserve">
+    <value>बिना फोकस का विलंब (सेकंड)</value>
+  </data>
+</root>

@@ -1,3 +1,4 @@
+using AethertekUI;
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
@@ -20,6 +21,8 @@ namespace DhogGPT.Windows;
 
 public sealed class MainWindow : Window, IDisposable
 {
+    private readonly AethertekUI.Dalamud.MaterialWindowMotion windowMotion = new();
+    private readonly AethertekUI.MaterialWindowOpacity windowOpacity = new();
     private const int AutoScrollSettleFrames = 2;
     private const float WindowRepairTolerance = 4f;
     private const string CombinedConversationPrefix = "combo:";
@@ -28,6 +31,8 @@ public sealed class MainWindow : Window, IDisposable
     private const string RecentDirectMessagesPopupId = "Recent DMs###DhogGPTRecentDmPopup";
     private const string HiddenChannelsPopupId = "Hidden Channels###DhogGPTHiddenChannelsPopup";
     private const string MainWindowTitle = "###DhogGPTMain";
+    private static readonly string CurrentVersion = typeof(Plugin).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
+    private static readonly string VersionedTitle = $"DhogGPT v{CurrentVersion}";
 
     private readonly Plugin plugin;
     private readonly LanguageRegistryService languageRegistry;
@@ -65,7 +70,6 @@ public sealed class MainWindow : Window, IDisposable
     private bool requestDirectMessageTargetFocus;
     private string lastRenderedConversationBodyKey = string.Empty;
     private bool pendingSavedPositionApply;
-    private bool useFocusedWindowOpacity = true;
     private bool suppressSimpleComposerAutoFocusThisFrame;
     private bool simpleComposerEditSessionActive;
     private bool requestWindowFocus;
@@ -117,7 +121,7 @@ public sealed class MainWindow : Window, IDisposable
             Click = OnLockTitleBarButtonClick,
             Icon = plugin.Configuration.LockMainWindowPosition ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen,
             IconOffset = new Vector2(2f, 1f),
-            ShowTooltip = () => ImGui.SetTooltip(plugin.Configuration.LockMainWindowPosition
+            ShowTooltip = () => UiGui.SetTooltip(plugin.Configuration.LockMainWindowPosition
                 ? "Unlock main window position"
                 : "Lock main window position"),
         };
@@ -130,6 +134,7 @@ public sealed class MainWindow : Window, IDisposable
         };
         Size = new Vector2(960f, 700f);
         SizeCondition = ImGuiCond.FirstUseEver;
+        Flags |= ImGuiWindowFlags.HorizontalScrollbar;
     }
 
     public void Dispose()
@@ -167,7 +172,7 @@ public sealed class MainWindow : Window, IDisposable
         SizeConstraints = IsUltraCompactMode()
             ? new WindowSizeConstraints
             {
-                MinimumSize = new Vector2(460f, 220f),
+                MinimumSize = new Vector2(460f, 300f),
                 MaximumSize = new Vector2(1400f, 1000f),
             }
             : new WindowSizeConstraints
@@ -184,24 +189,33 @@ public sealed class MainWindow : Window, IDisposable
             requestWindowFocus = false;
         }
 
-        ImGui.SetNextWindowBgAlpha(GetActiveWindowOpacity());
+        windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+    }
+
+    public override void PostDraw()
+    {
+        windowMotion.Restore(this);
+        plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
+        windowMotion.DrawChrome();
+        UiGui.Title(string.Empty, VersionedTitle);
+        using var typography = new DhogGptPresentation.TextScale(IsUltraCompactMode() ? 2f : 1.25f);
         ResetTrackedInputRects();
         hoveredConversationItemThisFrame = false;
         suppressSimpleComposerAutoFocusThisFrame = false;
         anyPopupOpenLastFrame = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup);
 
-        if (!IsUltraCompactMode())
-        {
-            DrawHeader();
-            ImGui.Separator();
-        }
-
         if (IsUltraCompactMode())
         {
+            var ultraTheme=DhogGptPresentation.UltraTheme;
+            ultraTheme.Density=DhogGptPresentation.Compact?MaterialDensity.Compact:MaterialDensity.Standard;
+            using var palette=MaterialTheme.Push(ultraTheme,MaterialTheme.Metrics.Scale,MaterialStyleMode.ColorsOnly);
+            var window=ImGuiP.GetCurrentWindow();
+            ImGui.GetWindowDrawList().AddRectFilled(window.InnerRect.Min,window.InnerRect.Max,
+                ImGui.GetColorU32(ultraTheme.Colors.Background));
             DrawSimpleChatMode();
             HandleSimpleComposerAutoFocusFromClick();
             UpdateHoveredConversationItemState();
@@ -210,96 +224,124 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
-        DrawStatusPanel();
+        DrawHeader();
         ImGui.Separator();
-        DrawComposer();
+
+        var uiRoot = ImGui.GetID("");
+        if (ImGui.BeginChild("##DhogGptRegularBody",Vector2.Zero,false,ImGuiWindowFlags.HorizontalScrollbar))
+        {
+            ImGuiP.PushOverrideID(uiRoot);
+            try { DrawStatusPanel(); ImGui.SetCursorPosY(ImGui.GetCursorPosY()+(DhogGptPresentation.Compact?6:2)*MaterialTheme.Metrics.Scale); DrawComposer(); }
+            finally { ImGui.PopID(); }
+        }
+        ImGui.EndChild();
         UpdateHoveredConversationItemState();
         UpdateWindowOpacityState();
         TrackWindowPosition();
     }
 
+
     private void DrawHeader()
     {
-        var configuration = plugin.Configuration;
-        var koFiWidth = ImGui.CalcTextSize("Ko-fi").X + (ImGui.GetStyle().FramePadding.X * 2f);
-        var discordWidth = ImGui.CalcTextSize("Discord").X + (ImGui.GetStyle().FramePadding.X * 2f);
-        var supportWidth = koFiWidth + discordWidth + ImGui.GetStyle().ItemSpacing.X + 8f;
-
-        if (ImGui.BeginTable("DhogGPTHeaderTop", 2, ImGuiTableFlags.SizingStretchProp))
+        var configuration=plugin.Configuration;
+        var ultra=IsUltraCompactMode();
+        using var headerSpacing=new MaterialStyleScope();
+        headerSpacing.Style(ImGuiStyleVar.ItemSpacing,new Vector2(ImGui.GetStyle().ItemSpacing.X,(DhogGptPresentation.Compact?7:5)*MaterialTheme.Metrics.Scale));
+        DhogGptPresentation.Brand(ultra);
+        DhogGptPresentation.SameLineIfFits(MaterialText.Measure(windowBadge).X);
+        MaterialText.TextDisabled(windowBadge);
+        var scale=MaterialTheme.Metrics.Scale;
+        var metrics=MaterialControlMetrics.Measure(MaterialTheme.Metrics,ImGui.GetFontSize());
+        var languageName=UiText.Languages.Single(value=>value.Code==UiText.Current.Language).Name;
+        var languageWidth=Math.Max(130*scale,MathF.Ceiling(MaterialText.Measure(languageName).X+metrics.Height+metrics.Gap*3+Math.Min(metrics.IconSize,metrics.Height)));
+        var gap = ImGui.GetStyle().ItemSpacing.X;
+        if (configuration.UiCompactVisibleOnMainWindow)
         {
-            ImGui.TableSetupColumn("Info", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("Support", ImGuiTableColumnFlags.WidthFixed, supportWidth);
-            ImGui.TableNextRow();
-
-            ImGui.TableSetColumnIndex(0);
-            ImGui.TextDisabled(windowBadge);
-            ImGui.SameLine();
-            ImGui.TextDisabled("Translation controls");
-
-            ImGui.TableSetColumnIndex(1);
-            if (ImGui.SmallButton("Ko-fi"))
-                Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Discord"))
-                Process.Start(new ProcessStartInfo { FileName = Plugin.DiscordUrl, UseShellExecute = true });
-
-            ImGui.EndTable();
+            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure("C").X + gap);
+            plugin.DrawUiCompact(header: true);
         }
-
-        if (ImGui.SmallButton("Guide"))
-            plugin.OpenFirstUseGuide();
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Settings"))
-            plugin.ToggleConfigUi();
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Status to chat"))
-            plugin.PrintStatus("DhogGPT is loaded and ready.");
-
-        var enabled = configuration.PluginEnabled;
-        if (ImGui.Checkbox("Enabled", ref enabled))
-            plugin.SetPluginEnabled(enabled);
-
-        ImGui.SameLine();
-        var dtrEnabled = configuration.DtrBarEnabled;
-        if (ImGui.Checkbox("DTR Bar", ref dtrEnabled))
+        if (configuration.UiLanguageVisibleOnMainWindow)
         {
-            configuration.DtrBarEnabled = dtrEnabled;
-            configuration.Save();
-            plugin.UpdateDtrBar();
+            DhogGptPresentation.SameLineIfFits(languageWidth);
+            plugin.DrawUiLanguage();
         }
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton("Turn on ultra compact"))
-            plugin.SetUltraCompactMode(true);
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Switch from regular mode to ultra compact mode.");
-
-        ImGui.SameLine();
-        if (ImGui.SmallButton(configuration.KrangleChatNames ? "Krangle Names: On" : "Krangle Names: Off"))
-        {
-            configuration.KrangleChatNames = !configuration.KrangleChatNames;
-            configuration.Save();
-        }
-
-        ImGui.TextWrapped("Regular mode keeps the fuller translator surface available. Ultra compact gives you the tighter DhogGPT chat surface, and settings let you decide whether vanilla chat stays visible alongside it.");
+        DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + gap);
+        plugin.DrawTransparency();
+        if(ultra)return;
+        var toolbarHeight=40*MaterialTheme.Metrics.Scale;
+        if(UiGui.Button("Guide",new Vector2(0,toolbarHeight),icon:MaterialIcon.Book))plugin.OpenFirstUseGuide();
+        Next("Settings");if(UiGui.Button("Settings",new Vector2(0,toolbarHeight),icon:MaterialIcon.Settings))plugin.ToggleConfigUi();
+        Next("Status to chat");if(UiGui.Button("Status to chat",new Vector2(0,toolbarHeight),icon:MaterialIcon.Chat))plugin.PrintStatus("DhogGPT is loaded and ready.");
+        // Ko-fi and Discord originally lived within this native header table's ID scope.
+        var supportRoot=ImGui.GetID("DhogGPTHeaderTop");
+        Next("Ko-fi");ImGuiP.PushOverrideID(supportRoot);
+        if(UiGui.Button("Ko-fi",new Vector2(0,toolbarHeight),icon:MaterialIcon.Heart))Process.Start(new ProcessStartInfo { FileName=Plugin.SupportUrl,UseShellExecute=true });
+        ImGui.PopID();
+        Next("Discord");ImGuiP.PushOverrideID(supportRoot);
+        if(UiGui.Button("Discord",new Vector2(0,toolbarHeight),icon:MaterialIcon.Group))Process.Start(new ProcessStartInfo { FileName=Plugin.DiscordUrl,UseShellExecute=true });
+        ImGui.PopID();
+        Next("Enabled");
+        var enabled=configuration.PluginEnabled;
+        if(UiGui.Checkbox("Enabled",ref enabled))plugin.SetPluginEnabled(enabled);
+        Next("DTR Bar");
+        var dtrEnabled=configuration.DtrBarEnabled;
+        if(UiGui.Checkbox("DTR Bar",ref dtrEnabled)) { configuration.DtrBarEnabled=dtrEnabled;configuration.Save();plugin.UpdateDtrBar(); }
+        Next("Turn on ultra compact");
+        if(UiGui.Button("Turn on ultra compact",new Vector2(0,toolbarHeight)))plugin.SetUltraCompactMode(true);
+        if(ImGui.IsItemHovered())UiGui.SetTooltip("Switch from regular mode to ultra compact mode.");
+        var krangle=configuration.KrangleChatNames?"Krangle Names: On":"Krangle Names: Off";
+        Next(krangle);
+        if(UiGui.Button(krangle,new Vector2(0,toolbarHeight))) { configuration.KrangleChatNames=!configuration.KrangleChatNames;configuration.Save(); }
+        void Next(string label)=>DhogGptPresentation.SameLineIfFits(MaterialText.Measure(UiText.T(label)).X+ImGui.GetStyle().FramePadding.X*2+ImGui.GetFrameHeight());
     }
 
     private void DrawSimpleChatMode()
     {
         HandlePendingPopups();
+        var scale=MaterialTheme.Metrics.Scale;
+        var window=ImGuiP.GetCurrentWindow();
+        var spacing=ImGui.GetStyle().ItemSpacing.Y;
+        var footerHeight=(DhogGptPresentation.Compact?50:58)*scale;
+        var footerY=window.InnerRect.Max.Y-ImGui.GetStyle().WindowPadding.Y-footerHeight;
+        var footerReserve=footerHeight+spacing*2+scale;
+        ImGui.PushClipRect(window.ClipRect.Min,new Vector2(window.ClipRect.Max.X,Math.Max(window.ClipRect.Min.Y,footerY-spacing*2-scale)),true);
+        DrawUltraAppearanceHeader();
         DrawSimpleChatStatusBanner();
         DrawSimpleLanguageBar();
 
-        var composerHeight = ImGui.GetFrameHeightWithSpacing() + 10f;
-        var conversationHeaderHeight = ImGui.GetFrameHeightWithSpacing() + 2f;
-        var chatBodyHeight = Math.Max(72f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
+        var composerHeight = (DhogGptPresentation.Compact?50:58)*scale+ImGui.GetStyle().ItemSpacing.Y*2;
+        var conversationHeaderHeight = (DhogGptPresentation.UltraTabHeight+16)*scale+ImGui.GetStyle().ItemSpacing.Y;
+        var chatBodyHeight = Math.Max(1f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
         DrawTabbedConversationArea(chatBodyHeight);
-
+        ImGui.PopClipRect();
+        var contentMax=window.DC.CursorMaxPos;
+        ImGui.SetCursorScreenPos(new Vector2(window.Pos.X+ImGui.GetStyle().WindowPadding.X-window.Scroll.X,footerY-spacing-scale));
         ImGui.Separator();
         DrawSimpleComposer();
+        // Reserve the visible footer in native scroll extent without feeding scroll offset back into layout.
+        window.DC.CursorMaxPos=new Vector2(window.DC.CursorMaxPos.X,
+            Math.Max(window.InnerRect.Max.Y-ImGui.GetStyle().WindowPadding.Y-window.Scroll.Y,contentMax.Y+footerReserve));
         DrawDirectMessageCreationPopup();
+    }
+
+    private void DrawUltraAppearanceHeader()
+    {
+        using var preferenceSize = new DhogGptPresentation.TextScale(.625f);
+        using (var brandSize = new DhogGptPresentation.TextScale(1.8f))
+            DhogGptPresentation.Text("DhogGPT", UiFontRole.Body, MaterialTheme.Current.Colors.OnSurface, 38);
+        var scale = MaterialTheme.Metrics.Scale;
+        if (plugin.Configuration.UiCompactVisibleOnMainWindow)
+        {
+            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure("C").X + ImGui.GetStyle().ItemInnerSpacing.X);
+            plugin.DrawUiCompact(header: true);
+        }
+        if (plugin.Configuration.UiLanguageVisibleOnMainWindow)
+        {
+            DhogGptPresentation.SameLineIfFits(180 * scale);
+            plugin.DrawUiLanguage();
+        }
+        DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + ImGui.GetStyle().ItemInnerSpacing.X);
+        plugin.DrawTransparency();
     }
 
     private void DrawSimpleLanguageBar()
@@ -313,60 +355,23 @@ public sealed class MainWindow : Window, IDisposable
             EnsureUltraCompactLanguageDefaults();
             var originalSpacing = ImGui.GetStyle().ItemSpacing;
             var originalFramePadding = ImGui.GetStyle().FramePadding;
-            var compactSpacing = new Vector2(Math.Max(2f, originalSpacing.X * 0.40f), 0f);
-            var compactFramePadding = new Vector2(Math.Max(2f, originalFramePadding.X * 0.60f), 0f);
-            var labelWidth = Math.Max(ImGui.CalcTextSize("Them").X, ImGui.CalcTextSize("Me").X);
-            var utilityWidth = IsUltraCompactMode()
-                ? (ImGui.CalcTextSize("Ko-fi").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
-                  (ImGui.CalcTextSize("K").X + (compactFramePadding.X * 2f) + compactSpacing.X) +
-                  (ImGui.CalcTextSize("S").X + (compactFramePadding.X * 2f) + compactSpacing.X)
-                : 0f;
-            var comboWidth = Math.Max(
-                120f,
-                (ImGui.GetContentRegionAvail().X - utilityWidth - labelWidth - compactSpacing.X - labelWidth - compactSpacing.X) * 0.5f);
+            var scale=MaterialTheme.Metrics.Scale;
+            var fieldHeight=DhogGptPresentation.UltraFieldHeight*scale;
+            var compactSpacing = new Vector2((DhogGptPresentation.Compact?12:18)*scale,8*scale);
+            var compactFramePadding = new Vector2(16*scale,Math.Max(0,(fieldHeight-ImGui.GetFontSize())*.5f));
+            var labelWidth = Math.Max(MaterialText.Measure(UiText.T("Them")).X, MaterialText.Measure(UiText.T("Me")).X);
+            var actionsWidth=(52+52+98)*scale+compactSpacing.X*3;
+            var comboWidth = Math.Max(90f*scale,Math.Min(296f*scale,
+                (ImGui.GetContentRegionAvail().X-labelWidth*2f-compactSpacing.X*3f-actionsWidth)*.5f));
+            var languageGroupWidth = labelWidth + compactSpacing.X + comboWidth;
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, compactSpacing);
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, compactFramePadding);
-            ImGui.TextDisabled(windowBadge);
-            ImGui.SameLine();
-            if (IsUltraCompactMode())
-            {
-                if (ImGui.SmallButton("Ko-fi##UltraCompactSupport"))
-                    Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Open the DhogGPT support page.");
-
-                ImGui.SameLine();
-                var highlightKrangleButton = configuration.KrangleChatNames;
-                if (highlightKrangleButton)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.28f, 0.56f, 0.32f, 0.95f));
-                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.66f, 0.38f, 0.95f));
-                    ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.24f, 0.48f, 0.28f, 0.95f));
-                }
-                if (ImGui.SmallButton("K##UltraCompactKrangle"))
-                {
-                    configuration.KrangleChatNames = !configuration.KrangleChatNames;
-                    changed = true;
-                }
-                if (highlightKrangleButton)
-                    ImGui.PopStyleColor(3);
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
-
-                ImGui.SameLine();
-                if (ImGui.SmallButton("S##UltraCompactSettings"))
-                    plugin.ToggleConfigUi();
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Open DhogGPT settings.");
-
-                ImGui.SameLine();
-            }
-
+            ImGui.BeginGroup();
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("Me");
+            UiGui.TextUnformatted("Me");
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Your typed language before DhogGPT translates it.");
+                UiGui.SetTooltip("Your typed language before DhogGPT translates it.");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(comboWidth);
             changed |= DrawLanguageCombo(
@@ -380,13 +385,15 @@ public sealed class MainWindow : Window, IDisposable
                 },
                 includeAuto: false);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Set the language you are writing in.");
+                UiGui.SetTooltip("Set the language you are writing in.");
+            ImGui.EndGroup();
 
-            ImGui.SameLine();
+            DhogGptPresentation.SameLineIfFits(languageGroupWidth);
+            ImGui.BeginGroup();
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("Them");
+            UiGui.TextUnformatted("Them");
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("The language DhogGPT should translate your outgoing text into.");
+                UiGui.SetTooltip("The language DhogGPT should translate your outgoing text into.");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(comboWidth);
             changed |= DrawLanguageCombo(
@@ -395,7 +402,37 @@ public sealed class MainWindow : Window, IDisposable
                 value => configuration.OutgoingTargetLanguage = value,
                 includeAuto: false);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Set the language your messages should be translated to.");
+                UiGui.SetTooltip("Set the language your messages should be translated to.");
+            ImGui.EndGroup();
+            DhogGptPresentation.SameLineIfFits(52*scale);
+            var highlightKrangleButton = configuration.KrangleChatNames;
+            if (highlightKrangleButton)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.28f, 0.56f, 0.32f, 0.95f));
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.66f, 0.38f, 0.95f));
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.24f, 0.48f, 0.28f, 0.95f));
+            }
+            if (UiGui.Button("K##UltraCompactKrangle",new Vector2(52*scale,fieldHeight)))
+            {
+                configuration.KrangleChatNames = !configuration.KrangleChatNames;
+                changed = true;
+            }
+            if (highlightKrangleButton)
+                ImGui.PopStyleColor(3);
+            if (ImGui.IsItemHovered())
+                UiGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
+
+            DhogGptPresentation.SameLineIfFits(52*scale);
+            if (UiGui.Button("S##UltraCompactSettings",new Vector2(52*scale,fieldHeight)))
+                plugin.ToggleConfigUi();
+            if (ImGui.IsItemHovered())
+                UiGui.SetTooltip("Open DhogGPT settings.");
+
+            DhogGptPresentation.SameLineIfFits(98*scale);
+            if (UiGui.Button("Ko-fi##UltraCompactSupport",new Vector2(98*scale,fieldHeight)))
+                Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
+            if (ImGui.IsItemHovered())
+                UiGui.SetTooltip("Open the DhogGPT support page.");
             ImGui.PopStyleVar(2);
 
             if (changed)
@@ -409,12 +446,12 @@ public sealed class MainWindow : Window, IDisposable
             ImGui.TableNextRow();
 
             ImGui.TableSetColumnIndex(0);
-            ImGui.TextUnformatted("Outgoing");
+            UiGui.TextUnformatted("Outgoing");
             changed |= DrawLanguageCombo("From##SimpleOutgoing", configuration.OutgoingSourceLanguage, value => configuration.OutgoingSourceLanguage = value, includeAuto: true);
             changed |= DrawLanguageCombo("To##SimpleOutgoing", configuration.OutgoingTargetLanguage, value => configuration.OutgoingTargetLanguage = value, includeAuto: false);
 
             ImGui.TableSetColumnIndex(1);
-            ImGui.TextUnformatted("Incoming");
+            UiGui.TextUnformatted("Incoming");
             changed |= DrawLanguageCombo("From##SimpleIncoming", configuration.IncomingSourceLanguage, value => configuration.IncomingSourceLanguage = value, includeAuto: true);
             changed |= DrawLanguageCombo("To##SimpleIncoming", configuration.IncomingTargetLanguage, value => configuration.IncomingTargetLanguage = value, includeAuto: false);
 
@@ -519,10 +556,14 @@ public sealed class MainWindow : Window, IDisposable
         ConversationTabState? selectedConversation = null;
         var toolbarWidth = GetConversationToolbarWidth();
         var style = ImGui.GetStyle();
-        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(style.CellPadding.X, 0f));
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(style.ItemSpacing.X, 1f));
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(style.FramePadding.X, Math.Min(style.FramePadding.Y, 2f)));
-        if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingStretchProp))
+        var ultra=IsUltraCompactMode();var scale=MaterialTheme.Metrics.Scale;
+        var tabHeight=DhogGptPresentation.UltraTabHeight*scale;
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(style.CellPadding.X, ultra?8*scale:0f));
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(style.ItemSpacing.X, ultra?8*scale:1f));
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(style.FramePadding.X, ultra?Math.Max(0,(tabHeight-ImGui.GetFontSize())*.5f):Math.Min(style.FramePadding.Y, 2f)));
+        var pane=ImGuiP.GetCurrentWindow();
+        var visibleWidth=Math.Max(1,pane.InnerRect.Max.X-style.WindowPadding.X-(ImGui.GetCursorScreenPos().X+pane.Scroll.X));
+        if (!ImGui.BeginTable("DhogGPTConversationTabsLayout", 2, ImGuiTableFlags.SizingStretchProp,new Vector2(visibleWidth,0)))
         {
             ImGui.PopStyleVar(3);
             DrawHiddenChannelsPopup();
@@ -543,7 +584,7 @@ public sealed class MainWindow : Window, IDisposable
             tabPalette.TabActive,
             tabPalette.TabUnfocused,
             tabPalette.TabUnfocusedActive);
-        if (!ImGui.BeginTabBar("DhogGPTConversationTabs", ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
+        if (!UiGui.BeginTabBar("DhogGPTConversationTabs", conversations.Select(conversation => IsDirectMessageConversation(conversation.Key) ? "   "+GetConversationDisplayLabel(conversation) : UiText.T(GetConversationDisplayLabel(conversation))).ToArray(), ImGuiTabBarFlags.FittingPolicyScroll | ImGuiTabBarFlags.Reorderable))
         {
             ImGui.PopStyleColor(5);
             ImGui.TableSetColumnIndex(1);
@@ -571,7 +612,7 @@ public sealed class MainWindow : Window, IDisposable
                 : $"{displayLabel}##{conversation.Key}";
             var tabTextColor = isRequestedConversation ? tabPalette.ActiveTabText : tabPalette.TabText;
             ImGui.PushStyleColor(ImGuiCol.Text, tabTextColor);
-            var tabVisible = ImGui.BeginTabItem(tabLabel, ref tabOpen, tabFlags);
+            var tabVisible = UiGui.BeginTabItem(tabLabel, ref tabOpen, tabFlags,translate:!isDirectMessage);
             ImGui.PopStyleColor();
             if (isDirectMessage)
                 DrawDirectMessageTabPin(conversation, isPinnedDirectMessage);
@@ -588,7 +629,7 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             if (isGeneralConversation && ImGui.IsItemHovered())
-                ImGui.SetTooltip("Hold Ctrl and click x to hide this channel tab.");
+                UiGui.SetTooltip("Hold Ctrl and click x to hide this channel tab.");
 
             if (isDirectMessage)
                 DrawDirectMessageTabContextMenu(conversation, isPinnedDirectMessage);
@@ -634,6 +675,11 @@ public sealed class MainWindow : Window, IDisposable
         if (selectedConversationApplied)
             forceActiveConversationSelection = false;
 
+        if(ultra)
+        {
+            var remaining=pane.InnerRect.Max.Y-style.WindowPadding.Y-(ImGui.GetCursorScreenPos().Y+pane.Scroll.Y);
+            height=Math.Max(1,remaining-(DhogGptPresentation.Compact?50:58)*scale-scale-style.ItemSpacing.Y*2);
+        }
         DrawConversationMessages(selectedConversation?.Key ?? activeConversationKey, selectedConversation?.Messages ?? Array.Empty<TranslationHistoryItem>(), height);
     }
 
@@ -647,11 +693,15 @@ public sealed class MainWindow : Window, IDisposable
         if (conversationChanged || messagesChanged)
             pendingConversationBottomScrolls[conversationKey] = AutoScrollSettleFrames;
 
+        var parent=ImGuiP.GetCurrentWindow();
+        var bodyWidth=IsUltraCompactMode()?Math.Max(1,parent.InnerRect.Max.X-ImGui.GetStyle().WindowPadding.X-(ImGui.GetCursorScreenPos().X+parent.Scroll.X)):-1;
+        using var bodyStyle=new MaterialStyleScope();
+        if(IsUltraCompactMode())bodyStyle.Style(ImGuiStyleVar.WindowPadding,new Vector2(6,DhogGptPresentation.Compact?16:28)*MaterialTheme.Metrics.Scale);
         if (!ImGui.BeginChild(
                 "DhogGPTConversationBody",
-                new Vector2(-1f, height),
-                true,
-                ImGuiWindowFlags.NoScrollbar))
+                new Vector2(bodyWidth, height),
+                !IsUltraCompactMode(),
+                ImGuiWindowFlags.NoScrollbar|ImGuiWindowFlags.AlwaysUseWindowPadding))
         {
             ImGui.EndChild();
             return;
@@ -662,7 +712,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (messages.Count == 0)
         {
-            ImGui.TextDisabled("No translated chat has been logged for this tab yet.");
+            UiGui.TextDisabled("No translated chat has been logged for this tab yet.");
             conversationScrollStates[conversationKey] = new ConversationScrollState(messages.Count, currentLastMessageTicks);
             lastRenderedConversationBodyKey = conversationKey;
             pendingConversationBottomScrolls.Remove(conversationKey);
@@ -678,46 +728,46 @@ public sealed class MainWindow : Window, IDisposable
         {
             var message = orderedMessages[messageIndex];
             var (headerColor, translatedColor, errorColor) = GetMessagePalette(message);
-            var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm");
+            var timestamp = message.TimestampUtc.ToLocalTime().ToString("HH:mm", UiText.Current.Culture);
             var displayName = GetDisplayName(message);
-            var originalText = string.IsNullOrWhiteSpace(message.OriginalText) ? "(empty)" : message.OriginalText;
+            var originalText = string.IsNullOrWhiteSpace(message.OriginalText) ? UiText.T("(empty)") : message.OriginalText;
             var canShowTranslatedLine = ShouldShowTranslatedLine(message);
             var clipboardText = canShowTranslatedLine
                 ? $"{timestamp} - {displayName} - {originalText}{Environment.NewLine}{message.TranslatedText}"
                 : $"{timestamp} - {displayName} - {originalText}";
 
             ImGui.PushStyleColor(ImGuiCol.Text, headerColor);
-            ImGui.TextUnformatted($"{timestamp} - {displayName} - ");
+            MaterialText.Text($"{timestamp} - {displayName} - ");
             ImGui.PopStyleColor();
             ImGui.SameLine(0f, 0f);
 
             if (!TryDrawOriginalMessagePayload(message, messageIndex))
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, headerColor);
-                ImGui.TextWrapped(originalText);
+                MaterialText.TextWrapped(originalText);
                 ImGui.PopStyleColor();
             }
 
             if (message.Success && canShowTranslatedLine)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, translatedColor);
-                ImGui.TextWrapped(message.TranslatedText);
+                MaterialText.TextWrapped(message.TranslatedText);
                 ImGui.PopStyleColor();
             }
             else if (!string.IsNullOrWhiteSpace(message.Error))
             {
-                ImGui.TextColored(errorColor, $"Translation failed: {message.Error}");
+                UiGui.TextColored(errorColor, UiText.F("Translation failed: {0}",message.Error));
             }
 
             if (ImGui.BeginPopupContextItem($"DhogGPTMessageContext##{message.TimestampUtc.UtcTicks}{message.ConversationKey}"))
             {
-                if (ImGui.Selectable("Copy original"))
+                if (UiGui.Selectable("Copy original"))
                     ImGui.SetClipboardText(originalText);
 
-                if (canShowTranslatedLine && ImGui.Selectable("Copy translation"))
+                if (canShowTranslatedLine && UiGui.Selectable("Copy translation"))
                     ImGui.SetClipboardText(message.TranslatedText);
 
-                if (ImGui.Selectable("Copy both"))
+                if (UiGui.Selectable("Copy both"))
                     ImGui.SetClipboardText(clipboardText);
 
                 ImGui.EndPopup();
@@ -758,10 +808,10 @@ public sealed class MainWindow : Window, IDisposable
         var comboWidth = 150f;
         var framePadding = ImGui.GetStyle().FramePadding;
         var composerFramePadding = ultraCompactMode
-            ? new Vector2(Math.Max(2f, framePadding.X * 0.55f), Math.Max(4f, framePadding.Y))
+            ? new Vector2(20*MaterialTheme.Metrics.Scale,Math.Max(0,((DhogGptPresentation.Compact?50:58)*MaterialTheme.Metrics.Scale-ImGui.GetFontSize())*.5f))
             : new Vector2(framePadding.X, Math.Max(framePadding.Y, 6f));
         var sendWidth = ultraCompactMode
-            ? ImGui.CalcTextSize("Send").X + (composerFramePadding.X * 2f)
+            ? MaterialText.Measure("Send").X + (composerFramePadding.X * 2f)
             : 70f;
         var spacing = ImGui.GetStyle().ItemSpacing.X;
         var entryWidth = Math.Max(120f, ImGui.GetContentRegionAvail().X - (showOutgoingCombo ? comboWidth + spacing : 0f) - sendWidth - spacing);
@@ -788,11 +838,12 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.SetNextItemWidth(ultraCompactMode ? -1f : entryWidth);
         var styleColors = ImGui.GetStyle().Colors;
-        ImGui.PushStyleColor(ImGuiCol.FrameBg, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBg], composerFrameOpacity));
+        var composerBackground=ultraCompactMode?MaterialTheme.Current.Colors.SurfaceVariant:styleColors[(int)ImGuiCol.FrameBg];
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, WithMinimumAlpha(composerBackground, composerFrameOpacity));
         ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBgHovered], composerFrameOpacity));
         ImGui.PushStyleColor(ImGuiCol.FrameBgActive, WithMinimumAlpha(styleColors[(int)ImGuiCol.FrameBgActive], composerFrameOpacity));
         var draft = outgoingDraft;
-        submitFromEnter = ImGui.InputTextWithHint(
+        submitFromEnter = UiGui.InputTextWithHint(
             "##SimpleChatEntry",
             "Translate this text and press Enter to send",
             ref draft,
@@ -820,7 +871,7 @@ public sealed class MainWindow : Window, IDisposable
         if (!ultraCompactMode)
         {
             ImGui.SameLine();
-            if (ImGui.Button("Send##SimpleSend", new Vector2(sendWidth, 0f)))
+            if (UiGui.Button("Send##SimpleSend", new Vector2(sendWidth, 0f)))
                 submitFromEnter = true;
         }
         ImGui.PopStyleVar();
@@ -846,101 +897,215 @@ public sealed class MainWindow : Window, IDisposable
         }
     }
 
+
     private void DrawStatusPanel()
     {
-        var snapshot = sessionHealth.GetSnapshot();
-        var configuration = plugin.Configuration;
-
-        ImGui.Text($"Plugin: {(configuration.PluginEnabled ? "Enabled" : "Disabled")}");
-        ImGui.Text($"DTR entry: {(configuration.DtrBarEnabled ? "Visible" : "Hidden")}");
-        ImGui.Text($"Incoming translation: {(configuration.TranslateIncoming ? "On" : "Off")}");
-        ImGui.Text($"Queued jobs: {snapshot.QueueDepth}");
-        ImGui.Text($"Successes: {snapshot.SuccessCount}");
-        ImGui.Text($"Failures: {snapshot.FailureCount}");
-
-        if (!string.IsNullOrWhiteSpace(snapshot.LastProvider))
-            ImGui.Text($"Last provider: {snapshot.LastProvider}");
-
-        if (!string.IsNullOrWhiteSpace(snapshot.LastEndpoint))
-            ImGui.TextWrapped($"Last endpoint: {snapshot.LastEndpoint}");
-
-        if (snapshot.LastLatency > TimeSpan.Zero)
-            ImGui.Text($"Last latency: {snapshot.LastLatency.TotalMilliseconds:F0} ms");
-
-        if (snapshot.LastSuccessUtc.HasValue)
-            ImGui.Text($"Last success (UTC): {snapshot.LastSuccessUtc:yyyy-MM-dd HH:mm:ss}");
-
-        if (!string.IsNullOrWhiteSpace(snapshot.LastError))
-            ImGui.TextWrapped($"Last error: {snapshot.LastError}");
+        var snapshot=sessionHealth.GetSnapshot();
+        using var panel=new DhogGptPresentation.Panel("##DhogGptStatusPanel");
+        if(!panel.Visible)return;
+        var scale=MaterialTheme.Metrics.Scale;
+        using var statusSpacing=new MaterialStyleScope();
+        statusSpacing.Style(ImGuiStyleVar.ItemSpacing,new Vector2(12,4)*scale);
+        statusSpacing.Style(ImGuiStyleVar.CellPadding,new Vector2(14,7)*scale);
+        if (DhogGptPresentation.Compact)
+        {
+            var columns=ImGui.GetContentRegionAvail().X>=800*scale?6:2;
+            statusSpacing.Style(ImGuiStyleVar.CellPadding,new Vector2(12,0)*scale);
+            if(ImGui.BeginTable("##DhogGptCompactSummary",columns,ImGuiTableFlags.NoSavedSettings|ImGuiTableFlags.SizingStretchProp|ImGuiTableFlags.BordersInnerV))
+            {
+                if(columns==6)
+                {
+                    using var headingSize=new DhogGptPresentation.TextScale(1.3f);
+                    using var headingFont=UiText.Font(UiFontRole.BodyStrong);
+                    ImGui.TableSetupColumn("##Status",ImGuiTableColumnFlags.WidthFixed,Math.Max(70*scale,MathF.Ceiling(MaterialText.Measure(UiText.T("Status")).X)));
+                }
+                var weights=new[]{176f,199f,168f,289f,297f};
+                for(var index=columns==6?1:0;index<columns;index++)ImGui.TableSetupColumn("##Summary"+index,ImGuiTableColumnFlags.WidthStretch,columns==6?weights[index-1]:1);
+                ImGui.TableNextRow(ImGuiTableRowFlags.None,38*scale);
+                ImGui.TableNextColumn();ImGui.AlignTextToFramePadding();
+                using(var headingSize=new DhogGptPresentation.TextScale(1.3f))
+                    DhogGptPresentation.Text("Status",UiFontRole.BodyStrong,MaterialTheme.Current.Colors.OnSurface,20);
+                InlineSummary("Jobs",UiText.F("{0}",snapshot.QueueDepth),null,true);
+                InlineSummary("Success",UiText.F("{0}",snapshot.SuccessCount),DhogGptPresentation.Success,true);
+                InlineSummary("Fail",UiText.F("{0}",snapshot.FailureCount),DhogGptPresentation.Failure,true);
+                InlineSummary("Provider",string.IsNullOrWhiteSpace(snapshot.LastProvider)?"—":snapshot.LastProvider,null,false);
+                if(!string.IsNullOrWhiteSpace(snapshot.LastEndpoint) && ImGui.IsItemHovered())MaterialText.SetTooltip(snapshot.LastEndpoint);
+                InlineSummary("Latency",snapshot.LastLatency>TimeSpan.Zero?UiText.F("{0:F0} ms",snapshot.LastLatency.TotalMilliseconds):"—",null,false);
+                ImGui.EndTable();
+            }
+            if(!string.IsNullOrWhiteSpace(snapshot.LastError))UiGui.TextWrapped(UiText.F("Last error: {0}",snapshot.LastError));
+            return;
+        }
+        DhogGptPresentation.Section("Status");
+        var narrow=ImGui.GetContentRegionAvail().X<640*MaterialTheme.Metrics.Scale;
+        if(ImGui.BeginTable("##DhogGptSummary",narrow?2:5,ImGuiTableFlags.NoSavedSettings|ImGuiTableFlags.SizingStretchSame|ImGuiTableFlags.BordersInnerV))
+        {
+            ImGui.TableNextRow(ImGuiTableRowFlags.None,66*scale);
+            Summary("Jobs",UiText.F("{0}",snapshot.QueueDepth),null,true);
+            Summary("Success",UiText.F("{0}",snapshot.SuccessCount),DhogGptPresentation.Success,true);
+            Summary("Fail",UiText.F("{0}",snapshot.FailureCount),DhogGptPresentation.Failure,true);
+            Summary("Provider",string.IsNullOrWhiteSpace(snapshot.LastProvider)?"—":snapshot.LastProvider,null,false);
+            Summary("Latency",snapshot.LastLatency>TimeSpan.Zero?UiText.F("{0:F0} ms",snapshot.LastLatency.TotalMilliseconds):"—",null,false);
+            ImGui.EndTable();
+        }
+        if(!string.IsNullOrWhiteSpace(snapshot.LastEndpoint) && ImGui.IsItemHovered())UiGui.SetTooltip(snapshot.LastEndpoint);
+        if(!string.IsNullOrWhiteSpace(snapshot.LastError))UiGui.TextWrapped(UiText.F("Last error: {0}",snapshot.LastError));
+        void InlineSummary(string label,string value,Vector4? color,bool number)
+        {
+            ImGui.TableNextColumn();
+            ImGui.BeginGroup();
+            ImGui.AlignTextToFramePadding();MaterialText.TextColored(MaterialTheme.Current.Colors.OnSurfaceVariant,UiText.T(label));
+            using var valueSize=new DhogGptPresentation.TextScale(number?.8f:1f);
+            float width;using(UiText.Font(number?UiFontRole.Title:UiFontRole.BodyStrong))width=MaterialText.Measure(value).X;
+            DhogGptPresentation.SameLineIfFits(width);
+            using(UiText.Font(number?UiFontRole.Title:UiFontRole.BodyStrong))MaterialText.TextColored(color??MaterialTheme.Current.Colors.OnSurface,value);
+            ImGui.EndGroup();
+        }
+        void Summary(string label,string value,Vector4? color,bool number)
+        {
+            ImGui.TableNextColumn();
+            var left=ImGui.GetCursorPosX();var width=ImGui.GetContentRegionAvail().X;
+            ImGui.SetCursorPosX(left+Math.Max(0,(width-MaterialText.Measure(UiText.T(label)).X)*.5f));MaterialText.TextColored(MaterialTheme.Current.Colors.OnSurfaceVariant,UiText.T(label));
+            using(UiText.Font(number?UiFontRole.Title:UiFontRole.Heading))
+            {
+                ImGui.SetCursorPosX(left+Math.Max(0,(width-MaterialText.Measure(value).X)*.5f));
+                ImGui.PushTextWrapPos(left+width);MaterialText.TextColored(color??MaterialTheme.Current.Colors.OnSurface,value);ImGui.PopTextWrapPos();
+            }
+        }
     }
+
 
     private void DrawComposer()
     {
-        var configuration = plugin.Configuration;
-        var changed = false;
-
-        ImGui.TextUnformatted("Outgoing translation composer");
-
-        changed |= DrawLanguageCombo("From", configuration.OutgoingSourceLanguage, value => configuration.OutgoingSourceLanguage = value, includeAuto: true);
-        changed |= DrawLanguageCombo("To", configuration.OutgoingTargetLanguage, value => configuration.OutgoingTargetLanguage = value, includeAuto: false);
-
-        if (isMasterWindow && DrawOutgoingChannelCombo("Channel"))
-            changed = true;
-        else if (!isMasterWindow)
-            ImGui.TextDisabled(GetOutgoingConversationDisplayLabel());
-
-        var currentDraft = outgoingDraft;
-        if (ImGui.InputTextMultiline("Message", ref currentDraft, 2000, new Vector2(-1f, 90f)))
+        var configuration=plugin.Configuration;var changed=false;
+        using var panel=new DhogGptPresentation.Panel("##DhogGptComposerPanel");
+        if(!panel.Visible)return;
+        var s=MaterialTheme.Metrics.Scale;
+        using var composerGeometry=new MaterialStyleScope();
+        if(configuration.UiCompact)
         {
-            outgoingDraft = currentDraft;
-            if (isMasterWindow)
-                configuration.OutgoingDraft = currentDraft;
-            changed = true;
+            var colors=MaterialTheme.Current.Colors;
+            composerGeometry.Color(ImGuiCol.FrameBg,colors.SurfaceContainer);
+            composerGeometry.Color(ImGuiCol.FrameBgHovered,MaterialColor.Layer(colors.SurfaceContainer,colors.OnSurface,.08f));
         }
-
-        if (changed && isMasterWindow)
-            configuration.Save();
-
-        if (previewBusy)
-            ImGui.BeginDisabled();
-
-        if (ImGui.Button("Preview translation"))
-            _ = PreviewAsync(sendAfterTranslate: false);
-
-        ImGui.SameLine();
-        if (ImGui.Button("Translate and send"))
-            _ = PreviewAsync(sendAfterTranslate: true);
-
-        ImGui.SameLine();
-        if (ImGui.Button("Clear"))
+        composerGeometry.Style(ImGuiStyleVar.ItemSpacing,new Vector2(configuration.UiCompact?12:14,configuration.UiCompact?6:8)*s);
+        composerGeometry.Style(ImGuiStyleVar.FramePadding,new Vector2(12*s,Math.Max(0,(40*s-ImGui.GetFontSize())*.5f)));
+        composerGeometry.Style(ImGuiStyleVar.CellPadding,new Vector2(ImGui.GetStyle().CellPadding.X,0));
+        DhogGptPresentation.Text("Outgoing translation",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
+        if(isMasterWindow)
         {
-            outgoingDraft = string.Empty;
-            if (isMasterWindow)
+            using var channelGeometry=new MaterialStyleScope();
+            channelGeometry.Style(ImGuiStyleVar.FramePadding,new Vector2(8*s,Math.Max(0,(24*s-ImGui.GetFontSize())*.5f)));
+            var channelWidth=Math.Max(160*s,MaterialText.Measure(" "+GetOutgoingConversationDisplayLabel()).X+ImGui.GetFrameHeight()+16*s);
+            var right=ImGui.GetCursorScreenPos().X+ImGui.GetContentRegionAvail().X;
+            if(right-ImGui.GetItemRectMax().X>=channelWidth+ImGui.GetStyle().ItemSpacing.X)
             {
-                configuration.OutgoingDraft = string.Empty;
-                configuration.Save();
+                ImGui.SameLine();ImGui.SetCursorPosX(ImGui.GetCursorPosX()+Math.Max(0,ImGui.GetContentRegionAvail().X-channelWidth));
             }
-
-            previewStatus = string.Empty;
-            previewText = string.Empty;
-            previewMetadata = string.Empty;
+            ImGui.SetNextItemWidth(channelWidth);
+            changed|=DrawOutgoingChannelCombo("Channel",showLabel:false);
+            if(ImGui.IsItemHovered())UiGui.SetTooltip("Channel");
         }
-
-        if (previewBusy)
-            ImGui.EndDisabled();
-
-        if (!string.IsNullOrWhiteSpace(previewStatus))
-            ImGui.TextWrapped(previewStatus);
-
-        if (!string.IsNullOrWhiteSpace(previewMetadata))
-            ImGui.TextWrapped(previewMetadata);
-
-        if (!string.IsNullOrWhiteSpace(previewText))
-            ImGui.InputTextMultiline("Translated preview", ref previewText, 4000, new Vector2(-1f, 110f), ImGuiInputTextFlags.ReadOnly);
-
-        if (isMasterWindow)
-            DrawDirectMessageCreationPopup();
+        else MaterialText.TextDisabled(GetOutgoingConversationDisplayLabel());
+        if(!configuration.UiCompact)ImGui.Separator();
+        var controlsRoot=ImGui.GetID("");
+        if(ImGui.BeginTable("DhogGptOutgoingLanguages",ImGui.GetContentRegionAvail().X<680*MaterialTheme.Metrics.Scale?1:2,ImGuiTableFlags.NoSavedSettings|ImGuiTableFlags.SizingStretchSame))
+        {
+            // The existing From/To fields retain their original window IDs across this presentation table.
+            var originalRoot=controlsRoot;
+            ImGui.TableNextColumn();ImGuiP.PushOverrideID(originalRoot);
+            ImGui.AlignTextToFramePadding();UiGui.TextUnformatted("From (your language)");ImGui.SameLine();
+            ImGui.SetNextItemWidth(Math.Max(80*MaterialTheme.Metrics.Scale,ImGui.GetContentRegionAvail().X));
+            changed|=DrawLanguageCombo("From",configuration.OutgoingSourceLanguage,value=>configuration.OutgoingSourceLanguage=value,includeAuto:true,showLabel:false);
+            if(ImGui.IsItemHovered())UiGui.SetTooltip("Your typed language before DhogGPT translates it.");
+            ImGui.PopID();
+            ImGui.TableNextColumn();ImGuiP.PushOverrideID(originalRoot);
+            ImGui.AlignTextToFramePadding();UiGui.TextUnformatted("To (target language)");ImGui.SameLine();
+            ImGui.SetNextItemWidth(Math.Max(80*MaterialTheme.Metrics.Scale,ImGui.GetContentRegionAvail().X));
+            changed|=DrawLanguageCombo("To",configuration.OutgoingTargetLanguage,value=>configuration.OutgoingTargetLanguage=value,includeAuto:false,showLabel:false);
+            if(ImGui.IsItemHovered())UiGui.SetTooltip("The language DhogGPT should translate your outgoing text into.");
+            ImGui.PopID();ImGui.EndTable();
+        }
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY()+(configuration.UiCompact?0:5)*s);
+        DhogGptPresentation.Text("Message",UiFontRole.BodyStrong,MaterialTheme.Current.Colors.OnSurface,16);
+        var currentDraft=outgoingDraft;
+        using(var messageColors=new MaterialStyleScope())
+        {
+            var messagePalette=MaterialTheme.Current.Colors;
+            messageColors.Color(ImGuiCol.FrameBg,configuration.UiCompact?messagePalette.SurfaceContainerLow:messagePalette.SurfaceContainerLowest);
+            if(UiGui.InputTextMultiline("Message",ref currentDraft,2000,new Vector2(-1f,(configuration.UiCompact?88:120)*MaterialTheme.Metrics.Scale),showLabel:false))
+            {
+                outgoingDraft=currentDraft;if(isMasterWindow)configuration.OutgoingDraft=currentDraft;changed=true;
+            }
+        }
+        var counterY=ImGui.GetCursorPosY();
+        using(UiText.Font(UiFontRole.Body))
+        {
+            var count=UiText.F("{0} / 2000",outgoingDraft.Length);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX()+Math.Max(0,ImGui.GetContentRegionAvail().X-MaterialText.Measure(count).X));
+            MaterialText.Text(count);
+        }
+        ImGui.SetCursorPosY(counterY+10*s);
+        if(changed && isMasterWindow)configuration.Save();
+        ImGui.BeginDisabled(previewBusy);
+        var height=DhogGptPresentation.ActionHeight*s;
+        var wide=ImGui.GetContentRegionAvail().X>=800*s;
+        var width=wide?Math.Min((configuration.UiCompact?1004:978)*s,ImGui.GetContentRegionAvail().X):ImGui.GetContentRegionAvail().X;
+        if(wide)ImGui.SetCursorPosX(ImGui.GetCursorPosX()+Math.Max(0,(ImGui.GetContentRegionAvail().X-width)*.5f-(configuration.UiCompact?12*s:0)));
+        width=wide?width-ImGui.GetStyle().ItemSpacing.X*2:width;
+        var previewWidth=wide?width*(configuration.UiCompact?.3194f:.3063158f):width;
+        var sendWidth=wide?width*(configuration.UiCompact?.3806f:.3821053f):width;
+        var clearWidth=wide?width-previewWidth-sendWidth:width;
+        if(UiGui.Button("Preview translation",new Vector2(previewWidth,height),icon:MaterialIcon.Search))_=PreviewAsync(sendAfterTranslate:false);
+        if(wide)ImGui.SameLine();
+        if(DhogGptPresentation.PrimaryButton("Translate and send",new Vector2(sendWidth,height),MaterialIcon.Send))_=PreviewAsync(sendAfterTranslate:true);
+        if(wide)ImGui.SameLine();
+        if(UiGui.Button("Clear",new Vector2(clearWidth,height),icon:MaterialIcon.Delete))
+        {
+            outgoingDraft=string.Empty;if(isMasterWindow) { configuration.OutgoingDraft=string.Empty;configuration.Save(); }
+            previewStatus=string.Empty;previewText=string.Empty;previewMetadata=string.Empty;
+        }
+        ImGui.EndDisabled();
+        ImGui.Spacing();
+        using(var previewPanel=new DhogGptPresentation.Panel("##DhogGptPreviewPanel",MaterialElevation.Low,configuration.UiCompact?8:17))
+        {
+            if(previewPanel.Visible)
+            {
+                DhogGptPresentation.Text("Translation preview",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
+                if(!string.IsNullOrWhiteSpace(previewStatus))UiGui.TextWrapped(UiText.Status(previewStatus));
+                if(!string.IsNullOrWhiteSpace(previewMetadata))UiGui.TextWrapped(UiText.Status(previewMetadata));
+                if(!string.IsNullOrWhiteSpace(previewText))
+                    UiGui.InputTextMultiline("Translated preview",ref previewText,4000,new Vector2(-1f,(configuration.UiCompact?54:80)*s),ImGuiInputTextFlags.ReadOnly,showLabel:false);
+                else
+                {
+                    var text=UiText.T("Preview will appear here.");
+                    var min=ImGui.GetCursorScreenPos();var emptyPreviewWidth=ImGui.GetContentRegionAvail().X;
+                    var wrap=Math.Max(ImGui.GetFontSize(),emptyPreviewWidth-16*s);
+                    var textSize=MaterialText.Measure(text,false,wrap);
+                    var previewHeight=Math.Max((configuration.UiCompact?42:64)*s,textSize.Y+16*s);
+                    var drawing=ImGui.GetWindowDrawList();
+                    var dash=6*s;var dashGap=4*s;var border=ImGui.GetColorU32(ImGuiCol.Border);
+                    for(var x=0f;x<emptyPreviewWidth;x+=dash+dashGap)
+                    {
+                        var end=Math.Min(emptyPreviewWidth,x+dash);
+                        drawing.AddLine(min+new Vector2(x,0),min+new Vector2(end,0),border);
+                        drawing.AddLine(min+new Vector2(x,previewHeight),min+new Vector2(end,previewHeight),border);
+                    }
+                    for(var y=0f;y<previewHeight;y+=dash+dashGap)
+                    {
+                        var end=Math.Min(previewHeight,y+dash);
+                        drawing.AddLine(min+new Vector2(0,y),min+new Vector2(0,end),border);
+                        drawing.AddLine(min+new Vector2(emptyPreviewWidth,y),min+new Vector2(emptyPreviewWidth,end),border);
+                    }
+                    MaterialText.AddText(drawing,ImGui.GetFont(),ImGui.GetFontSize(),min+new Vector2((emptyPreviewWidth-textSize.X)*.5f,(previewHeight-textSize.Y)*.5f),
+                        MaterialCanvas.Color(MaterialTheme.Current.Colors.OnSurfaceVariant),text,wrap);
+                    ImGui.Dummy(new Vector2(emptyPreviewWidth,previewHeight));
+                }
+            }
+        }
+        if(isMasterWindow)DrawDirectMessageCreationPopup();
     }
+
 
     private async Task PreviewAsync(bool sendAfterTranslate)
     {
@@ -1507,7 +1672,7 @@ public sealed class MainWindow : Window, IDisposable
             return;
 
         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.74f, 0.74f, 1.0f));
-        ImGui.TextWrapped(simpleChatStatus);
+        UiGui.TextWrapped(UiText.Status(simpleChatStatus));
         ImGui.PopStyleColor();
         ImGui.Spacing();
     }
@@ -1610,12 +1775,12 @@ public sealed class MainWindow : Window, IDisposable
         return string.Equals(request.SourceLanguage, request.TargetLanguage, StringComparison.OrdinalIgnoreCase);
     }
 
-    private bool DrawOutgoingChannelCombo(string label)
+    private bool DrawOutgoingChannelCombo(string label,bool showLabel=true)
     {
         var changed = false;
         var selectedLabel = GetOutgoingConversationDisplayLabel();
 
-        if (!ImGui.BeginCombo(label, selectedLabel))
+        if (!UiGui.BeginCombo(label, selectedLabel,showLabel:showLabel))
             return false;
 
         suppressSimpleComposerAutoFocusThisFrame = true;
@@ -1625,7 +1790,7 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.Separator();
         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.45f, 0.95f, 0.55f, 1.0f));
-        if (ImGui.Selectable("New DM", false))
+        if (UiGui.Selectable("New DM", false))
             QueueOpenDirectMessagePopup();
         ImGui.PopStyleColor();
 
@@ -1633,19 +1798,19 @@ public sealed class MainWindow : Window, IDisposable
         return changed;
     }
 
-    private bool DrawLanguageCombo(string label, string currentCode, Action<string> setter, bool includeAuto)
+    private bool DrawLanguageCombo(string label, string currentCode, Action<string> setter, bool includeAuto, bool showLabel=true)
     {
         var changed = false;
         var options = includeAuto ? languageRegistry.GetSourceLanguages() : languageRegistry.GetTargetLanguages();
         var displayName = languageRegistry.GetName(currentCode);
 
-        if (ImGui.BeginCombo(label, displayName))
+        if (UiGui.BeginCombo(label, displayName, showLabel:showLabel))
         {
             suppressSimpleComposerAutoFocusThisFrame = true;
             foreach (var option in options)
             {
                 var isSelected = option.Code.Equals(currentCode, StringComparison.OrdinalIgnoreCase);
-                if (ImGui.Selectable(option.Name, isSelected))
+                if (UiGui.Selectable(option.Name, isSelected))
                 {
                     ClearTransientUiStatus();
                     setter(option.Code);
@@ -1664,6 +1829,8 @@ public sealed class MainWindow : Window, IDisposable
 
     private string GetDisplayName(TranslationHistoryItem message)
     {
+        if (string.IsNullOrWhiteSpace(message.Sender))
+            return UiText.T(message.IsInbound ? "Unknown" : "You");
         var displayName = !string.IsNullOrWhiteSpace(message.Sender)
             ? message.Sender
             : message.IsInbound ? "Unknown" : "You";
@@ -2396,30 +2563,31 @@ public sealed class MainWindow : Window, IDisposable
         var totalWidth = GetConversationToolbarWidth();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Math.Max(0f, ImGui.GetContentRegionAvail().X - totalWidth));
 
-        if (ImGui.SmallButton("H"))
+        var buttonSize=IsUltraCompactMode()?new Vector2(DhogGptPresentation.UltraTabHeight)*MaterialTheme.Metrics.Scale:Vector2.Zero;
+        if (UiGui.Button("H",buttonSize))
         {
             ClearTransientUiStatus();
             suppressSimpleComposerAutoFocusThisFrame = true;
             requestOpenHiddenChannelsPopup = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Show hidden channel tabs.");
+            UiGui.SetTooltip("Show hidden channel tabs.");
 
         ImGui.SameLine();
-        if (ImGui.SmallButton("R"))
+        if (UiGui.Button("R",buttonSize))
         {
             ClearTransientUiStatus();
             suppressSimpleComposerAutoFocusThisFrame = true;
             requestOpenRecentDirectMessagesPopup = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Reopen recent DM tabs.");
+            UiGui.SetTooltip("Reopen recent DM tabs.");
 
         ImGui.SameLine();
-        if (ImGui.SmallButton("+"))
+        if (UiGui.Button("+",buttonSize))
             QueueOpenDirectMessagePopup();
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Open a new DM.");
+            UiGui.SetTooltip("Open a new DM.");
     }
 
     private void DrawHiddenChannelsPopup()
@@ -2437,7 +2605,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (hiddenConversations.Count == 0)
         {
-            ImGui.TextDisabled("No channels are hidden.");
+            UiGui.TextDisabled("No channels are hidden.");
             ImGui.EndPopup();
             return;
         }
@@ -2445,7 +2613,7 @@ public sealed class MainWindow : Window, IDisposable
         foreach (var conversation in hiddenConversations)
         {
             var displayLabel = GetConversationDisplayLabel(conversation);
-            if (!ImGui.Selectable(displayLabel, false))
+            if (!UiGui.Selectable(displayLabel, false))
                 continue;
 
             ClearTransientUiStatus();
@@ -2472,7 +2640,7 @@ public sealed class MainWindow : Window, IDisposable
             return;
 
         ImGui.SetNextItemWidth(280f);
-        ImGui.InputTextWithHint("##RecentDmSearch", "Search recent DMs", ref recentDirectMessageSearch, 128);
+        UiGui.InputTextWithHint("##RecentDmSearch", "Search recent DMs", ref recentDirectMessageSearch, 128);
         recentDirectMessageSearchInputRect = TrackedInputRect.CaptureCurrentItem();
         recentDirectMessageSearchFocusedLastFrame = ImGui.IsItemFocused();
         ImGui.Separator();
@@ -2486,7 +2654,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (filteredConversations.Count == 0)
         {
-            ImGui.TextDisabled("No recent DMs matched.");
+            UiGui.TextDisabled("No recent DMs matched.");
             ImGui.EndPopup();
             return;
         }
@@ -2495,7 +2663,7 @@ public sealed class MainWindow : Window, IDisposable
         {
             var isPinned = IsPinnedDirectMessageConversation(conversation.Key);
             var label = isPinned ? $"{GetConversationDisplayLabel(conversation)} [P]" : GetConversationDisplayLabel(conversation);
-            if (ImGui.Selectable(label, false))
+            if (MaterialText.Selectable(label, false))
             {
                 ClearTransientUiStatus();
                 ReopenDirectMessageConversation(conversation);
@@ -2503,7 +2671,7 @@ public sealed class MainWindow : Window, IDisposable
             }
 
             ImGui.SameLine();
-            if (ImGui.SmallButton($"{(isPinned ? "Unpin" : "Pin")}##{conversation.Key}"))
+            if (UiGui.SmallButton($"{(isPinned ? "Unpin" : "Pin")}##{conversation.Key}"))
             {
                 ClearTransientUiStatus();
                 SetPinnedDirectMessageConversation(conversation.Key, conversation.Label, !isPinned);
@@ -2536,17 +2704,17 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawDirectMessageCreationPopup()
     {
-        if (!ImGui.BeginPopupModal(NewDirectMessagePopupId, ImGuiWindowFlags.AlwaysAutoResize))
+        if (!UiGui.BeginPopupModal(NewDirectMessagePopupId, ImGuiWindowFlags.AlwaysAutoResize))
             return;
 
-        ImGui.TextUnformatted("Open a DM by entering First Last@World.");
+        UiGui.TextUnformatted("Open a DM by entering First Last@World.");
         if (requestDirectMessageTargetFocus)
         {
             ImGui.SetKeyboardFocusHere();
             requestDirectMessageTargetFocus = false;
         }
 
-        var submit = ImGui.InputTextWithHint(
+        var submit = UiGui.InputTextWithHint(
             "##DhogGPTNewDmTarget",
             "First Last@World",
             ref pendingDirectMessageTarget,
@@ -2556,16 +2724,16 @@ public sealed class MainWindow : Window, IDisposable
         newDirectMessageTargetFocusedLastFrame = ImGui.IsItemFocused();
 
         if (!string.IsNullOrWhiteSpace(directMessagePopupError))
-            ImGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), directMessagePopupError);
+            UiGui.TextColored(new Vector4(1.0f, 0.55f, 0.55f, 1.0f), UiText.Status(directMessagePopupError));
 
-        if (submit || ImGui.Button("Open"))
+        if (submit || UiGui.Button("Open"))
         {
             if (TryConfirmDirectMessagePopup())
                 ImGui.CloseCurrentPopup();
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Cancel") || ImGui.IsKeyPressed(ImGuiKey.Escape))
+        if (UiGui.Button("Cancel") || ImGui.IsKeyPressed(ImGuiKey.Escape))
         {
             directMessagePopupError = string.Empty;
             pendingDirectMessageTarget = string.Empty;
@@ -2596,7 +2764,7 @@ public sealed class MainWindow : Window, IDisposable
             return;
 
         var canSpawnDetachedWindow = plugin.CanSpawnDetachedConversationWindow(conversation.Key);
-        if (ImGui.Selectable(
+        if (UiGui.Selectable(
                 canSpawnDetachedWindow ? "Spawn new window" : "Already detached",
                 false,
                 canSpawnDetachedWindow ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled))
@@ -2609,7 +2777,7 @@ public sealed class MainWindow : Window, IDisposable
 
         if (conversation.Messages.Count > 0)
         {
-            if (ImGui.Selectable(isPinnedDirectMessage ? "Unpin conversation" : "Pin conversation"))
+            if (UiGui.Selectable(isPinnedDirectMessage ? "Unpin conversation" : "Pin conversation"))
             {
                 ClearTransientUiStatus();
                 SetPinnedDirectMessageConversation(conversation.Key, conversation.Label, !isPinnedDirectMessage);
@@ -2618,14 +2786,14 @@ public sealed class MainWindow : Window, IDisposable
         else
         {
             ImGui.BeginDisabled();
-            ImGui.Selectable("Pin conversation");
+            UiGui.Selectable("Pin conversation");
             ImGui.EndDisabled();
         }
 
-        if (ImGui.Selectable("Copy DM target"))
+        if (UiGui.Selectable("Copy DM target"))
             ImGui.SetClipboardText(conversation.Label);
 
-        if (ImGui.Selectable(isPinnedDirectMessage ? "Close pinned DM (hold Ctrl + click x)" : "Close DM"))
+        if (UiGui.Selectable(isPinnedDirectMessage ? "Close pinned DM (hold Ctrl + click x)" : "Close DM"))
         {
             ClearTransientUiStatus();
             CloseConversation(conversation, isPinnedDirectMessage);
@@ -2647,12 +2815,12 @@ public sealed class MainWindow : Window, IDisposable
             ? ImGui.ColorConvertFloat4ToU32(new Vector4(1.0f, 0.92f, 0.42f, 1.0f))
             : ImGui.ColorConvertFloat4ToU32(new Vector4(0.62f, 0.66f, 0.72f, 1.0f));
 
-        ImGui.GetWindowDrawList().AddText(new Vector2(pinMin.X + 1f, pinMin.Y - 1f), pinColor, "!");
+        MaterialText.AddText(ImGui.GetWindowDrawList(),new Vector2(pinMin.X + 1f, pinMin.Y - 1f), pinColor, "!");
 
         if (!ImGui.IsMouseHoveringRect(pinMin, pinMax))
             return;
 
-        ImGui.SetTooltip(isPinnedDirectMessage ? "Pinned DM tab. Click to unpin." : "Click to pin this DM tab.");
+        UiGui.SetTooltip(isPinnedDirectMessage ? "Pinned DM tab. Click to unpin." : "Click to pin this DM tab.");
         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
             ClearTransientUiStatus();
@@ -2662,7 +2830,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private static bool DrawOutgoingChannelSelectable(string label, bool isSelected, Action onSelected)
     {
-        if (!ImGui.Selectable(label, isSelected))
+        if (!UiGui.Selectable(label, isSelected))
         {
             if (isSelected)
                 ImGui.SetItemDefaultFocus();
@@ -2700,13 +2868,13 @@ public sealed class MainWindow : Window, IDisposable
         if (!isCombinedConversation && ShellChannelDisplayService.TryGetDescriptor(conversation.Key, out _))
         {
             var useTechnical = ShellChannelDisplayService.UsesTechnicalLabel(plugin.Configuration, conversation.Key);
-            if (ImGui.Selectable("Use in-game name", !useTechnical))
+            if (UiGui.Selectable("Use in-game name", !useTechnical))
             {
                 if (ShellChannelDisplayService.SetUseTechnicalLabel(plugin.Configuration, conversation.Key, false))
                     plugin.Configuration.Save();
             }
 
-            if (ImGui.Selectable("Use technical name", useTechnical))
+            if (UiGui.Selectable("Use technical name", useTechnical))
             {
                 if (ShellChannelDisplayService.SetUseTechnicalLabel(plugin.Configuration, conversation.Key, true))
                     plugin.Configuration.Save();
@@ -2716,7 +2884,7 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         var canSpawnDetachedWindow = !isCombinedConversation && plugin.CanSpawnDetachedConversationWindow(conversation.Key);
-        if (ImGui.Selectable(
+        if (UiGui.Selectable(
                 canSpawnDetachedWindow ? "Spawn new window" : "Already detached",
                 false,
                 canSpawnDetachedWindow ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled))
@@ -2727,20 +2895,20 @@ public sealed class MainWindow : Window, IDisposable
 
         ImGui.Separator();
 
-        if (isMasterWindow && ImGui.BeginMenu("Combine with"))
+        if (isMasterWindow && UiGui.BeginMenu("Combine with"))
         {
             var combineTargets = GetAvailableCombineTargets(conversation.Key);
             if (combineTargets.Count == 0)
             {
                 ImGui.BeginDisabled();
-                ImGui.MenuItem("No eligible channels");
+                UiGui.MenuItem("No eligible channels");
                 ImGui.EndDisabled();
             }
             else
             {
                 foreach (var targetConversation in combineTargets)
                 {
-                    if (!ImGui.MenuItem(GetConversationDisplayLabel(targetConversation)))
+                    if (!UiGui.MenuItem(GetConversationDisplayLabel(targetConversation)))
                         continue;
 
                     ClearTransientUiStatus();
@@ -2754,18 +2922,18 @@ public sealed class MainWindow : Window, IDisposable
 
         if (isCombinedConversation)
         {
-            if (ImGui.Selectable("Release combined channels"))
+            if (UiGui.Selectable("Release combined channels"))
             {
                 ClearTransientUiStatus();
                 ReleaseCombinedConversation(conversation.Key);
                 ImGui.CloseCurrentPopup();
             }
 
-            ImGui.TextDisabled("Click x to release the combined tab back into separate channels.");
+            UiGui.TextDisabled("Click x to release the combined tab back into separate channels.");
         }
         else
         {
-            ImGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
+            UiGui.TextDisabled("Hold Ctrl and click x to hide this channel tab.");
         }
 
         ImGui.EndPopup();
@@ -3124,7 +3292,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private static void DrawConversationScrollIndicator(ImDrawListPtr drawList, Vector2 windowPos, Vector2 windowSize, string indicator, bool top)
     {
-        var textSize = ImGui.CalcTextSize(indicator);
+        var textSize = MaterialText.Measure(indicator);
         var position = new Vector2(
             windowPos.X + Math.Max(8f, (windowSize.X - textSize.X) * 0.5f),
             top
@@ -3136,13 +3304,13 @@ public sealed class MainWindow : Window, IDisposable
             position + textSize + padding,
             ImGui.GetColorU32(new Vector4(0.08f, 0.08f, 0.08f, 0.55f)),
             4f);
-        drawList.AddText(position, ImGui.GetColorU32(new Vector4(0.78f, 0.78f, 0.78f, 0.95f)), indicator);
+        MaterialText.AddText(drawList,position, ImGui.GetColorU32(new Vector4(0.78f, 0.78f, 0.78f, 0.95f)), indicator);
     }
 
     private static string BuildScrollIndicator(char direction, float width)
     {
         var segment = $"{direction} ";
-        var segmentWidth = Math.Max(1f, ImGui.CalcTextSize(segment).X);
+        var segmentWidth = Math.Max(1f, MaterialText.Measure(segment).X);
         var repeatCount = Math.Max(8, (int)MathF.Ceiling(width / segmentWidth));
         var builder = new StringBuilder(repeatCount * segment.Length);
         for (var index = 0; index < repeatCount; index++)
@@ -3156,15 +3324,6 @@ public sealed class MainWindow : Window, IDisposable
         return builder.ToString();
     }
 
-    private float GetActiveWindowOpacity()
-    {
-        var focusedOpacity = Math.Clamp(plugin.Configuration.FocusedWindowOpacity, 0.20f, 1.0f);
-        var backgroundOpacity = Math.Clamp(plugin.Configuration.BackgroundWindowOpacity, 0.20f, 1.0f);
-        return useFocusedWindowOpacity
-            ? Math.Max(focusedOpacity, backgroundOpacity)
-            : Math.Min(backgroundOpacity, focusedOpacity);
-    }
-
     private float GetInactiveSimpleComposerOpacity()
         => Math.Clamp(plugin.Configuration.WindowOpacity, 0.20f, 1.0f);
 
@@ -3172,7 +3331,6 @@ public sealed class MainWindow : Window, IDisposable
     {
         windowHoveredLastFrame = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
         windowFocusedLastFrame = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
-        useFocusedWindowOpacity = windowHoveredLastFrame || windowFocusedLastFrame;
     }
 
     private void HandleConversationTabWheelNavigation(IReadOnlyList<ConversationTabState> conversations)
@@ -3230,7 +3388,7 @@ public sealed class MainWindow : Window, IDisposable
             if (IsDirectMessageConversation(conversation.Key))
                 label = $"   {label}";
 
-            totalWidth += ImGui.CalcTextSize(label).X;
+            totalWidth += MaterialText.Measure(label).X;
             totalWidth += (style.FramePadding.X * 2f) + closeButtonWidth + style.ItemInnerSpacing.X + style.ItemSpacing.X;
         }
 
@@ -3250,7 +3408,8 @@ public sealed class MainWindow : Window, IDisposable
         var totalWidth = 0f;
 
         foreach (var label in labels)
-            totalWidth += ImGui.CalcTextSize(label).X + (style.FramePadding.X * 2f);
+            totalWidth += Math.Max(IsUltraCompactMode()?DhogGptPresentation.UltraTabHeight*MaterialTheme.Metrics.Scale:0,
+                MaterialText.Measure(label).X + (style.FramePadding.X * 2f));
 
         totalWidth += style.ItemSpacing.X * (labels.Length - 1);
         return totalWidth + Math.Max(6f, style.CellPadding.X * 2f);
@@ -3426,7 +3585,7 @@ public sealed class MainWindow : Window, IDisposable
     private void TrackWindowPosition()
     {
         var currentPosition = ImGui.GetWindowPos();
-        var currentSize = ImGui.GetWindowSize();
+        var currentSize = windowMotion.GetLogicalSize();
         lastObservedWindowSize = currentSize;
         if (pendingSavedPositionApply)
         {
@@ -3513,16 +3672,11 @@ public sealed class MainWindow : Window, IDisposable
                 customColors.GetActiveTabText());
         }
 
-        var inbound = GetBaseMessagePalette(isInbound: true).Header;
-        var outbound = GetBaseMessagePalette(isInbound: false).Header;
-        var accent = BlendColors(inbound, outbound, 0.5f);
-        var tab = WithAlpha(ScaleColorRgb(accent, 0.48f), 0.78f);
-        var hovered = WithAlpha(ScaleColorRgb(accent, 0.90f), 0.92f);
-        var active = WithAlpha(ScaleColorRgb(accent, 1.12f), 0.98f);
-        var unfocused = WithAlpha(ScaleColorRgb(accent, 0.36f), 0.55f);
-        var unfocusedActive = WithAlpha(ScaleColorRgb(accent, 0.72f), 0.78f);
-        return (tab, hovered, active, unfocused, unfocusedActive, GetReadableTextColor(tab), GetReadableTextColor(active));
+        var themeColors=MaterialTheme.Current.Colors;
+        return (themeColors.Surface,themeColors.SurfaceContainerHigh,themeColors.PrimaryContainer,
+            themeColors.Surface,themeColors.SurfaceContainerHigh,themeColors.OnSurfaceVariant,themeColors.OnSurface);
     }
+
 
     private static Vector4 BlendColors(Vector4 left, Vector4 right, float amount)
     {
