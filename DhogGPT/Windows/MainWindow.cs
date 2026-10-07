@@ -300,17 +300,16 @@ public sealed class MainWindow : Window, IDisposable
         DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + gap);
         plugin.DrawTransparency();
         if(ultra)return;
-        var toolbarHeight=40*MaterialTheme.Metrics.Scale;
-        if(UiGui.Button("Guide",new Vector2(0,toolbarHeight),icon:MaterialIcon.Book))plugin.OpenFirstUseGuide();
-        Next("Settings");if(UiGui.Button("Settings",new Vector2(0,toolbarHeight),icon:MaterialIcon.Settings))plugin.ToggleConfigUi();
-        Next("Status to chat");if(UiGui.Button("Status to chat",new Vector2(0,toolbarHeight),icon:MaterialIcon.Chat))plugin.PrintStatus("DhogGPT is loaded and ready.");
+        if(UiGui.Button("Guide",icon:MaterialIcon.Book))plugin.OpenFirstUseGuide();
+        Next("Settings");if(UiGui.Button("Settings",icon:MaterialIcon.Settings))plugin.ToggleConfigUi();
+        Next("Status to chat");if(UiGui.Button("Status to chat",icon:MaterialIcon.Chat))plugin.PrintStatus("DhogGPT is loaded and ready.");
         // Ko-fi and Discord originally lived within this native header table's ID scope.
         var supportRoot=ImGui.GetID("DhogGPTHeaderTop");
         Next("Ko-fi");ImGuiP.PushOverrideID(supportRoot);
-        if(UiGui.Button("Ko-fi",new Vector2(0,toolbarHeight),icon:MaterialIcon.Heart))Process.Start(new ProcessStartInfo { FileName=Plugin.SupportUrl,UseShellExecute=true });
+        if(UiGui.Button("Ko-fi",icon:MaterialIcon.Heart))Process.Start(new ProcessStartInfo { FileName=Plugin.SupportUrl,UseShellExecute=true });
         ImGui.PopID();
         Next("Discord");ImGuiP.PushOverrideID(supportRoot);
-        if(UiGui.Button("Discord",new Vector2(0,toolbarHeight),icon:MaterialIcon.Group))Process.Start(new ProcessStartInfo { FileName=Plugin.DiscordUrl,UseShellExecute=true });
+        if(UiGui.Button("Discord",icon:MaterialIcon.Group))Process.Start(new ProcessStartInfo { FileName=Plugin.DiscordUrl,UseShellExecute=true });
         ImGui.PopID();
         Next("Enabled");
         var enabled=configuration.PluginEnabled;
@@ -319,11 +318,11 @@ public sealed class MainWindow : Window, IDisposable
         var dtrEnabled=configuration.DtrBarEnabled;
         if(UiGui.Checkbox("DTR Bar",ref dtrEnabled)) { configuration.DtrBarEnabled=dtrEnabled;configuration.Save();plugin.UpdateDtrBar(); }
         Next("Turn on ultra compact");
-        if(UiGui.Button("Turn on ultra compact",new Vector2(0,toolbarHeight)))TurnOnUltraCompactFromUi();
+        if(UiGui.Button("Turn on ultra compact"))TurnOnUltraCompactFromUi();
         if(ImGui.IsItemHovered())UiGui.SetTooltip("Switch from regular mode to ultra compact mode.");
         var krangle=configuration.KrangleChatNames?"Krangle Names: On":"Krangle Names: Off";
         Next(krangle);
-        if(UiGui.Button(krangle,new Vector2(0,toolbarHeight))) { configuration.KrangleChatNames=!configuration.KrangleChatNames;configuration.Save(); }
+        if(UiGui.Button(krangle)) { configuration.KrangleChatNames=!configuration.KrangleChatNames;configuration.Save(); }
         void Next(string label)=>DhogGptPresentation.SameLineIfFits(MaterialText.Measure(UiText.T(label)).X+ImGui.GetStyle().FramePadding.X*2+ImGui.GetFrameHeight());
     }
 
@@ -444,7 +443,7 @@ public sealed class MainWindow : Window, IDisposable
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.35f, 0.66f, 0.38f, 0.95f));
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.24f, 0.48f, 0.28f, 0.95f));
             }
-            if (UiGui.Button("K##UltraCompactKrangle",new Vector2(52*scale,fieldHeight)))
+            if (UiGui.Button("K##UltraCompactKrangle",new Vector2(52*scale,0)))
             {
                 configuration.KrangleChatNames = !configuration.KrangleChatNames;
                 changed = true;
@@ -455,13 +454,13 @@ public sealed class MainWindow : Window, IDisposable
                 UiGui.SetTooltip(configuration.KrangleChatNames ? "Krangle names is on." : "Krangle names is off.");
 
             DhogGptPresentation.SameLineIfFits(52*scale);
-            if (UiGui.Button("S##UltraCompactSettings",new Vector2(52*scale,fieldHeight)))
+            if (UiGui.Button("S##UltraCompactSettings",new Vector2(52*scale,0)))
                 plugin.ToggleConfigUi();
             if (ImGui.IsItemHovered())
                 UiGui.SetTooltip("Open DhogGPT settings.");
 
             DhogGptPresentation.SameLineIfFits(98*scale);
-            if (UiGui.Button("Ko-fi##UltraCompactSupport",new Vector2(98*scale,fieldHeight)))
+            if (UiGui.Button("Ko-fi##UltraCompactSupport",new Vector2(98*scale,0)))
                 Process.Start(new ProcessStartInfo { FileName = Plugin.SupportUrl, UseShellExecute = true });
             if (ImGui.IsItemHovered())
                 UiGui.SetTooltip("Open the DhogGPT support page.");
@@ -1080,7 +1079,6 @@ public sealed class MainWindow : Window, IDisposable
         ImGui.SetCursorPosY(counterY+10*s);
         if(changed && isMasterWindow)configuration.Save();
         ImGui.BeginDisabled(previewBusy);
-        var height=DhogGptPresentation.ActionHeight*s;
         var wide=ImGui.GetContentRegionAvail().X>=800*s;
         var width=wide?Math.Min((configuration.UiCompact?1004:978)*s,ImGui.GetContentRegionAvail().X):ImGui.GetContentRegionAvail().X;
         if(wide)ImGui.SetCursorPosX(ImGui.GetCursorPosX()+Math.Max(0,(ImGui.GetContentRegionAvail().X-width)*.5f-(configuration.UiCompact?12*s:0)));
@@ -1088,11 +1086,11 @@ public sealed class MainWindow : Window, IDisposable
         var previewWidth=wide?width*(configuration.UiCompact?.3194f:.3063158f):width;
         var sendWidth=wide?width*(configuration.UiCompact?.3806f:.3821053f):width;
         var clearWidth=wide?width-previewWidth-sendWidth:width;
-        if(UiGui.Button("Preview translation",new Vector2(previewWidth,height),icon:MaterialIcon.Search))_=PreviewAsync(sendAfterTranslate:false);
+        if(UiGui.Button("Preview translation",new Vector2(previewWidth,0),icon:MaterialIcon.Search))_=PreviewAsync(sendAfterTranslate:false);
         if(wide)ImGui.SameLine();
-        if(DhogGptPresentation.PrimaryButton("Translate and send",new Vector2(sendWidth,height),MaterialIcon.Send))_=PreviewAsync(sendAfterTranslate:true);
+        if(DhogGptPresentation.PrimaryButton("Translate and send",new Vector2(sendWidth,0),MaterialIcon.Send))_=PreviewAsync(sendAfterTranslate:true);
         if(wide)ImGui.SameLine();
-        if(UiGui.Button("Clear",new Vector2(clearWidth,height),icon:MaterialIcon.Delete))
+        if(UiGui.Button("Clear",new Vector2(clearWidth,0),icon:MaterialIcon.Delete))
         {
             outgoingDraft=string.Empty;if(isMasterWindow) { configuration.OutgoingDraft=string.Empty;configuration.Save(); }
             previewStatus=string.Empty;previewText=string.Empty;previewMetadata=string.Empty;
