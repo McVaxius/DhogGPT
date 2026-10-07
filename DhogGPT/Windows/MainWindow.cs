@@ -126,6 +126,32 @@ public sealed class MainWindow : Window, IDisposable
                 : "Lock main window position"),
         };
         TitleBarButtons.Add(lockTitleBarButton);
+        TitleBarButtons.Add(new()
+        {
+            Icon = FontAwesomeIcon.Cog, Priority = -10, IconOffset = new(2, 1),
+            Click = button => { if (button == ImGuiMouseButton.Left) plugin.ToggleConfigUi(); },
+            ShowTooltip = () => MaterialText.SetTooltip(UiText.T("Settings")),
+        });
+        TitleBarButtons.Add(new()
+        {
+            Icon = FontAwesomeIcon.Book, Priority = -20, IconOffset = new(2, 1),
+            Click = button => { if (button == ImGuiMouseButton.Left) plugin.OpenFirstUseGuide(); },
+            ShowTooltip = () => MaterialText.SetTooltip(UiText.T("Guide")),
+        });
+        TitleBarButtons.Add(new()
+        {
+            Icon = FontAwesomeIcon.PowerOff, Priority = -30, IconOffset = new(2, 1),
+            Click = button => { if (button == ImGuiMouseButton.Left) plugin.SetPluginEnabled(!plugin.Configuration.PluginEnabled); },
+            ShowTooltip = () => MaterialText.SetTooltip(UiText.T("Enabled") + "\n" + UiText.T(plugin.Configuration.PluginEnabled ? "On" : "Off")),
+        });
+        TitleBarButtons.Add(new()
+        {
+            Icon = FontAwesomeIcon.Compress, Priority = -40, IconOffset = new(2, 1),
+            Click = button => { if (button == ImGuiMouseButton.Left) TurnOnUltraCompactFromUi(); },
+            ShowTooltip = () => MaterialText.SetTooltip(UiText.T("Turn on ultra compact") + "\n"
+                + UiText.T("Switch from regular mode to ultra compact mode.") + "\n"
+                + UiText.T(plugin.IsUltraCompactModeConfigured() ? "On" : "Off")),
+        });
 
         SizeConstraints = new WindowSizeConstraints
         {
@@ -189,6 +215,7 @@ public sealed class MainWindow : Window, IDisposable
             requestWindowFocus = false;
         }
 
+        UiGui.ReserveTitleSpace(this, VersionedTitle, IsUltraCompactMode() ? 460 : 720);
         windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
     }
 
@@ -201,7 +228,7 @@ public sealed class MainWindow : Window, IDisposable
     public override void Draw()
     {
         windowMotion.DrawChrome();
-        UiGui.Title(string.Empty, VersionedTitle);
+        UiGui.TitleWithButtons(string.Empty, VersionedTitle, this);
         using var typography = new DhogGptPresentation.TextScale(IsUltraCompactMode() ? 2f : 1.25f);
         ResetTrackedInputRects();
         hoveredConversationItemThisFrame = false;
@@ -240,6 +267,11 @@ public sealed class MainWindow : Window, IDisposable
         TrackWindowPosition();
     }
 
+
+    private void TurnOnUltraCompactFromUi()
+    {
+        if (!plugin.IsUltraCompactModeConfigured()) plugin.SetUltraCompactMode(true);
+    }
 
     private void DrawHeader()
     {
@@ -287,7 +319,7 @@ public sealed class MainWindow : Window, IDisposable
         var dtrEnabled=configuration.DtrBarEnabled;
         if(UiGui.Checkbox("DTR Bar",ref dtrEnabled)) { configuration.DtrBarEnabled=dtrEnabled;configuration.Save();plugin.UpdateDtrBar(); }
         Next("Turn on ultra compact");
-        if(UiGui.Button("Turn on ultra compact",new Vector2(0,toolbarHeight)))plugin.SetUltraCompactMode(true);
+        if(UiGui.Button("Turn on ultra compact",new Vector2(0,toolbarHeight)))TurnOnUltraCompactFromUi();
         if(ImGui.IsItemHovered())UiGui.SetTooltip("Switch from regular mode to ultra compact mode.");
         var krangle=configuration.KrangleChatNames?"Krangle Names: On":"Krangle Names: Off";
         Next(krangle);
