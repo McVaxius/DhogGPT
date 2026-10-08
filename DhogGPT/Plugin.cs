@@ -202,7 +202,15 @@ public sealed class Plugin : IDalamudPlugin
         {
             try { var generation=uiFonts.Generation;
                 foreach(var size in DhogGptPresentation.FontSizes) shapedText.Renderer.CheckGlyphs(uiText.RequiredText,size*4/3*ImGuiHelpers.GlobalScale);
-                uiFonts.CheckGlyphs(uiText.RequiredText);checkedFontGeneration=generation; }
+                uiFonts.CheckGlyphs(uiText.RequiredText);
+                var hindiLabel = UiText.Languages.Single(l => l.Code == "hi").Name;
+                var hindiAvailable = true;
+                foreach (var size in DhogGptPresentation.FontSizes)
+                    hindiAvailable &= shapedText.Renderer.TryCheckGlyphs([hindiLabel], size * 4 / 3 * ImGuiHelpers.GlobalScale, out _);
+                uiLanguages.Replace(UiText.Languages.Select(l => new MaterialOption<string>(l.Code, l.Code,
+                    l.Code == "hi" && !hindiAvailable ? "Hindi (unavailable)" : l.Name,
+                    l.Code == "hi" && !hindiAvailable)).ToArray());
+                checkedFontGeneration=generation; }
             catch(Exception error) { if(!uiFontIssueLogged) { Log.Error(error,"[DhogGPT] Required UI glyph coverage failed.");uiFontIssueLogged=true; }DrawFontStatus(false);return; }
         }
         DhogGptPresentation.Compact=Configuration.UiCompact;
@@ -232,7 +240,13 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Begin("DhogGPT##UiFontStatus", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 fontStatusDecorations.Paint();
-                MaterialText.TextWrapped(UiText.T(loading ? "Loading UI fonts..." : "UI fonts failed to load. See the plugin log."));
+                ImGui.TextWrapped(appliedUiLanguage == "hi" && !loading ? "Hindi UI fonts are unavailable. Use English to continue."
+                    : loading ? "Loading UI fonts..." : "UI fonts failed to load. See the plugin log.");
+                if (appliedUiLanguage == "hi" && !loading && ImGui.Button("Use English"))
+                {
+                    Configuration.UiLanguage = "en";
+                    Configuration.Save();
+                }
             }
         }
         finally

@@ -26,6 +26,10 @@ DhogGPT now has a clean `Debug x64` build.
 
 ## Current Feature Set
 
+Hindi uses installed shaping fonts. The source now leaves other languages usable when the Hindi menu caption is unavailable, showing a disabled ASCII `Hindi (unavailable)` option. Required text for a selected Hindi UI still requires full validation; on failure, the readable status offers **Use English**, saving English only after an explicit press. Native verification and Linux/Wine acceptance remain pending for this change.
+
+Settings owns shared colour, UI language, compact spacing and window transparency/fade; optional Main selectors change the same saved preferences. Regular and ultra compact Main branding and expanded/collapsed titles use the packaged DhogGPT icon in its original colours. Translation channels, providers and From/To chat languages keep their existing controls and are independent of UI language and compact density.
+
 - Regular and ultra compact windows use the approved AethertekUI layouts. The header's `C` checkbox changes UI density separately from the existing ultra compact chat mode.
 - UI language and accent preferences are shared by the main, detached, settings and guide windows. English, German, French, Spanish, Italian, Russian, Japanese, Korean, Simplified Chinese, Vietnamese, Brazilian Portuguese, Indonesian, Polish, Turkish and Hindi are available; the palette derives surfaces and borders from the selected accent while retaining chat/status meanings and existing custom chat colors.
 - Hindi captions and chat/editor text use a scoped Windows text shaper; DTR and game context menus retain supported English for Hindi. Current Debug x64 compilation and focused Hindi/English native checks pass, including the complete Main, ultra, Settings and Guide Hindi matrix. Managed-host/game/GPU/IME acceptance remains pending.

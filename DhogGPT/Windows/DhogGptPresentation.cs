@@ -8,6 +8,17 @@ internal enum UiFontRole { Body, BodyStrong, Title, Caption, Small, Heading, Act
 
 internal static class DhogGptPresentation
 {
+    // Dalamud owns the shared texture through render submission; callers borrow its wrapper.
+    internal static Dalamud.Interface.Textures.TextureWraps.IDalamudTextureWrap? OriginalIcon
+        => Plugin.Textures.GetFromManifestResource(typeof(Plugin).Assembly, "DhogGPT.images.icon.png").GetWrapOrDefault();
+
+    internal static void DrawPluginIcon(ImDrawListPtr drawList, Vector2 min, Vector2 max)
+    {
+        var texture = OriginalIcon;
+        if (texture is not null)
+            MaterialCanvas.DrawImage(drawList, texture.Handle, new Vector2(texture.Width, texture.Height), min, max);
+    }
+
     // Measured DhogGPT-review-v2, compact-review-v1 and ultra-compact-v2 content geometry.
     internal const uint ReferenceAccent = 0x5551FF;
     internal static bool Compact { get; set; }
@@ -86,13 +97,8 @@ internal static class DhogGptPresentation
     internal static void Brand(bool ultraCompact)
     {
         var size=(ultraCompact?28:Compact?38:48)*MaterialTheme.Metrics.Scale;
-        var min=ImGui.GetCursorScreenPos();var color=MaterialTheme.Current.Colors.Primary;
-        var dl=ImGui.GetWindowDrawList();
-        dl.AddRectFilled(min+new Vector2(size*.2f,size*.15f),min+new Vector2(size,size*.82f),MaterialCanvas.Color(MaterialColor.Layer(color,MaterialTheme.Current.Colors.OnSurface,.12f)),size*.2f);
-        dl.AddTriangleFilled(min+new Vector2(size*.62f,size*.68f),min+new Vector2(size*.95f,size*.97f),min+new Vector2(size*.95f,size*.7f),MaterialCanvas.Color(color));
-        dl.AddRectFilled(min,min+new Vector2(size*.82f,size*.67f),MaterialCanvas.Color(color),size*.2f);
-        dl.AddTriangleFilled(min+new Vector2(size*.12f,size*.5f),min+new Vector2(size*.12f,size*.88f),min+new Vector2(size*.38f,size*.55f),MaterialCanvas.Color(color));
-        foreach(var x in new[]{.24f,.41f,.58f})dl.AddCircleFilled(min+new Vector2(size*x,size*.32f),size*.043f,MaterialCanvas.Color(MaterialTheme.Current.Colors.Background));
+        var min=ImGui.GetCursorScreenPos();
+        DrawPluginIcon(ImGui.GetWindowDrawList(), min, min + new Vector2(size));
         ImGui.Dummy(new Vector2(size,size));ImGui.SameLine();ImGui.BeginGroup();
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing,new Vector2(ImGui.GetStyle().ItemSpacing.X,2*MaterialTheme.Metrics.Scale));
         using (var titleSize = new TextScale(Compact && !ultraCompact ? .83f : 1f))

@@ -39,7 +39,7 @@ internal sealed class UiText : IDisposable
         Resources=manager.GetResourceSet(CultureInfo.InvariantCulture,true,false) ?? throw new MissingManifestResourceException(Language);
         englishManager=new ResourceManager("DhogGPT.Localization.Strings_en",typeof(UiText).Assembly);
         var english=englishManager.GetResourceSet(CultureInfo.InvariantCulture,true,false) ?? throw new MissingManifestResourceException("en");
-        RequiredText=Values(Resources).Concat(Values(english)).Concat(Languages.Select(l=>l.Name)).Distinct().ToArray();
+        RequiredText=Values(Resources).Concat(Values(english)).Concat(Languages.Where(l => l.Code != "hi").Select(l=>l.Name)).Distinct().ToArray();
         labels=english.Cast<DictionaryEntry>().ToDictionary(entry=>(string)entry.Value!,entry=>(string)entry.Key,StringComparer.OrdinalIgnoreCase);
         var selectedKeys=Resources.Cast<DictionaryEntry>().Select(entry=>(string)entry.Key).ToHashSet(StringComparer.Ordinal);
         if (!selectedKeys.SetEquals(labels.Values) ||

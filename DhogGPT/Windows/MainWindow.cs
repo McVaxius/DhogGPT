@@ -222,13 +222,13 @@ public sealed class MainWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
+        UiGui.PaintTitleWithImage(this, VersionedTitle);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
         windowMotion.DrawChrome();
-        UiGui.TitleWithButtons(string.Empty, VersionedTitle, this);
         using var typography = new DhogGptPresentation.TextScale(IsUltraCompactMode() ? 2f : 1.25f);
         ResetTrackedInputRects();
         hoveredConversationItemThisFrame = false;
