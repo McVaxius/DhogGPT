@@ -56,3 +56,9 @@ Settings owns shared colour, UI language, compact spacing and window transparenc
 - The initial icon at `DhogGPT/images/icon.png` is included in the current debug output.
 - Non-user-facing research remains in `z:\xa-xiv-docs\Dhog\DhogGPT\`.
 - The current translation backend tries a Google-style no-key web endpoint first and then falls back to configurable LibreTranslate-compatible endpoints.
+
+## Support logs
+
+Use **Copy / ZIP Dalamud log** in Settings > Advanced to create a local ZIP and open its folder. At 100 MiB or above, the first click warns that logging may have stopped and recent activity may be missing; click **Export capped log anyway** only if you still want that snapshot. Share the ZIP manually and remove exports when no longer needed. **Open Export Folder** reopens the completed export’s folder.
+
+When XA Slave is loaded, **Open XA Slave log tools** opens its **Utility > XA Mods** panel, which contains Dalamud Log Cleaner. The existing **Copy / ZIP Dalamud log** action remains separate. Opening the panel does not run cleanup or change XA Slave settings.
