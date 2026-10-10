@@ -297,8 +297,11 @@ public sealed class MainWindow : Window, IDisposable
             DhogGptPresentation.SameLineIfFits(languageWidth);
             plugin.DrawUiLanguage();
         }
-        DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + gap);
-        plugin.DrawTransparency();
+        if (plugin.Configuration.UiTransparencyVisibleOnMainWindow)
+        {
+            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + gap);
+            plugin.DrawTransparency();
+        }
         if(ultra)return;
         if(UiGui.Button("Guide",icon:MaterialIcon.Book))plugin.OpenFirstUseGuide();
         Next("Settings");if(UiGui.Button("Settings",icon:MaterialIcon.Settings))plugin.ToggleConfigUi();
@@ -371,8 +374,11 @@ public sealed class MainWindow : Window, IDisposable
             DhogGptPresentation.SameLineIfFits(180 * scale);
             plugin.DrawUiLanguage();
         }
-        DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + ImGui.GetStyle().ItemInnerSpacing.X);
-        plugin.DrawTransparency();
+        if (plugin.Configuration.UiTransparencyVisibleOnMainWindow)
+        {
+            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + ImGui.GetStyle().ItemInnerSpacing.X);
+            plugin.DrawTransparency();
+        }
     }
 
     private void DrawSimpleLanguageBar()
