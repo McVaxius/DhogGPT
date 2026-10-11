@@ -70,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin
     private UiText uiText = null!;
     private DhogGptFonts uiFonts = null!;
     private MaterialTheme uiTheme = null!;
+    private readonly Dictionary<Dalamud.Interface.Windowing.Window, AethertekUI.Dalamud.MaterialAppearanceTitleBar> appearanceTitleBars = new();
     private readonly MaterialWindowFold fontStatusFold = new();
     private readonly MaterialWindowDecorations fontStatusDecorations = new();
     private readonly MaterialWindowOpacity fontStatusOpacity = new();
@@ -226,6 +227,7 @@ public sealed class Plugin : IDalamudPlugin
         geometry.Style(ImGuiStyleVar.FrameBorderSize,s);
         using var font=uiFonts.Push(UiFontRole.Body);
         using var chrome = MaterialWindowChrome.Push();
+        PrepareAppearanceTitleBars(WindowSystem);
         WindowSystem.Draw();
     }
     private void DrawFontStatus(bool loading)
@@ -622,6 +624,7 @@ public sealed class Plugin : IDalamudPlugin
             detachedConversationAssignments.Remove(conversationKey);
 
         WindowSystem.RemoveWindow(window);
+        appearanceTitleBars.Remove(window);
         window.Dispose();
 
         foreach (var conversationKey in returnedConversationKeys)
@@ -905,6 +908,48 @@ public sealed class Plugin : IDalamudPlugin
         var languageVisibleOnMainWindow = config.UiLanguageVisibleOnMainWindow;
         if (UiGui.Checkbox(UiText.T("Language visible on main window") + "###UiLanguageVisibleOnMainWindowSettings", ref languageVisibleOnMainWindow))
         { config.UiLanguageVisibleOnMainWindow = languageVisibleOnMainWindow; changed = true; }
+        if (changed) config.Save();
+        DrawTransparencySettings();
+    }
+
+    private void PrepareAppearanceTitleBars(Dalamud.Interface.Windowing.WindowSystem windows)
+    {
+        foreach (var window in windows.Windows.OfType<Dalamud.Interface.Windowing.Window>())
+        {
+            if ((window.Flags & ImGuiWindowFlags.NoTitleBar) != 0) continue;
+            if (!appearanceTitleBars.ContainsKey(window))
+                appearanceTitleBars.Add(window, AethertekUI.Dalamud.MaterialAppearanceTitleBar.Register(window,
+                    () => new(UiText.T("UI language"), UiText.T("Compact mode"), UiText.T("Transparency"), UiText.T("Color")),
+                    DrawUiLanguage,
+                    () => { Configuration.UiCompact = !Configuration.UiCompact; Configuration.Save(); },
+                    DrawTransparencySettings, DrawTitleBarColour,
+                    () => window is global::DhogGPT.Windows.MainWindow
+                        ? new(Configuration.UiLanguageVisibleOnMainWindow, Configuration.UiCompactVisibleOnMainWindow,
+                            Configuration.UiTransparencyVisibleOnMainWindow, true)
+                        : new(true, true, true, true)));
+            appearanceTitleBars[window].RefreshVisibility();
+        }
+    }
+
+    internal void DrawAppearanceTitleBarPopups(Dalamud.Interface.Windowing.Window window)
+    {
+        if (appearanceTitleBars.TryGetValue(window, out var titlebar)) titlebar.DrawPopups();
+    }
+
+    private void DrawTitleBarColour()
+    {
+        if (!MaterialAppearanceSelector.DrawPalette("appearance", ref uiAccentDraft,
+                new(UiText.T("Color"), UiText.T("UI language"), UiText.T("Teal"), UiText.T("Blue"), UiText.T("Pink"), UiText.T("Custom RGB")))) return;
+        Configuration.UiAccentRgb = ((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.X * 255), 0, 255) << 16)
+            | ((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Y * 255), 0, 255) << 8)
+            | (uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Z * 255), 0, 255);
+        Configuration.Save();
+    }
+
+    private void DrawTransparencySettings()
+    {
+        var config = Configuration;
+        var changed = false;
         var transparencyEnabled = config.UiTransparencyEnabled;
         if (UiGui.Checkbox(UiText.T("Transparency") + "###UiTransparencyEnabledSettings", ref transparencyEnabled))
         { config.UiTransparencyEnabled = transparencyEnabled; changed = true; }

@@ -223,6 +223,7 @@ public sealed class MainWindow : Window, IDisposable
     {
         windowMotion.Restore(this);
         UiGui.PaintTitleWithImage(this, VersionedTitle);
+        plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
@@ -282,26 +283,6 @@ public sealed class MainWindow : Window, IDisposable
         DhogGptPresentation.Brand(ultra);
         DhogGptPresentation.SameLineIfFits(MaterialText.Measure(windowBadge).X);
         MaterialText.TextDisabled(windowBadge);
-        var scale=MaterialTheme.Metrics.Scale;
-        var metrics=MaterialControlMetrics.Measure(MaterialTheme.Metrics,ImGui.GetFontSize());
-        var languageName=UiText.Languages.Single(value=>value.Code==UiText.Current.Language).Name;
-        var languageWidth=Math.Max(130*scale,MathF.Ceiling(MaterialText.Measure(languageName).X+metrics.Height+metrics.Gap*3+Math.Min(metrics.IconSize,metrics.Height)));
-        var gap = ImGui.GetStyle().ItemSpacing.X;
-        if (configuration.UiCompactVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure("C").X + gap);
-            plugin.DrawUiCompact(header: true);
-        }
-        if (configuration.UiLanguageVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(languageWidth);
-            plugin.DrawUiLanguage();
-        }
-        if (plugin.Configuration.UiTransparencyVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + gap);
-            plugin.DrawTransparency();
-        }
         if(ultra)return;
         if(UiGui.Button("Guide",icon:MaterialIcon.Book))plugin.OpenFirstUseGuide();
         Next("Settings");if(UiGui.Button("Settings",icon:MaterialIcon.Settings))plugin.ToggleConfigUi();
@@ -363,22 +344,6 @@ public sealed class MainWindow : Window, IDisposable
         using var preferenceSize = new DhogGptPresentation.TextScale(.625f);
         using (var brandSize = new DhogGptPresentation.TextScale(1.8f))
             DhogGptPresentation.Text("DhogGPT", UiFontRole.Body, MaterialTheme.Current.Colors.OnSurface, 38);
-        var scale = MaterialTheme.Metrics.Scale;
-        if (plugin.Configuration.UiCompactVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure("C").X + ImGui.GetStyle().ItemInnerSpacing.X);
-            plugin.DrawUiCompact(header: true);
-        }
-        if (plugin.Configuration.UiLanguageVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(180 * scale);
-            plugin.DrawUiLanguage();
-        }
-        if (plugin.Configuration.UiTransparencyVisibleOnMainWindow)
-        {
-            DhogGptPresentation.SameLineIfFits(ImGui.GetFrameHeight() + MaterialText.Measure(UiText.T("Transparency")).X + ImGui.GetStyle().ItemInnerSpacing.X);
-            plugin.DrawTransparency();
-        }
     }
 
     private void DrawSimpleLanguageBar()

@@ -41,13 +41,14 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
+        plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
         windowMotion.DrawChrome();
-        UiGui.Title("Welcome To DhogGPT");
+        UiGui.TitleWithButtons("Welcome To DhogGPT", null, this);
         UiGui.TextWrapped("DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT.");
         ImGui.Separator();
 

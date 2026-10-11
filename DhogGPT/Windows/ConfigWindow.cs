@@ -67,13 +67,14 @@ public sealed class ConfigWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
+        plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
         windowMotion.DrawChrome();
-        UiGui.Title(VersionedWindowTitle.Split("###",2)[0]);
+        UiGui.TitleWithButtons(VersionedWindowTitle.Split("###",2)[0], null, this);
         ImGui.Separator();
         if (UiGui.BeginTabBar("DhogGPTSettingsTabs", new[]{"Window appearance","Everyday","Channels","Providers","Advanced"}.Select(UiText.T).ToArray()))
         {
