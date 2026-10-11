@@ -53,6 +53,20 @@ public sealed class Plugin : IDalamudPlugin
     public const string DiscordUrl = "https://discord.gg/ac6gjDvR8R";
     public const string DiscordFeedbackNote = "Scroll down to \"The Dumpster Fire\" channel to discuss issues / suggestions for specific plugins.";
 
+    internal AethertekUI.MaterialTitlebarStatus? TitlebarStatus
+    {
+        get
+        {
+            if (!Configuration.UiShowTitlebarStatus) return null;
+            var state = UiText.T(Configuration.PluginEnabled ? "On" : "Off");
+            var pending = UiText.F("{0} pending", TranslationCoordinator.PendingCount);
+            var concise = state + " \u00b7 " + pending;
+            var language = UiText.T(LanguageRegistry.GetName(Configuration.IncomingTargetLanguage));
+            var details = state + " \u00b7 " + language + " \u00b7 " + pending;
+            return new(Configuration.UiDetailedTitlebarStatus ? details : concise, concise, details);
+        }
+    }
+
     public Configuration Configuration { get; }
     public WindowSystem WindowSystem { get; } = new("DhogGPT");
     public LinkPayloadManager LinkPayloadManager { get; }
@@ -894,6 +908,12 @@ public sealed class Plugin : IDalamudPlugin
 
     internal void DrawWindowAppearance()
     {
+        var showTitlebarStatus = Configuration.UiShowTitlebarStatus;
+        if (UiGui.Checkbox(UiText.T("Show titlebar status") + "###UiShowTitlebarStatus", ref showTitlebarStatus))
+        { Configuration.UiShowTitlebarStatus = showTitlebarStatus; Configuration.Save(); }
+        var detailedTitlebarStatus = Configuration.UiDetailedTitlebarStatus;
+        if (UiGui.Checkbox(UiText.T("Detailed titlebar status") + "###UiDetailedTitlebarStatus", ref detailedTitlebarStatus))
+        { Configuration.UiDetailedTitlebarStatus = detailedTitlebarStatus; Configuration.Save(); }
         UiGui.TextUnformatted("Window appearance");
         DrawUiAppearance();
         DrawUiCompact();

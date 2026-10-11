@@ -222,7 +222,7 @@ public sealed class MainWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
-        UiGui.PaintTitleWithImage(this, VersionedTitle);
+        UiGui.PaintTitleWithImageAndStatus(this, VersionedTitle, status: plugin.TitlebarStatus);
         plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }

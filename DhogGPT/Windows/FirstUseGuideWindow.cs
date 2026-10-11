@@ -41,6 +41,7 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
+        UiGui.PaintTitleWithImageAndStatus(this, UiText.Status("Welcome To DhogGPT"), status: plugin.TitlebarStatus);
         plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }

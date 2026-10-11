@@ -67,6 +67,7 @@ public sealed class ConfigWindow : Window, IDisposable
     public override void PostDraw()
     {
         windowMotion.Restore(this);
+        UiGui.PaintTitleWithImageAndStatus(this, UiText.Status(VersionedWindowTitle.Split("###", 2)[0]), status: plugin.TitlebarStatus);
         plugin.DrawAppearanceTitleBarPopups(this);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
