@@ -96,3 +96,4 @@ experimental/
 # Performance profiling
 *.prof
 *.trace
+[Tt][Oo][Dd][Oo].[Mm][Dd]
