@@ -2705,7 +2705,7 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawDirectMessageCreationPopup()
     {
-        if (!UiGui.BeginPopupModal(NewDirectMessagePopupId, ImGuiWindowFlags.AlwaysAutoResize))
+        if (!UiGui.BeginConfirmationPopup(NewDirectMessagePopupId, ImGuiWindowFlags.AlwaysAutoResize))
             return;
 
         UiGui.TextUnformatted("Open a DM by entering First Last@World.");

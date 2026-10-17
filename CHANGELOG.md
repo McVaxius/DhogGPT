@@ -1,3 +1,7 @@
+2026-10-16 - New-DM popup without screen dimming (I576)
+
+- Keep the new direct-message dialog in a titled native popup without a full-screen dimmer. Preserve its ID, target validation, explicit submit/cancel actions and saved opacity; dismissing it never opens a conversation.
+
 2026-10-11 - Native titlebar status (I536)
 
 - Show translation enablement, pending count and target language in native main, settings and guide titles. Keep concise state and available numeric progress when detailed wording is off; hover retains full details.
