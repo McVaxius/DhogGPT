@@ -92,6 +92,9 @@ public sealed class Plugin : IDalamudPlugin
     private string appliedUiLanguage = "";
     private uint appliedUiAccent = uint.MaxValue;
     private Vector3 uiAccentDraft;
+    private MaterialColorSettings colorDraft = new();
+    private MaterialColorSettings? appliedColors;
+    private MaterialColorSettings? appliedSavedColors;
     private int checkedFontGeneration = -1;
     private bool uiFontIssueLogged;
     private readonly MainWindow mainWindow;
@@ -285,22 +288,25 @@ public sealed class Plugin : IDalamudPlugin
             appliedUiLanguage=language;checkedFontGeneration=-1;uiFontIssueLogged=false;
             if (dtrEntry is not null) UpdateDtrBar();
         }
-        if(uiTheme is null || appliedUiAccent!=(Configuration.UiAccentRgb&0xFFFFFF))
+        var savedColors = Configuration.UiColors ?? new MaterialColorSettings();
+        if (savedColors != appliedSavedColors)
+        {
+            colorDraft = savedColors;
+            appliedSavedColors = savedColors;
+        }
+        if (uiTheme is null || appliedUiAccent != (Configuration.UiAccentRgb & 0xFFFFFF) || colorDraft != appliedColors)
         {
             appliedUiAccent=Configuration.UiAccentRgb&0xFFFFFF;
-            uiTheme=DhogGptPresentation.Theme(appliedUiAccent);
+            appliedColors = colorDraft;
+            uiTheme=DhogGptPresentation.Theme(appliedUiAccent, colorDraft);
             var rgb=DhogGptPresentation.Rgb(appliedUiAccent);uiAccentDraft=new(rgb.X,rgb.Y,rgb.Z);
         }
     }
     internal void DrawUiAppearance()
     {
-        var language=appliedUiLanguage;
-        var changed=MaterialAppearanceSelector.Draw("appearance",ref uiAccentDraft,ref language,uiLanguages,
-            new(UiText.T("Color"),UiText.T("UI language"),UiText.T("Teal"),UiText.T("Blue"),UiText.T("Pink"),UiText.T("Custom RGB")),languageWidth:130);
-        if(changed.AccentChanged)Configuration.UiAccentRgb=((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.X*255),0,255)<<16)
-            |((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Y*255),0,255)<<8)|(uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Z*255),0,255);
-        if(changed.LanguageChanged)Configuration.UiLanguage=language;
-        if(changed.AccentChanged || changed.LanguageChanged)Configuration.Save();
+        DrawTitleBarColour();
+        ImGui.Spacing();
+        DrawUiLanguage();
     }
     internal void DrawUiLanguage()
     {
@@ -958,11 +964,15 @@ public sealed class Plugin : IDalamudPlugin
 
     private void DrawTitleBarColour()
     {
-        if (!MaterialAppearanceSelector.DrawPalette("appearance", ref uiAccentDraft,
-                new(UiText.T("Color"), UiText.T("UI language"), UiText.T("Teal"), UiText.T("Blue"), UiText.T("Pink"), UiText.T("Custom RGB")))) return;
-        Configuration.UiAccentRgb = ((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.X * 255), 0, 255) << 16)
-            | ((uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Y * 255), 0, 255) << 8)
-            | (uint)Math.Clamp((int)MathF.Round(uiAccentDraft.Z * 255), 0, 255);
+        if (!MaterialAppearanceSelector.DrawColors("appearance", ref colorDraft, ref uiAccentDraft,
+                new(UiText.T("Color"), UiText.T("Language"), UiText.T("Teal"), UiText.T("Blue"), UiText.T("Pink"), UiText.T("Custom RGB")),
+                new(UiText.T("Auto"), UiText.T("Picker"), UiText.T("Default"), UiText.T("Background, controls and text follow your theme."),
+                    UiText.T("Theme colour"), UiText.T("Choose each colour independently."), UiText.T("Background"), UiText.T("Controls"),
+                    UiText.T("Text"), UiText.T("Aa  Preview text"), UiText.T("Control"),
+                    UiText.T("Switch to Picker to set each colour yourself."), UiText.T("Switch back to Auto to use the automatic theme.")),
+                Configuration.UiCompact ? 298 : 316)) return;
+        Configuration.UiColors = colorDraft;
+        Configuration.UiAccentRgb = MaterialColorSettings.ToRgb(uiAccentDraft);
         Configuration.Save();
     }
 

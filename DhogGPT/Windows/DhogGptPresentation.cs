@@ -42,7 +42,9 @@ internal static class DhogGptPresentation
     }
     internal static Vector4 Rgb(uint rgb) => new(((rgb>>16)&255)/255f,((rgb>>8)&255)/255f,(rgb&255)/255f,1);
     internal static readonly Vector4 Success=Rgb(0x27D447), Failure=Rgb(0xF73865);
-    internal static MaterialTheme Theme(uint accent)
+    internal static MaterialTheme Theme(uint accent) => Theme(accent, new MaterialColorSettings());
+
+    internal static MaterialTheme Theme(uint accent, MaterialColorSettings colorSettings)
     {
         accent &= 0xFFFFFF;
         Vector3 Triplet(Vector4 color) => new(color.X,color.Y,color.Z);
@@ -71,10 +73,10 @@ internal static class DhogGptPresentation
             Tertiary=Relative(0xACCEE9),OnTertiary=background,TertiaryContainer=Relative(0x273D50),OnTertiaryContainer=text,
             InverseSurface=text,InverseOnSurface=background,InversePrimary=Relative(0xAAA7FF),
         };
-        // Both surface palettes follow the existing accent cache; no font or preference changes.
+        // Both surface palettes share the saved colour choice and existing accent cache.
         var ultraBackground=Relative(0x1B1E23);var ultraText=Relative(0xF3F4F6);
         var ultraPrimary=Relative(0x609BEC);
-        UltraTheme=new(new MaterialColorScheme(palette)
+        UltraTheme=new(colorSettings.Apply(new MaterialColorScheme(palette)
         {
             Background=ultraBackground,OnBackground=ultraText,Surface=Relative(0x23262B),OnSurface=ultraText,
             SurfaceContainerLowest=ultraBackground,SurfaceContainerLow=Relative(0x23262B),
@@ -85,8 +87,8 @@ internal static class DhogGptPresentation
             Secondary=Relative(0xB5BAC3),OnSecondary=ultraBackground,SecondaryContainer=Relative(0x2C2F34),OnSecondaryContainer=ultraText,
             Tertiary=Relative(0xB5BAC3),OnTertiary=ultraBackground,TertiaryContainer=Relative(0x353A41),OnTertiaryContainer=ultraText,
             InverseSurface=ultraText,InverseOnSurface=ultraBackground,InversePrimary=ultraPrimary,
-        });
-        return new(colors);
+        }));
+        return new(colorSettings.Apply(colors));
     }
     internal static void SameLineIfFits(float width)
     {

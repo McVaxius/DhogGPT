@@ -1,3 +1,8 @@
+2026-10-20 - Independent UI colours
+
+- Add Auto and Picker colour choices in the native Colour popup and Appearance settings. Auto preserves the existing theme; Picker saves independent Background, Controls and Text choices through the existing configuration.
+- Retain picker colours when returning to Auto, existing language and opacity controls, and native window identities. Apply the same colour choices to the standard and Ultra layouts.
+
 2026-10-16 - New-DM popup without screen dimming (I576)
 
 - Keep the new direct-message dialog in a titled native popup without a full-screen dimmer. Preserve its ID, target validation, explicit submit/cancel actions and saved opacity; dismissing it never opens a conversation.
