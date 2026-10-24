@@ -84,6 +84,9 @@ public sealed class Plugin : IDalamudPlugin
     private UiText uiText = null!;
     private DhogGptFonts uiFonts = null!;
     private MaterialTheme uiTheme = null!;
+    private readonly MaterialUiSoundPlayer uiSounds = new();
+    private bool uiSoundActive;
+    private readonly Dictionary<Dalamud.Interface.Windowing.Window, Dalamud.Interface.Windowing.TitleBarButton> soundTitleBars = new();
     private readonly Dictionary<Dalamud.Interface.Windowing.Window, AethertekUI.Dalamud.MaterialAppearanceTitleBar> appearanceTitleBars = new();
     private readonly MaterialWindowFold fontStatusFold = new();
     private readonly MaterialWindowDecorations fontStatusDecorations = new();
@@ -172,6 +175,7 @@ public sealed class Plugin : IDalamudPlugin
         uiFonts?.Dispose();
         uiText?.Dispose();
         shapedText.Dispose();
+        uiSounds.Dispose();
         PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
 
@@ -232,6 +236,7 @@ public sealed class Plugin : IDalamudPlugin
             catch(Exception error) { if(!uiFontIssueLogged) { Log.Error(error,"[DhogGPT] Required UI glyph coverage failed.");uiFontIssueLogged=true; }DrawFontStatus(false);return; }
         }
         DhogGptPresentation.Compact=Configuration.UiCompact;
+        uiTheme.Density=Configuration.UiCompact?MaterialDensity.Compact:MaterialDensity.Standard;
         using var theme=MaterialTheme.Push(uiTheme,ImGuiHelpers.GlobalScale,MaterialStyleMode.ColorsOnly);
         using var geometry=new MaterialStyleScope();
         var s=ImGuiHelpers.GlobalScale;var compact=Configuration.UiCompact;
@@ -299,8 +304,23 @@ public sealed class Plugin : IDalamudPlugin
             appliedUiAccent=Configuration.UiAccentRgb&0xFFFFFF;
             appliedColors = colorDraft;
             uiTheme=DhogGptPresentation.Theme(appliedUiAccent, colorDraft);
+            uiTheme.Feedback = PlayUiSound;
+            DhogGptPresentation.UltraTheme.Feedback = PlayUiSound;
             var rgb=DhogGptPresentation.Rgb(appliedUiAccent);uiAccentDraft=new(rgb.X,rgb.Y,rgb.Z);
         }
+        var soundActive = uiTheme.IsLcars && !Configuration.UiSoundsMuted;
+        if (uiSoundActive && !soundActive) uiSounds.Stop();
+        uiSoundActive = soundActive;
+    }
+    private void PlayUiSound(MaterialUiSoundCue cue)
+    {
+        if (uiTheme.IsLcars && !Configuration.UiSoundsMuted) uiSounds.TryPlay(cue);
+    }
+    private void SetUiSoundsMuted(bool muted)
+    {
+        Configuration.UiSoundsMuted = muted;
+        if (muted) uiSounds.Stop();
+        Configuration.Save();
     }
     internal void DrawUiAppearance()
     {
@@ -923,6 +943,10 @@ public sealed class Plugin : IDalamudPlugin
         UiGui.TextUnformatted("Window appearance");
         DrawUiAppearance();
         DrawUiCompact();
+        var sounds = !Configuration.UiSoundsMuted;
+        if (UiGui.Checkbox("UI sounds", ref sounds)) SetUiSoundsMuted(!sounds);
+        UiGui.TextDisabled("Optional LCARS interface tones. Muted by default.");
+        if (uiSounds.Error is not null) UiGui.TextDisabled("Audio output is unavailable.");
         var config = Configuration;
         var changed = false;
         var compactVisibleOnMainWindow = config.UiCompactVisibleOnMainWindow;
@@ -953,7 +977,21 @@ public sealed class Plugin : IDalamudPlugin
                         ? new(Configuration.UiLanguageVisibleOnMainWindow, Configuration.UiCompactVisibleOnMainWindow,
                             Configuration.UiTransparencyVisibleOnMainWindow, true)
                         : new(true, true, true, true)));
+            appearanceTitleBars[window].SetLcarsIcons(uiTheme.IsLcars);
             appearanceTitleBars[window].RefreshVisibility();
+            if (!soundTitleBars.TryGetValue(window, out var speaker))
+            {
+                speaker = new()
+                {
+                    Priority = window.TitleBarButtons.Count == 0 ? -1 : window.TitleBarButtons.Min(button => button.Priority) - 1,
+                    IconOffset = new(2, 1),
+                    Click = button => { if (button == ImGuiMouseButton.Left) SetUiSoundsMuted(!Configuration.UiSoundsMuted); },
+                    ShowTooltip = () => MaterialText.SetTooltip(UiText.T("UI sounds") + "\n" + UiText.T(Configuration.UiSoundsMuted ? "Off" : "On")),
+                };
+                soundTitleBars.Add(window, speaker);
+                window.TitleBarButtons.Add(speaker);
+            }
+            speaker.Icon = Configuration.UiSoundsMuted ? Dalamud.Interface.FontAwesomeIcon.VolumeMute : Dalamud.Interface.FontAwesomeIcon.VolumeUp;
         }
     }
 
@@ -969,7 +1007,8 @@ public sealed class Plugin : IDalamudPlugin
                 new(UiText.T("Auto"), UiText.T("Picker"), UiText.T("Default"), UiText.T("Background, controls and text follow your theme."),
                     UiText.T("Theme colour"), UiText.T("Choose each colour independently."), UiText.T("Background"), UiText.T("Controls"),
                     UiText.T("Text"), UiText.T("Aa  Preview text"), UiText.T("Control"),
-                    UiText.T("Switch to Picker to set each colour yourself."), UiText.T("Switch back to Auto to use the automatic theme.")),
+                    UiText.T("Switch to Picker to set each colour yourself."), UiText.T("Switch back to Auto to use the automatic theme."))
+                { Lcars = UiText.T("LCARS"), LcarsHelp = UiText.T("LCARS uses a fixed black and pastel interface while preserving your Picker colours.") },
                 Configuration.UiCompact ? 298 : 316)) return;
         Configuration.UiColors = colorDraft;
         Configuration.UiAccentRgb = MaterialColorSettings.ToRgb(uiAccentDraft);

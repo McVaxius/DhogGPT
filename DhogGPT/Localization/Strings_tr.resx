@@ -358,4 +358,9 @@
   <data name="Control" xml:space="preserve"><value>Denetim</value></data>
   <data name="Switch to Picker to set each colour yourself." xml:space="preserve"><value>Her rengi ayarlamak için Seçici'ye geçin.</value></data>
   <data name="Switch back to Auto to use the automatic theme." xml:space="preserve"><value>Otomatik temayı kullanmak için Otomatik'e dönün.</value></data>
+  <data name="LCARS" xml:space="preserve"><value>LCARS</value></data>
+  <data name="UI sounds" xml:space="preserve"><value>Arayüz sesleri</value></data>
+  <data name="Optional LCARS interface tones. Muted by default." xml:space="preserve"><value>İsteğe bağlı LCARS arayüz sesleri. Varsayılan olarak sessiz.</value></data>
+  <data name="Audio output is unavailable." xml:space="preserve"><value>Ses çıkışı kullanılamıyor.</value></data>
+  <data name="LCARS uses a fixed black and pastel interface while preserving your Picker colours." xml:space="preserve"><value>LCARS, Picker renklerinizi koruyarak sabit siyah ve pastel bir arayüz kullanır.</value></data>
 </root>

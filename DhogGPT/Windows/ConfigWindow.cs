@@ -76,36 +76,37 @@ public sealed class ConfigWindow : Window, IDisposable
     {
         windowMotion.DrawChrome();
         UiGui.TitleWithButtons(VersionedWindowTitle.Split("###",2)[0], null, this);
+        if(MaterialTheme.Current.IsLcars)DhogGptPresentation.Brand(false);
         ImGui.Separator();
         if (UiGui.BeginTabBar("DhogGPTSettingsTabs", new[]{"Window appearance","Everyday","Channels","Providers","Advanced"}.Select(UiText.T).ToArray()))
         {
             if (UiGui.BeginTabItem("Window appearance", ImGuiTabItemFlags.NoPushId))
             {
-                plugin.DrawWindowAppearance();
+                DrawPage("Window appearance",plugin.DrawWindowAppearance,1);
                 ImGui.EndTabItem();
             }
 
             if (UiGui.BeginTabItem("Everyday"))
             {
-                DrawEverydaySettings();
+                DrawPage("Everyday",DrawEverydaySettings);
                 ImGui.EndTabItem();
             }
 
             if (UiGui.BeginTabItem("Channels"))
             {
-                DrawIncomingChannelSettings();
+                DrawPage("Channels",DrawIncomingChannelSettings,1);
                 ImGui.EndTabItem();
             }
 
             if (UiGui.BeginTabItem("Providers"))
             {
-                DrawProviderSettings();
+                DrawPage("Providers",DrawProviderSettings);
                 ImGui.EndTabItem();
             }
 
             if (UiGui.BeginTabItem("Advanced"))
             {
-                DrawAdvancedSettings();
+                DrawPage("Advanced",DrawAdvancedSettings,1);
                 ImGui.EndTabItem();
             }
 
@@ -113,6 +114,15 @@ public sealed class ConfigWindow : Window, IDisposable
         }
 
         TrackWindowPosition();
+    }
+
+    private static void DrawPage(string label,Action draw,int accent=0)
+    {
+        if(!MaterialTheme.Current.IsLcars) { draw();return; }
+        using var panel=new DhogGptPresentation.Panel("##DhogGptSettingsFrame",accent:accent);
+        if(!panel.Visible)return;
+        MaterialLcars.PanelHeading(UiText.T(label),accent);
+        draw();
     }
 
     public void ApplySavedPositionForCurrentCharacter()

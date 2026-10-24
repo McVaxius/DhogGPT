@@ -98,6 +98,12 @@ internal static class DhogGptPresentation
     }
     internal static void Brand(bool ultraCompact)
     {
+        if (MaterialTheme.Current.IsLcars)
+        {
+            using var title = UiText.Font(ultraCompact ? UiFontRole.Heading : UiFontRole.Title);
+            MaterialLcars.Header("DhogGPT");
+            return;
+        }
         var size=(ultraCompact?28:Compact?38:48)*MaterialTheme.Metrics.Scale;
         var min=ImGui.GetCursorScreenPos();
         DrawPluginIcon(ImGui.GetWindowDrawList(), min, min + new Vector2(size));
@@ -115,6 +121,7 @@ internal static class DhogGptPresentation
     }
     internal static void Section(string label)
     {
+        if (MaterialTheme.Current.IsLcars) { MaterialLcars.PanelHeading(UiText.T(label),1);return; }
         Text(label,UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
         ImGui.Separator();
     }
@@ -147,9 +154,17 @@ internal static class DhogGptPresentation
     internal ref struct Panel
     {
         private MaterialStyleScope style;
+        private readonly Vector2 min;
+        private readonly float width;
+        private readonly int accent;
+        private readonly bool lcars;
+        private readonly bool active;
         internal bool Visible { get; }
-        internal Panel(string id,MaterialElevation elevation=MaterialElevation.High,float? verticalPadding=null)
+        internal Panel(string id,MaterialElevation elevation=MaterialElevation.High,float? verticalPadding=null,int accent=0)
         {
+            min=ImGui.GetCursorScreenPos();width=ImGui.GetContentRegionAvail().X;
+            active=true;
+            this.accent=accent;lcars=MaterialTheme.Current.IsLcars;
             var root=ImGui.GetID("");
             var color=MaterialSurface.Color(Compact && elevation==MaterialElevation.High?MaterialElevation.Low:elevation);
             style=new();
@@ -157,19 +172,40 @@ internal static class DhogGptPresentation
             style.Color(ImGuiCol.TableRowBgAlt,color);
             style.Color(ImGuiCol.TableBorderStrong,MaterialTheme.Current.Colors.OutlineVariant);
             style.Color(ImGuiCol.TableBorderLight,MaterialTheme.Current.Colors.OutlineVariant);
-            style.Style(ImGuiStyleVar.CellPadding,new Vector2(Compact?10:14,verticalPadding??(Compact?6:10))*MaterialTheme.Metrics.Scale);
-            Visible=ImGui.BeginTable(id,1,ImGuiTableFlags.RowBg|ImGuiTableFlags.BordersOuter|ImGuiTableFlags.SizingStretchSame|ImGuiTableFlags.NoSavedSettings);
+            style.Style(ImGuiStyleVar.CellPadding,new Vector2(lcars?22:Compact?10:14,verticalPadding??(Compact?6:10))*MaterialTheme.Metrics.Scale);
+            var flags=ImGuiTableFlags.SizingStretchSame|ImGuiTableFlags.NoSavedSettings;
+            if(!lcars)flags|=ImGuiTableFlags.RowBg|ImGuiTableFlags.BordersOuter;
+            else flags|=ImGuiTableFlags.PadOuterX;
+            Visible=ImGui.BeginTable(id,1,flags);
             if(Visible) { ImGui.TableNextRow();ImGui.TableSetColumnIndex(0); }
             // Existing native control IDs are rooted outside the newly introduced presentation table.
             ImGuiP.PushOverrideID(root);
         }
         public void Dispose()
         {
-            ImGui.PopID();if(Visible)ImGui.EndTable();style.Dispose();
+            if(!active)return;
+            ImGui.PopID();
+            if(Visible)
+            {
+                if(lcars)
+                {
+                    var max=new Vector2(min.X+width,ImGui.GetCursorScreenPos().Y+ImGui.GetStyle().CellPadding.Y);
+                    ImGuiP.TablePushBackgroundChannel();
+                    MaterialLcars.PanelFrame(min,max,accent);
+                    ImGuiP.TablePopBackgroundChannel();
+                }
+                ImGui.EndTable();
+            }
+            style.Dispose();
         }
     }
     internal static bool PrimaryButton(string label,Vector2 size,MaterialIcon icon=MaterialIcon.None)
     {
+        if(MaterialTheme.Current.IsLcars)
+        {
+            using var outline=MaterialLcars.NativeButtonStyle(MaterialLcars.ControlBlue);
+            return UiGui.Button(label,size,icon:icon);
+        }
         var c=MaterialTheme.Current.Colors;
         using var colors=new MaterialStyleScope();
         colors.Color(ImGuiCol.Button,c.Primary);colors.Color(ImGuiCol.ButtonHovered,MaterialColor.Layer(c.Primary,c.OnPrimary,.12f));

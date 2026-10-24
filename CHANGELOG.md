@@ -1,3 +1,9 @@
+2026-10-23 - LCARS appearance
+
+- Add LCARS after Auto and Picker through the existing saved appearance owner, retaining Picker RGB values. Apply segmented rails, elbows, framed panels and outlined native controls to the regular translator, Ultra compact and detached conversations, all Settings pages and the nonmodal Welcome guide. A wide translator places the preview beside the composer; narrower windows stack both panels.
+- Add optional default-muted LCARS interface tones with one saved preference shared by Appearance and the titlebar speaker. Stop only the owned player when muting or leaving LCARS and dispose it on unload. Translate the new captions in all fifteen UI catalogs.
+- Pin consumer CI to published AethertekUI revision 4c49da19ab6522ed1995cfd2b9bd75020f105d6c. Keep release version 2.0.0.10, native IDs, title actions, source controls and chat/provider behavior. Offline Debug/x64 compilation passes with zero warnings/errors. Existing native button checks pass 9,810 assertions and 112 pointer activations; 28 focused LCARS checks pass for actual titlebar registration, shared mute/save callbacks, legacy defaults and configuration round-trips. Full owner rendering/interaction, locale glyph/layout and game/GPU/audio acceptance remain pending.
+
 2026-10-20 - Independent UI colours
 
 - Add Auto and Picker colour choices in the native Colour popup and Appearance settings. Auto preserves the existing theme; Picker saves independent Background, Controls and Text choices through the existing configuration.

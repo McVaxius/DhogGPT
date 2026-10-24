@@ -32,6 +32,7 @@ internal static class UiGui
         var translated=display ?? Visible(original);
         using var controls = ImGui.GetStyle().FramePadding.Y == 0 || MaterialControls.Context == MaterialControlContext.Dense
             ? default(MaterialControls.ControlScope) : MaterialControls.Push(MaterialControlContext.Toolbar);
+        using var lcars = MaterialLcars.NativeButtonStyle();
         using var height=MaterialText.PushLineHeight(translated);
         var iconSize=icon==MaterialIcon.None?0:ImGui.GetFontSize();
         var iconGap=icon==MaterialIcon.None?0:ImGui.GetStyle().ItemInnerSpacing.X;
@@ -51,6 +52,7 @@ internal static class UiGui
         }
         Ink(translated,origin+new Vector2(iconSize+iconGap,0),min,max);
         if (textSize.X+iconSize+iconGap>max.X-min.X-ImGui.GetStyle().FramePadding.X*2 && ImGui.IsItemHovered()) MaterialText.SetTooltip(translated);
+        MaterialLcars.Feedback(clicked, original == "Preview translation" ? MaterialUiSoundCue.Preview : MaterialUiSoundCue.Click);
         return clicked;
     }
     internal static bool SmallButton(string label)
@@ -77,6 +79,7 @@ internal static class UiGui
             window.DC.CursorPosPrevLine=new Vector2(max.X,window.DC.CursorPosPrevLine.Y);
         }
         Ink(translated,p,min,max);
+        MaterialLcars.Feedback(changed, MaterialUiSoundCue.Toggle);
         return changed;
     }
     internal static bool RadioButton(string label,bool selected,string? display=null)
@@ -86,7 +89,7 @@ internal static class UiGui
         ImGui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing,new Vector2(gap.X+MaterialText.Measure(translated).X-ImGui.CalcTextSize(original).X,gap.Y));
         ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);var changed=ImGui.RadioButton(label,selected);ImGui.PopStyleColor();ImGui.PopStyleVar();
         var min=ImGui.GetItemRectMin();var p=min+new Vector2(ImGui.GetFrameHeight()+gap.X,(ImGui.GetItemRectMax().Y-min.Y-MaterialText.Measure(translated).Y)*.5f);
-        Ink(translated,p,min,new Vector2(p.X+MaterialText.Measure(translated).X,ImGui.GetItemRectMax().Y));return changed;
+        Ink(translated,p,min,new Vector2(p.X+MaterialText.Measure(translated).X,ImGui.GetItemRectMax().Y));MaterialLcars.Feedback(changed,MaterialUiSoundCue.Toggle);return changed;
     }
 
     internal static bool CollapsingHeader(string label,ImGuiTreeNodeFlags flags=ImGuiTreeNodeFlags.None)
@@ -125,7 +128,7 @@ internal static class UiGui
         ImGui.SetNextItemWidth(Math.Max(ImGui.CalcTextSize(raw).X,MaterialText.Measure(translated).X)+ImGui.GetStyle().FramePadding.X*2+12*MaterialTheme.Metrics.Scale);
         var drawing=ImGui.GetWindowDrawList();var first=drawing.VtxBuffer.Size;
         var open=ImGui.BeginTabItem(label,flags);
-        try { TranslatedTabCaption(drawing,first,raw,translated,false); }
+        try { TranslatedTabCaption(drawing,first,raw,translated,false,open); }
         catch { if(open)ImGui.EndTabItem();throw; }
         return open;
     }
@@ -163,11 +166,14 @@ internal static class UiGui
     }
     internal static bool Selectable(string label,bool selected=false,ImGuiSelectableFlags flags=ImGuiSelectableFlags.None,Vector2 size=default)
     {
-        if(MaterialText.RequiresShaping(Visible(label)))return MaterialText.Selectable(label,selected,flags,size,Visible(label));
+        using var lcars = new MaterialStyleScope();
+        if (MaterialTheme.Current.IsLcars && selected) lcars.Color(ImGuiCol.Text,MaterialLcars.Background);
+        if(MaterialText.RequiresShaping(Visible(label)))
+        { var activated=MaterialText.Selectable(label,selected,flags,size,Visible(label));MaterialLcars.Feedback(activated);return activated; }
         var origin=ImGui.GetCursorScreenPos();
         ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);var changed=ImGui.Selectable(label,selected,flags,size);ImGui.PopStyleColor();
         var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();Ink(Visible(label),origin,min,max);
-        if (MaterialText.Measure(Visible(label)).X>max.X-min.X && ImGui.IsItemHovered()) MaterialText.SetTooltip(Visible(label));return changed;
+        if (MaterialText.Measure(Visible(label)).X>max.X-min.X && ImGui.IsItemHovered()) MaterialText.SetTooltip(Visible(label));MaterialLcars.Feedback(changed);return changed;
     }
     private static float FitField(string label,float? requestedPixels=null,float? minimumPixels=null,bool showLabel=true)
     {
@@ -349,13 +355,15 @@ internal static class UiGui
         ImGui.SetNextItemWidth(Math.Max(ImGui.CalcTextSize(raw).X,MaterialText.Measure(shown).X)+ImGui.GetStyle().FramePadding.X*2+ImGui.GetFontSize()+12*MaterialTheme.Metrics.Scale);
         var drawing=ImGui.GetWindowDrawList();var first=drawing.VtxBuffer.Size;
         var visible=ImGui.BeginTabItem(label,ref open,flags);
-        try { TranslatedTabCaption(drawing,first,raw,shown,true); }
+        try { TranslatedTabCaption(drawing,first,raw,shown,true,visible); }
         catch { if(visible)ImGui.EndTabItem();throw; }
         return visible;
     }
-    private static unsafe void TranslatedTabCaption(ImDrawListPtr drawing,int first,string raw,string shown,bool close)
+    private static unsafe void TranslatedTabCaption(ImDrawListPtr drawing,int first,string raw,string shown,bool close,bool selected)
     {
-        if(raw==shown && !MaterialText.RequiresShaping(shown))return;
+        if(raw==shown && !MaterialText.RequiresShaping(shown) && !MaterialTheme.Current.IsLcars)return;
+        using var lcars=new MaterialStyleScope();
+        if(MaterialTheme.Current.IsLcars && selected)lcars.Color(ImGuiCol.Text,MaterialLcars.Background);
         var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();
         // Keep native arrows, closing and translucent backgrounds intact. Only
         // the original caption's emitted glyph quads lose their alpha.

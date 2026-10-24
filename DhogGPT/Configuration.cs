@@ -12,6 +12,7 @@ public sealed class Configuration : IPluginConfiguration
     public AethertekUI.MaterialColorSettings UiColors { get; set; } = new();
     public uint UiAccentRgb { get; set; } = 0x5551FF;
     public bool UiCompact { get; set; } = true;
+    public bool UiSoundsMuted { get; set; } = true;
     public bool UiShowTitlebarStatus { get; set; } = true;
     public bool UiDetailedTitlebarStatus { get; set; } = true;
     public bool UiCompactVisibleOnMainWindow { get; set; }

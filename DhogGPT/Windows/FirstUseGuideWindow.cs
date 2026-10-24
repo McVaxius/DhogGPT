@@ -50,6 +50,15 @@ public sealed class FirstUseGuideWindow : Window, IDisposable
     {
         windowMotion.DrawChrome();
         UiGui.TitleWithButtons("Welcome To DhogGPT", null, this);
+        if(MaterialTheme.Current.IsLcars)DhogGptPresentation.Brand(false);
+        using var panel=MaterialTheme.Current.IsLcars
+            ? new DhogGptPresentation.Panel("##DhogGptWelcomeFrame",accent:1)
+            : default;
+        if(MaterialTheme.Current.IsLcars)
+        {
+            if(!panel.Visible)return;
+            MaterialLcars.PanelHeading(UiText.T("Welcome To DhogGPT"),1);
+        }
         UiGui.TextWrapped("DhogGPT now defaults to ultra compact mode. Translated conversations live in tabs, the bottom composer sends translated chat without leaving the main window, and settings let you choose whether vanilla chat stays visible alongside DhogGPT.");
         ImGui.Separator();
 

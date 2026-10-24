@@ -358,4 +358,9 @@
   <data name="Control" xml:space="preserve"><value>Điều khiển</value></data>
   <data name="Switch to Picker to set each colour yourself." xml:space="preserve"><value>Chuyển sang Bộ chọn để tự đặt từng màu.</value></data>
   <data name="Switch back to Auto to use the automatic theme." xml:space="preserve"><value>Chuyển về Tự động để dùng chủ đề tự động.</value></data>
+  <data name="LCARS" xml:space="preserve"><value>LCARS</value></data>
+  <data name="UI sounds" xml:space="preserve"><value>Âm thanh giao diện</value></data>
+  <data name="Optional LCARS interface tones. Muted by default." xml:space="preserve"><value>Âm báo LCARS tùy chọn. Mặc định tắt tiếng.</value></data>
+  <data name="Audio output is unavailable." xml:space="preserve"><value>Không thể phát âm thanh.</value></data>
+  <data name="LCARS uses a fixed black and pastel interface while preserving your Picker colours." xml:space="preserve"><value>LCARS dùng giao diện đen và màu pastel cố định, đồng thời giữ các màu Picker của bạn.</value></data>
 </root>

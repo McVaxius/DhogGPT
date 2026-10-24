@@ -259,7 +259,23 @@ public sealed class MainWindow : Window, IDisposable
         if (ImGui.BeginChild("##DhogGptRegularBody",Vector2.Zero,false,ImGuiWindowFlags.HorizontalScrollbar))
         {
             ImGuiP.PushOverrideID(uiRoot);
-            try { DrawStatusPanel(); ImGui.SetCursorPosY(ImGui.GetCursorPosY()+(DhogGptPresentation.Compact?6:2)*MaterialTheme.Metrics.Scale); DrawComposer(); }
+            try
+            {
+                DrawStatusPanel();
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY()+(DhogGptPresentation.Compact?6:2)*MaterialTheme.Metrics.Scale);
+                if(MaterialTheme.Current.IsLcars && ImGui.GetContentRegionAvail().X>=920*MaterialTheme.Metrics.Scale
+                    && ImGui.BeginTable("##DhogGptTranslatorLayout",2,ImGuiTableFlags.SizingStretchProp|ImGuiTableFlags.NoSavedSettings))
+                {
+                    ImGui.TableSetupColumn("##Composer",ImGuiTableColumnFlags.WidthStretch,3);
+                    ImGui.TableSetupColumn("##Preview",ImGuiTableColumnFlags.WidthStretch,2);
+                    ImGui.TableNextColumn();ImGuiP.PushOverrideID(uiRoot);
+                    try { DrawComposer(includePreview:false); } finally { ImGui.PopID(); }
+                    ImGui.TableNextColumn();ImGuiP.PushOverrideID(uiRoot);
+                    try { DrawPreview(); } finally { ImGui.PopID(); }
+                    ImGui.EndTable();
+                }
+                else DrawComposer();
+            }
             finally { ImGui.PopID(); }
         }
         ImGui.EndChild();
@@ -327,12 +343,20 @@ public sealed class MainWindow : Window, IDisposable
         var composerHeight = (DhogGptPresentation.Compact?50:58)*scale+ImGui.GetStyle().ItemSpacing.Y*2;
         var conversationHeaderHeight = (DhogGptPresentation.UltraTabHeight+16)*scale+ImGui.GetStyle().ItemSpacing.Y;
         var chatBodyHeight = Math.Max(1f, ImGui.GetContentRegionAvail().Y - composerHeight - conversationHeaderHeight);
-        DrawTabbedConversationArea(chatBodyHeight);
+        using(var conversationPanel=MaterialTheme.Current.IsLcars
+            ? new DhogGptPresentation.Panel("##DhogGptConversationFrame",verticalPadding:8)
+            : default)
+        {
+            DrawTabbedConversationArea(MaterialTheme.Current.IsLcars?Math.Max(1,chatBodyHeight-24*scale):chatBodyHeight);
+        }
         ImGui.PopClipRect();
         var contentMax=window.DC.CursorMaxPos;
         ImGui.SetCursorScreenPos(new Vector2(window.Pos.X+ImGui.GetStyle().WindowPadding.X-window.Scroll.X,footerY-spacing-scale));
         ImGui.Separator();
-        DrawSimpleComposer();
+        using(var composerPanel=MaterialTheme.Current.IsLcars
+            ? new DhogGptPresentation.Panel("##DhogGptUltraComposerFrame",verticalPadding:4,accent:1)
+            : default)
+            DrawSimpleComposer();
         // Reserve the visible footer in native scroll extent without feeding scroll offset back into layout.
         window.DC.CursorMaxPos=new Vector2(window.DC.CursorMaxPos.X,
             Math.Max(window.InnerRect.Max.Y-ImGui.GetStyle().WindowPadding.Y-window.Scroll.Y,contentMax.Y+footerReserve));
@@ -341,6 +365,12 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawUltraAppearanceHeader()
     {
+        if(MaterialTheme.Current.IsLcars)
+        {
+            using var title=UiText.Font(UiFontRole.Heading);
+            MaterialLcars.Header("DhogGPT");
+            return;
+        }
         using var preferenceSize = new DhogGptPresentation.TextScale(.625f);
         using (var brandSize = new DhogGptPresentation.TextScale(1.8f))
             DhogGptPresentation.Text("DhogGPT", UiFontRole.Body, MaterialTheme.Current.Colors.OnSurface, 38);
@@ -911,6 +941,7 @@ public sealed class MainWindow : Window, IDisposable
         statusSpacing.Style(ImGuiStyleVar.CellPadding,new Vector2(14,7)*scale);
         if (DhogGptPresentation.Compact)
         {
+            if(MaterialTheme.Current.IsLcars)DhogGptPresentation.Section("Status");
             var columns=ImGui.GetContentRegionAvail().X>=800*scale?6:2;
             statusSpacing.Style(ImGuiStyleVar.CellPadding,new Vector2(12,0)*scale);
             if(ImGui.BeginTable("##DhogGptCompactSummary",columns,ImGuiTableFlags.NoSavedSettings|ImGuiTableFlags.SizingStretchProp|ImGuiTableFlags.BordersInnerV))
@@ -977,7 +1008,7 @@ public sealed class MainWindow : Window, IDisposable
     }
 
 
-    private void DrawComposer()
+    private void DrawComposer(bool includePreview=true)
     {
         var configuration=plugin.Configuration;var changed=false;
         using var panel=new DhogGptPresentation.Panel("##DhogGptComposerPanel");
@@ -993,7 +1024,8 @@ public sealed class MainWindow : Window, IDisposable
         composerGeometry.Style(ImGuiStyleVar.ItemSpacing,new Vector2(configuration.UiCompact?12:14,configuration.UiCompact?6:8)*s);
         composerGeometry.Style(ImGuiStyleVar.FramePadding,new Vector2(12*s,Math.Max(0,(40*s-ImGui.GetFontSize())*.5f)));
         composerGeometry.Style(ImGuiStyleVar.CellPadding,new Vector2(ImGui.GetStyle().CellPadding.X,0));
-        DhogGptPresentation.Text("Outgoing translation",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
+        if(MaterialTheme.Current.IsLcars)MaterialLcars.PanelHeading(UiText.T("Outgoing translation"));
+        else DhogGptPresentation.Text("Outgoing translation",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
         if(isMasterWindow)
         {
             using var channelGeometry=new MaterialStyleScope();
@@ -1068,11 +1100,20 @@ public sealed class MainWindow : Window, IDisposable
         }
         ImGui.EndDisabled();
         ImGui.Spacing();
-        using(var previewPanel=new DhogGptPresentation.Panel("##DhogGptPreviewPanel",MaterialElevation.Low,configuration.UiCompact?8:17))
+        if(includePreview)DrawPreview();
+        if(isMasterWindow)DrawDirectMessageCreationPopup();
+    }
+
+    private void DrawPreview()
+    {
+        var configuration=plugin.Configuration;
+        var s=MaterialTheme.Metrics.Scale;
+        using(var previewPanel=new DhogGptPresentation.Panel("##DhogGptPreviewPanel",MaterialElevation.Low,configuration.UiCompact?8:17,accent:2))
         {
             if(previewPanel.Visible)
             {
-                DhogGptPresentation.Text("Translation preview",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
+                if(MaterialTheme.Current.IsLcars)MaterialLcars.PanelHeading(UiText.T("Translation preview"),2);
+                else DhogGptPresentation.Text("Translation preview",UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
                 if(!string.IsNullOrWhiteSpace(previewStatus))UiGui.TextWrapped(UiText.Status(previewStatus));
                 if(!string.IsNullOrWhiteSpace(previewMetadata))UiGui.TextWrapped(UiText.Status(previewMetadata));
                 if(!string.IsNullOrWhiteSpace(previewText))
@@ -1104,7 +1145,6 @@ public sealed class MainWindow : Window, IDisposable
                 }
             }
         }
-        if(isMasterWindow)DrawDirectMessageCreationPopup();
     }
 
 
