@@ -74,6 +74,7 @@ public sealed class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
+        MaterialSkin.Backdrop();
         windowMotion.DrawChrome();
         UiGui.TitleWithButtons(VersionedWindowTitle.Split("###",2)[0], null, this);
         if(MaterialTheme.Current.IsLcars)DhogGptPresentation.Brand(false);
@@ -118,10 +119,12 @@ public sealed class ConfigWindow : Window, IDisposable
 
     private static void DrawPage(string label,Action draw,int accent=0)
     {
-        if(!MaterialTheme.Current.IsLcars) { draw();return; }
+        var theme = MaterialTheme.Current;
+        if(!theme.IsLcars && !theme.IsGlassmorphism && !theme.IsSpatial && !theme.IsCyberpunk) { draw();return; }
         using var panel=new DhogGptPresentation.Panel("##DhogGptSettingsFrame",accent:accent);
         if(!panel.Visible)return;
-        MaterialLcars.PanelHeading(UiText.T(label),accent);
+        if (theme.IsLcars) MaterialLcars.PanelHeading(UiText.T(label),accent);
+        else MaterialSkin.Heading(UiText.T(label),accent);
         draw();
     }
 

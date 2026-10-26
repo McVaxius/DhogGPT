@@ -122,6 +122,12 @@ internal static class DhogGptPresentation
     internal static void Section(string label)
     {
         if (MaterialTheme.Current.IsLcars) { MaterialLcars.PanelHeading(UiText.T(label),1);return; }
+        if (MaterialTheme.Current.IsCyberpunk)
+        {
+            using var font = UiText.Font(UiFontRole.Heading);
+            MaterialSkin.Heading(UiText.T(label));
+            return;
+        }
         Text(label,UiFontRole.Heading,MaterialTheme.Current.Colors.OnSurface,20);
         ImGui.Separator();
     }
@@ -158,6 +164,7 @@ internal static class DhogGptPresentation
         private readonly float width;
         private readonly int accent;
         private readonly bool lcars;
+        private readonly bool material;
         private readonly bool active;
         internal bool Visible { get; }
         internal Panel(string id,MaterialElevation elevation=MaterialElevation.High,float? verticalPadding=null,int accent=0)
@@ -165,6 +172,7 @@ internal static class DhogGptPresentation
             min=ImGui.GetCursorScreenPos();width=ImGui.GetContentRegionAvail().X;
             active=true;
             this.accent=accent;lcars=MaterialTheme.Current.IsLcars;
+            material=MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
             var root=ImGui.GetID("");
             var color=MaterialSurface.Color(Compact && elevation==MaterialElevation.High?MaterialElevation.Low:elevation);
             style=new();
@@ -174,7 +182,7 @@ internal static class DhogGptPresentation
             style.Color(ImGuiCol.TableBorderLight,MaterialTheme.Current.Colors.OutlineVariant);
             style.Style(ImGuiStyleVar.CellPadding,new Vector2(lcars?22:Compact?10:14,verticalPadding??(Compact?6:10))*MaterialTheme.Metrics.Scale);
             var flags=ImGuiTableFlags.SizingStretchSame|ImGuiTableFlags.NoSavedSettings;
-            if(!lcars)flags|=ImGuiTableFlags.RowBg|ImGuiTableFlags.BordersOuter;
+            if(!lcars && !material)flags|=ImGuiTableFlags.RowBg|ImGuiTableFlags.BordersOuter;
             else flags|=ImGuiTableFlags.PadOuterX;
             Visible=ImGui.BeginTable(id,1,flags);
             if(Visible) { ImGui.TableNextRow();ImGui.TableSetColumnIndex(0); }
@@ -185,18 +193,24 @@ internal static class DhogGptPresentation
         {
             if(!active)return;
             ImGui.PopID();
-            if(Visible)
+            try
             {
-                if(lcars)
+                if(Visible)
                 {
-                    var max=new Vector2(min.X+width,ImGui.GetCursorScreenPos().Y+ImGui.GetStyle().CellPadding.Y);
-                    ImGuiP.TablePushBackgroundChannel();
-                    MaterialLcars.PanelFrame(min,max,accent);
-                    ImGuiP.TablePopBackgroundChannel();
+                    try
+                    {
+                        if(lcars || material)
+                        {
+                            var max=new Vector2(min.X+width,ImGui.GetCursorScreenPos().Y+ImGui.GetStyle().CellPadding.Y);
+                            ImGuiP.TablePushBackgroundChannel();
+                            try { MaterialSkin.PanelFrame(min,max,accent); }
+                            finally { ImGuiP.TablePopBackgroundChannel(); }
+                        }
+                    }
+                    finally { ImGui.EndTable(); }
                 }
-                ImGui.EndTable();
             }
-            style.Dispose();
+            finally { style.Dispose(); }
         }
     }
     internal static bool PrimaryButton(string label,Vector2 size,MaterialIcon icon=MaterialIcon.None)

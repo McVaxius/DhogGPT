@@ -32,7 +32,11 @@ internal static class UiGui
         var translated=display ?? Visible(original);
         using var controls = ImGui.GetStyle().FramePadding.Y == 0 || MaterialControls.Context == MaterialControlContext.Dense
             ? default(MaterialControls.ControlScope) : MaterialControls.Push(MaterialControlContext.Toolbar);
-        using var lcars = MaterialLcars.NativeButtonStyle();
+        var material = MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
+        var radius = ImGui.GetStyle().FrameRounding;
+        using var skin = MaterialSkin.NativeButtonStyle();
+        using var rounding = new MaterialStyleScope();
+        if (material) rounding.Style(ImGuiStyleVar.FrameRounding, radius);
         using var height=MaterialText.PushLineHeight(translated);
         var iconSize=icon==MaterialIcon.None?0:ImGui.GetFontSize();
         var iconGap=icon==MaterialIcon.None?0:ImGui.GetStyle().ItemInnerSpacing.X;
@@ -40,8 +44,11 @@ internal static class UiGui
         size.X=MaterialLayout.FitNextItemWidth(size.X,minimum);
         size.Y=Math.Max(size.Y,ImGui.GetFrameHeight());
         ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);
-        var clicked=ImGui.Button(original,size);ImGui.PopStyleColor();
+        bool clicked;
+        try { using var face = material ? MaterialSkin.TransparentButtonFace() : default; clicked=ImGui.Button(original,size); }
+        finally { ImGui.PopStyleColor(); }
         var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();
+        if (material) MaterialSkin.PaintButton(min,max,ImGui.GetStyle().Alpha,radius);
         var textSize=MaterialText.Measure(translated);
         var origin=min+new Vector2((max.X-min.X-textSize.X-iconSize-iconGap)*.5f,(max.Y-min.Y-textSize.Y)*.5f);
         if(icon!=MaterialIcon.None)
@@ -127,10 +134,61 @@ internal static class UiGui
         var translated=Visible(label);
         ImGui.SetNextItemWidth(Math.Max(ImGui.CalcTextSize(raw).X,MaterialText.Measure(translated).X)+ImGui.GetStyle().FramePadding.X*2+12*MaterialTheme.Metrics.Scale);
         var drawing=ImGui.GetWindowDrawList();var first=drawing.VtxBuffer.Size;
-        var open=ImGui.BeginTabItem(label,flags);
-        try { TranslatedTabCaption(drawing,first,raw,translated,false,open); }
+        var material=MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
+        var table=material && TabHasTable();
+        var style=ImGui.GetStyle();var fill=style.Colors[(int)ImGuiCol.Tab];var hover=style.Colors[(int)ImGuiCol.TabHovered];var active=style.Colors[(int)ImGuiCol.TabActive];var radius=style.TabRounding;
+        if(material && !table) { drawing.ChannelsSplit(2);drawing.ChannelsSetCurrent(1); }
+        var open=false;
+        try
+        {
+            using(var face=TabFace(material))open=ImGui.BeginTabItem(label,flags);
+            if(material)PaintTab(drawing,open,table,fill,hover,active,radius);
+            TranslatedTabCaption(drawing,first,raw,translated,false,open);
+        }
         catch { if(open)ImGui.EndTabItem();throw; }
+        finally { if(material && !table)drawing.ChannelsMerge(); }
         return open;
+    }
+
+    private static unsafe bool TabHasTable() => ImGui.GetCurrentContext().Handle->CurrentTable!=null;
+
+    private static MaterialStyleScope TabFace(bool material)
+    {
+        var face=new MaterialStyleScope();
+        if(material)
+        {
+            face.Color(ImGuiCol.Tab,Vector4.Zero);
+            face.Color(ImGuiCol.TabHovered,Vector4.Zero);
+            face.Color(ImGuiCol.TabActive,Vector4.Zero);
+            face.Color(ImGuiCol.TabUnfocused,Vector4.Zero);
+            face.Color(ImGuiCol.TabUnfocusedActive,Vector4.Zero);
+        }
+        return face;
+    }
+
+    private static void PaintTab(ImDrawListPtr drawing,bool selected,bool table,Vector4 fill,Vector4 hover,Vector4 active,float radius)
+    {
+        if(!ImGui.IsItemVisible())return;
+        var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();var bar=ImGui.GetCurrentContext().CurrentTabBar;
+        var clipMin=new Vector2(Math.Max(min.X,bar.ScrollingRectMinX),min.Y);
+        var clipMax=new Vector2(Math.Min(max.X,bar.ScrollingRectMaxX),max.Y);
+        if(clipMax.X<=clipMin.X)return;
+        // Keep the original native caption, close button and scrolling arrows above the material face.
+        if(table)ImGuiP.TablePushBackgroundChannel();else drawing.ChannelsSetCurrent(0);
+        try
+        {
+            drawing.PushClipRect(clipMin,clipMax,true);
+            try
+            {
+                using var colors=new MaterialStyleScope();
+                colors.Color(ImGuiCol.Button,selected?active:fill);
+                colors.Color(ImGuiCol.ButtonHovered,hover);
+                colors.Color(ImGuiCol.ButtonActive,active);
+                MaterialSkin.PaintButton(min,max,ImGui.GetStyle().Alpha,radius);
+            }
+            finally { drawing.PopClipRect(); }
+        }
+        finally { if(table)ImGuiP.TablePopBackgroundChannel();else drawing.ChannelsSetCurrent(1); }
     }
 
     internal static bool BeginCombo(string label,string preview,ImGuiComboFlags flags=ImGuiComboFlags.None,bool translatePreview=true,bool showLabel=true)
@@ -147,9 +205,23 @@ internal static class UiGui
         var previewSize=MaterialText.Measure(nativePreview);var frameHeight=ImGui.GetFrameHeight();
         var previewPadding=ImGui.GetStyle().FramePadding;var previewFont=ImGui.GetFont();var previewFontSize=ImGui.GetFontSize();var previewColor=ImGui.GetColorU32(ImGuiCol.Text);
         bool open;
-        try { open=ImGui.BeginCombo(label,shapedPreview?"":nativePreview,flags); } finally { if(clipped)dl.PopClipRect(); }
         try
         {
+            using var field = MaterialSkin.NativeFieldStyle();
+            using var backdrop = MaterialSkin.BackdropStyle(popup:true);
+            using var arrow = new MaterialStyleScope();
+            if (MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk)
+            {
+                arrow.Color(ImGuiCol.Button,Vector4.Zero);
+                arrow.Color(ImGuiCol.ButtonHovered,Vector4.Zero);
+                arrow.Color(ImGuiCol.ButtonActive,Vector4.Zero);
+            }
+            open=ImGui.BeginCombo(label,shapedPreview?"":nativePreview,flags);
+        }
+        finally { if(clipped)dl.PopClipRect(); }
+        try
+        {
+            if (open) MaterialSkin.Backdrop();
             if(shapedPreview)
             {
                 var inset=(flags&ImGuiComboFlags.NoArrowButton)==0?frameHeight:previewPadding.X;
@@ -219,26 +291,38 @@ internal static class UiGui
         var dl=ImGui.GetWindowDrawList();
         var clipped=showLabel?ClipFieldLabel(label,min,width,dl):true;
         if (!showLabel) dl.PushClipRect(min,min+new Vector2(width,ImGui.GetFrameHeight()),true);
-        bool changed;try { changed=MaterialShapedInput.SingleLine(label,"",ref value,length,flags); } finally { if(clipped)dl.PopClipRect(); }
+        bool changed;try { using var field=MaterialSkin.NativeFieldStyle(); changed=MaterialShapedInput.SingleLine(label,"",ref value,length,flags); } finally { if(clipped)dl.PopClipRect(); }
         if(showLabel)FieldLabel(label,min,width,dl,parent,previousMax);else HiddenFieldBounds(parent,previousMax,min,width);
         return changed;
     }
     internal static bool InputTextWithHint(string label,string hint,ref string value,int length,ImGuiInputTextFlags flags=ImGuiInputTextFlags.None)
-    { using var height=MaterialText.PushLineHeight(value,UiText.T(hint),Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);bool changed;try { changed=MaterialShapedInput.SingleLine(label,UiText.T(hint),ref value,length,flags); } finally { if(clipped)dl.PopClipRect(); }FieldLabel(label,min,width,dl,parent,previousMax);return changed; }
+    { using var height=MaterialText.PushLineHeight(value,UiText.T(hint),Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);bool changed;try { using var field=label=="##SimpleChatEntry"?default(MaterialStyleScope):MaterialSkin.NativeFieldStyle();changed=MaterialShapedInput.SingleLine(label,UiText.T(hint),ref value,length,flags); } finally { if(clipped)dl.PopClipRect(); }FieldLabel(label,min,width,dl,parent,previousMax);return changed; }
     internal static bool InputTextMultiline(string label,ref string value,int length,Vector2 size,ImGuiInputTextFlags flags=ImGuiInputTextFlags.None,bool showLabel=true)
     {
         var requested=size.X<0?ImGui.GetContentRegionAvail().X+size.X:size.X>0?size.X:ImGui.CalcItemWidth();var width=FitField(label,requested,showLabel:showLabel);size.X=width;var min=ImGui.GetCursorScreenPos();var dl=ImGui.GetWindowDrawList();
         var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;
         var clipped=showLabel?ClipFieldLabel(label,min,width,dl):true;
         if(!showLabel)dl.PushClipRect(min,min+new Vector2(width,size.Y),true);
-        bool changed;try { changed=MaterialShapedInput.Multiline(label,ref value,length,size,flags); } finally { if(clipped)dl.PopClipRect(); }if(showLabel)FieldLabel(label,min,width,dl,parent,previousMax);else HiddenFieldBounds(parent,previousMax,min,width);return changed;
+        bool changed;
+        try
+        {
+            using var face = new MaterialStyleScope();
+            if(MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk)
+            {
+                MaterialSkin.PanelFrame(min,min+new Vector2(width,Math.Max(ImGui.GetFrameHeight(),size.Y)),inset:true);
+                face.Color(ImGuiCol.FrameBg,Vector4.Zero);
+            }
+            changed=MaterialShapedInput.Multiline(label,ref value,length,size,flags);
+        }
+        finally { if(clipped)dl.PopClipRect(); }
+        if(showLabel)FieldLabel(label,min,width,dl,parent,previousMax);else HiddenFieldBounds(parent,previousMax,min,width);return changed;
     }
     internal static bool InputInt(string label,ref int value,int step=1,int fastStep=100,ImGuiInputTextFlags flags=ImGuiInputTextFlags.None)
-    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);var changed=ImGui.InputInt(label,ref value,step,fastStep,"%d",flags);if(clipped)dl.PopClipRect();FieldLabel(label,min,width);return changed; }
+    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);using var field=MaterialSkin.NativeFieldStyle();var changed=ImGui.InputInt(label,ref value,step,fastStep,"%d",flags);if(clipped)dl.PopClipRect();FieldLabel(label,min,width);return changed; }
     internal static bool InputFloat(string label,ref float value,float step=0,float fastStep=0,string format="%.3f",ImGuiInputTextFlags flags=ImGuiInputTextFlags.None)
-    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);var changed=ImGui.InputFloat(label,ref value,step,fastStep,format,flags);if(clipped)dl.PopClipRect();FieldLabel(label,min,width,dl,parent,previousMax);return changed; }
+    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var min=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,min,width,dl);using var field=MaterialSkin.NativeFieldStyle();var changed=ImGui.InputFloat(label,ref value,step,fastStep,format,flags);if(clipped)dl.PopClipRect();FieldLabel(label,min,width,dl,parent,previousMax);return changed; }
     internal static bool SliderInt(string label,ref int value,int min,int max,string format="%d",ImGuiSliderFlags flags=ImGuiSliderFlags.None)
-    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);var changed=ImGui.SliderInt(label,ref value,min,max,UiText.T(format),flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
+    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);using var field=MaterialSkin.NativeFieldStyle();var changed=ImGui.SliderInt(label,ref value,min,max,UiText.T(format),flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
     internal static bool Combo(string label,ref int value,string[] options,int count)
     {
         var changed=false;
@@ -262,9 +346,11 @@ internal static class UiGui
             ImGui.SetNextWindowPos(viewport.Pos + viewport.Size * .5f, ImGuiCond.Appearing, new Vector2(.5f));
         }
         ImGui.SetNextWindowSize(new Vector2(520*MaterialTheme.Metrics.Scale,0),ImGuiCond.Always);
-        var open=ImGui.Begin(original,flags|ImGuiWindowFlags.Popup|ImGuiWindowFlags.NoCollapse|ImGuiWindowFlags.NoDocking);
+        bool open;
+        using (MaterialSkin.BackdropStyle(popup:true))
+            open=ImGui.Begin(original,flags|ImGuiWindowFlags.Popup|ImGuiWindowFlags.NoCollapse|ImGuiWindowFlags.NoDocking);
         if (!open) { ImGui.EndPopup(); return false; }
-        try { Title(original.Split("##",2)[0]); } catch { ImGui.EndPopup(); throw; }
+        try { MaterialSkin.Backdrop(); Title(original.Split("##",2)[0]); } catch { ImGui.EndPopup(); throw; }
         return true;
     }
     internal static void Title(string original,string? display=null)
@@ -354,9 +440,19 @@ internal static class UiGui
         var shown=translate?Visible(label):raw;
         ImGui.SetNextItemWidth(Math.Max(ImGui.CalcTextSize(raw).X,MaterialText.Measure(shown).X)+ImGui.GetStyle().FramePadding.X*2+ImGui.GetFontSize()+12*MaterialTheme.Metrics.Scale);
         var drawing=ImGui.GetWindowDrawList();var first=drawing.VtxBuffer.Size;
-        var visible=ImGui.BeginTabItem(label,ref open,flags);
-        try { TranslatedTabCaption(drawing,first,raw,shown,true,visible); }
+        var material=MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
+        var table=material && TabHasTable();
+        var style=ImGui.GetStyle();var fill=style.Colors[(int)ImGuiCol.Tab];var hover=style.Colors[(int)ImGuiCol.TabHovered];var active=style.Colors[(int)ImGuiCol.TabActive];var radius=style.TabRounding;
+        if(material && !table) { drawing.ChannelsSplit(2);drawing.ChannelsSetCurrent(1); }
+        var visible=false;
+        try
+        {
+            using(var face=TabFace(material))visible=ImGui.BeginTabItem(label,ref open,flags);
+            if(material)PaintTab(drawing,visible,table,fill,hover,active,radius);
+            TranslatedTabCaption(drawing,first,raw,shown,true,visible);
+        }
         catch { if(visible)ImGui.EndTabItem();throw; }
+        finally { if(material && !table)drawing.ChannelsMerge(); }
         return visible;
     }
     private static unsafe void TranslatedTabCaption(ImDrawListPtr drawing,int first,string raw,string shown,bool close,bool selected)
@@ -394,9 +490,9 @@ internal static class UiGui
         Ink(shown,min+new Vector2(ImGui.GetStyle().FramePadding.X,(max.Y-min.Y-MaterialText.Measure(shown).Y)*.5f),clipMin,clipMax);
     }
     internal static bool SliderFloat(string label,ref float value,float min,float max,string format="%.3f",ImGuiSliderFlags flags=ImGuiSliderFlags.None)
-    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);var changed=ImGui.SliderFloat(label,ref value,min,max,format,flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
+    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);using var field=MaterialSkin.NativeFieldStyle();var changed=ImGui.SliderFloat(label,ref value,min,max,format,flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
     internal static bool ColorEdit4(string label,ref Vector4 value,ImGuiColorEditFlags flags=ImGuiColorEditFlags.None)
-    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label,minimumPixels:320*MaterialTheme.Metrics.Scale);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);var changed=ImGui.ColorEdit4(label,ref value,flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
+    { using var height=MaterialText.PushLineHeight(Visible(label));var width=FitField(label,minimumPixels:320*MaterialTheme.Metrics.Scale);var p=ImGui.GetCursorScreenPos();var parent=ImGuiP.GetCurrentWindow();var previousMax=parent.DC.CursorMaxPos;var dl=ImGui.GetWindowDrawList();var clipped=ClipFieldLabel(label,p,width,dl);using var field=MaterialSkin.NativeFieldStyle();var changed=ImGui.ColorEdit4(label,ref value,flags);if(clipped)dl.PopClipRect();FieldLabel(label,p,width,dl,parent,previousMax);return changed; }
     internal static bool MenuItem(string original)
     {
         var translated=Visible(original);using var height=MaterialText.PushLineHeight(translated);ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);var clicked=ImGui.MenuItem(original);ImGui.PopStyleColor();
@@ -405,13 +501,23 @@ internal static class UiGui
     internal static bool BeginMenu(string original)
     {
         var translated=Visible(original);using var height=MaterialText.PushLineHeight(translated);var parent=ImGui.GetWindowDrawList();
-        ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);var open=ImGui.BeginMenu(original);ImGui.PopStyleColor();
-        // Popup Begin changes the current window; the native menu label belongs to the parent draw list.
-        var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();parent.PushClipRect(min,max,true);MaterialText.AddText(parent,min+new Vector2(ImGui.GetStyle().FramePadding.X,(max.Y-min.Y-MaterialText.Measure(translated).Y)*.5f),ImGui.GetColorU32(ImGuiCol.Text),translated);parent.PopClipRect();
-        var arrowSize=ImGui.GetFontSize()*.25f;
-        var arrowCenter=new Vector2(max.X-ImGui.GetStyle().FramePadding.X-ImGui.GetFontSize()*.5f,(min.Y+max.Y)*.5f);
-        parent.AddTriangleFilled(arrowCenter+new Vector2(-arrowSize,-arrowSize),arrowCenter+new Vector2(-arrowSize,arrowSize),
-            arrowCenter+new Vector2(arrowSize,0),ImGui.GetColorU32(ImGuiCol.Text));
-        return open;
+        ImGui.PushStyleColor(ImGuiCol.Text,Vector4.Zero);
+        bool open;
+        try { using var backdrop=MaterialSkin.BackdropStyle(popup:true); open=ImGui.BeginMenu(original); }
+        finally { ImGui.PopStyleColor(); }
+        try
+        {
+            if(open)MaterialSkin.Backdrop();
+            // Popup Begin changes the current window; the native menu label belongs to the parent draw list.
+            var min=ImGui.GetItemRectMin();var max=ImGui.GetItemRectMax();parent.PushClipRect(min,max,true);
+            try { MaterialText.AddText(parent,min+new Vector2(ImGui.GetStyle().FramePadding.X,(max.Y-min.Y-MaterialText.Measure(translated).Y)*.5f),ImGui.GetColorU32(ImGuiCol.Text),translated); }
+            finally { parent.PopClipRect(); }
+            var arrowSize=ImGui.GetFontSize()*.25f;
+            var arrowCenter=new Vector2(max.X-ImGui.GetStyle().FramePadding.X-ImGui.GetFontSize()*.5f,(min.Y+max.Y)*.5f);
+            parent.AddTriangleFilled(arrowCenter+new Vector2(-arrowSize,-arrowSize),arrowCenter+new Vector2(-arrowSize,arrowSize),
+                arrowCenter+new Vector2(arrowSize,0),ImGui.GetColorU32(ImGuiCol.Text));
+            return open;
+        }
+        catch { if(open)ImGui.EndMenu();throw; }
     }
 }

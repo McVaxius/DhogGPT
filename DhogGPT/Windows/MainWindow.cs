@@ -229,6 +229,8 @@ public sealed class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
+        MaterialSkin.Backdrop();
+        var material = MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
         windowMotion.DrawChrome();
         using var typography = new DhogGptPresentation.TextScale(IsUltraCompactMode() ? 2f : 1.25f);
         ResetTrackedInputRects();
@@ -242,8 +244,10 @@ public sealed class MainWindow : Window, IDisposable
             ultraTheme.Density=DhogGptPresentation.Compact?MaterialDensity.Compact:MaterialDensity.Standard;
             using var palette=MaterialTheme.Push(ultraTheme,MaterialTheme.Metrics.Scale,MaterialStyleMode.ColorsOnly);
             var window=ImGuiP.GetCurrentWindow();
-            ImGui.GetWindowDrawList().AddRectFilled(window.InnerRect.Min,window.InnerRect.Max,
-                ImGui.GetColorU32(ultraTheme.Colors.Background));
+            using var bodyBackground = new MaterialStyleScope();
+            if (material) bodyBackground.Color(ImGuiCol.ChildBg, Vector4.Zero);
+            else ImGui.GetWindowDrawList().AddRectFilled(window.InnerRect.Min,window.InnerRect.Max,
+                    ImGui.GetColorU32(ultraTheme.Colors.Background));
             DrawSimpleChatMode();
             HandleSimpleComposerAutoFocusFromClick();
             UpdateHoveredConversationItemState();
@@ -252,6 +256,8 @@ public sealed class MainWindow : Window, IDisposable
             return;
         }
 
+        using var regularBodyBackground = new MaterialStyleScope();
+        if (material) regularBodyBackground.Color(ImGuiCol.ChildBg, Vector4.Zero);
         DrawHeader();
         ImGui.Separator();
 
@@ -729,6 +735,13 @@ public sealed class MainWindow : Window, IDisposable
         var bodyWidth=IsUltraCompactMode()?Math.Max(1,parent.InnerRect.Max.X-ImGui.GetStyle().WindowPadding.X-(ImGui.GetCursorScreenPos().X+parent.Scroll.X)):-1;
         using var bodyStyle=new MaterialStyleScope();
         if(IsUltraCompactMode())bodyStyle.Style(ImGuiStyleVar.WindowPadding,new Vector2(6,DhogGptPresentation.Compact?16:28)*MaterialTheme.Metrics.Scale);
+        if (MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk)
+        {
+            var start = ImGui.GetCursorScreenPos();
+            var width = bodyWidth > 0 ? bodyWidth : Math.Max(1, ImGui.GetContentRegionAvail().X + bodyWidth);
+            MaterialSkin.PanelFrame(start, start + new Vector2(width, height), inset: true);
+            bodyStyle.Color(ImGuiCol.ChildBg, Vector4.Zero);
+        }
         if (!ImGui.BeginChild(
                 "DhogGPTConversationBody",
                 new Vector2(bodyWidth, height),
@@ -791,8 +804,12 @@ public sealed class MainWindow : Window, IDisposable
                 UiGui.TextColored(errorColor, UiText.F("Translation failed: {0}",message.Error));
             }
 
-            if (ImGui.BeginPopupContextItem($"DhogGPTMessageContext##{message.TimestampUtc.UtcTicks}{message.ConversationKey}"))
+            bool messageContextOpen;
+            using (MaterialSkin.BackdropStyle(popup: true))
+                messageContextOpen = ImGui.BeginPopupContextItem($"DhogGPTMessageContext##{message.TimestampUtc.UtcTicks}{message.ConversationKey}");
+            if (messageContextOpen)
             {
+                MaterialSkin.Backdrop();
                 if (UiGui.Selectable("Copy original"))
                     ImGui.SetClipboardText(originalText);
 
@@ -2636,9 +2653,13 @@ public sealed class MainWindow : Window, IDisposable
         if (!isMasterWindow)
             return;
 
-        if (!ImGui.BeginPopup(HiddenChannelsPopupId))
+        bool popupOpen;
+        using (MaterialSkin.BackdropStyle(popup: true))
+            popupOpen = ImGui.BeginPopup(HiddenChannelsPopupId);
+        if (!popupOpen)
             return;
 
+        MaterialSkin.Backdrop();
         var hiddenConversations = GetAllGeneralConversations()
             .Where(conversation => IsGeneralConversationHidden(conversation.Key))
             .Where(conversation => ShouldWindowDisplayConversation(conversation.Key))
@@ -2677,9 +2698,13 @@ public sealed class MainWindow : Window, IDisposable
         if (!isMasterWindow)
             return;
 
-        if (!ImGui.BeginPopup(RecentDirectMessagesPopupId))
+        bool popupOpen;
+        using (MaterialSkin.BackdropStyle(popup: true))
+            popupOpen = ImGui.BeginPopup(RecentDirectMessagesPopupId);
+        if (!popupOpen)
             return;
 
+        MaterialSkin.Backdrop();
         ImGui.SetNextItemWidth(280f);
         UiGui.InputTextWithHint("##RecentDmSearch", "Search recent DMs", ref recentDirectMessageSearch, 128);
         recentDirectMessageSearchInputRect = TrackedInputRect.CaptureCurrentItem();
@@ -2801,9 +2826,13 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawDirectMessageTabContextMenu(ConversationTabState conversation, bool isPinnedDirectMessage)
     {
-        if (!ImGui.BeginPopupContextItem($"DhogGPTDirectMessageContext##{conversation.Key}"))
+        bool popupOpen;
+        using (MaterialSkin.BackdropStyle(popup: true))
+            popupOpen = ImGui.BeginPopupContextItem($"DhogGPTDirectMessageContext##{conversation.Key}");
+        if (!popupOpen)
             return;
 
+        MaterialSkin.Backdrop();
         var canSpawnDetachedWindow = plugin.CanSpawnDetachedConversationWindow(conversation.Key);
         if (UiGui.Selectable(
                 canSpawnDetachedWindow ? "Spawn new window" : "Already detached",
@@ -2902,9 +2931,13 @@ public sealed class MainWindow : Window, IDisposable
 
     private void DrawGeneralConversationContextMenu(ConversationTabState conversation)
     {
-        if (!ImGui.BeginPopupContextItem($"DhogGPTGeneralConversationContext##{conversation.Key}"))
+        bool popupOpen;
+        using (MaterialSkin.BackdropStyle(popup: true))
+            popupOpen = ImGui.BeginPopupContextItem($"DhogGPTGeneralConversationContext##{conversation.Key}");
+        if (!popupOpen)
             return;
 
+        MaterialSkin.Backdrop();
         var isCombinedConversation = TryParseCombinedConversationKey(conversation.Key, out _);
         if (!isCombinedConversation && ShellChannelDisplayService.TryGetDescriptor(conversation.Key, out _))
         {

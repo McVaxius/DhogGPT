@@ -1,3 +1,9 @@
+2026-10-26 - 2.0.0.12 - Shared material appearance
+
+- Add Glassmorphism, Spatial and Cyberpunk alongside Auto, Picker and LCARS across the translator, Ultra compact and detached chats, Settings, Welcome and appearance popups.
+- Add independent material palettes, per-colour/current-palette resets, four LCARS colour choices and three Glass wave colours with default-on animation and adjustable speed. Translate the shared controls in all fifteen catalogs.
+- Preserve the existing fonts, native actions, custom chat colours, composer opacity, translation/provider behavior and configuration save path.
+
 2026-10-23 - LCARS appearance
 
 - Add LCARS after Auto and Picker through the existing saved appearance owner, retaining Picker RGB values. Apply segmented rails, elbows, framed panels and outlined native controls to the regular translator, Ultra compact and detached conversations, all Settings pages and the nonmodal Welcome guide. A wide translator places the preview beside the composer; narrower windows stack both panels.
