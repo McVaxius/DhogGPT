@@ -13,6 +13,8 @@ public sealed class ConfigWindow : Window, IDisposable
 {
     private readonly AethertekUI.Dalamud.MaterialSupportLog supportLog = new();
     private readonly AethertekUI.Dalamud.MaterialWindowMotion windowMotion = new();
+    private readonly AethertekUI.Dalamud.MaterialWindowLock movementLock = new();
+    private bool materialBackdropPending;
     private readonly AethertekUI.MaterialWindowOpacity windowOpacity = new();
     private const float WindowRepairTolerance = 4f;
     private static readonly string[] DtrModes = { "Text only", "Icon + text", "Icon only" };
@@ -61,20 +63,31 @@ public sealed class ConfigWindow : Window, IDisposable
     public override void PreDraw()
     {
         ApplyPendingViewportPlacement();
-        windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+        if (plugin.Configuration.UiStylingEnabled) windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+        movementLock.Apply(this, plugin.Configuration.UiWindowsLocked);
+        if (MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk || plugin.BackgroundRequested)
+        {
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
+            materialBackdropPending = true;
+        }
     }
 
     public override void PostDraw()
     {
+        movementLock.Restore(this);
+        if (materialBackdropPending) { ImGui.PopStyleColor(); materialBackdropPending = false; }
         windowMotion.Restore(this);
         UiGui.PaintTitleWithImageAndStatus(this, UiText.Status(VersionedWindowTitle.Split("###", 2)[0]), status: plugin.TitlebarStatus);
-        plugin.DrawAppearanceTitleBarPopups(this);
+        plugin.DrawAppearanceTitleBarPopups(this, windowOpacity);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
+        if (materialBackdropPending) { ImGui.PopStyleColor(); materialBackdropPending = false; }
+        plugin.PrepareWindowBackground(windowOpacity);
         MaterialSkin.Backdrop();
+        using var structure = MaterialSkin.StructuralBackgroundStyle();
         windowMotion.DrawChrome();
         UiGui.TitleWithButtons(VersionedWindowTitle.Split("###",2)[0], null, this);
         if(MaterialTheme.Current.IsLcars)DhogGptPresentation.Brand(false);

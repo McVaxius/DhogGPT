@@ -174,7 +174,7 @@ internal static class DhogGptPresentation
             this.accent=accent;lcars=MaterialTheme.Current.IsLcars;
             material=MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
             var root=ImGui.GetID("");
-            var color=MaterialSurface.Color(Compact && elevation==MaterialElevation.High?MaterialElevation.Low:elevation);
+            var color=MaterialSkin.BackgroundFill(MaterialSurface.Color(Compact && elevation==MaterialElevation.High?MaterialElevation.Low:elevation));
             style=new();
             style.Color(ImGuiCol.TableRowBg,color);
             style.Color(ImGuiCol.TableRowBgAlt,color);

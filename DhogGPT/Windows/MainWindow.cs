@@ -22,6 +22,8 @@ namespace DhogGPT.Windows;
 public sealed class MainWindow : Window, IDisposable
 {
     private readonly AethertekUI.Dalamud.MaterialWindowMotion windowMotion = new();
+    private readonly AethertekUI.Dalamud.MaterialWindowLock movementLock = new();
+    private bool materialBackdropPending;
     private readonly AethertekUI.MaterialWindowOpacity windowOpacity = new();
     private const int AutoScrollSettleFrames = 2;
     private const float WindowRepairTolerance = 4f;
@@ -216,20 +218,31 @@ public sealed class MainWindow : Window, IDisposable
         }
 
         UiGui.ReserveTitleSpace(this, VersionedTitle, IsUltraCompactMode() ? 460 : 720);
-        windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+        if (plugin.Configuration.UiStylingEnabled) windowMotion.Prepare(this, reducedMotion: false, roundedCorners: true);
+        movementLock.Apply(this, plugin.Configuration.UiWindowsLocked);
+        if (MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk || plugin.BackgroundRequested)
+        {
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
+            materialBackdropPending = true;
+        }
     }
 
     public override void PostDraw()
     {
+        movementLock.Restore(this);
+        if (materialBackdropPending) { ImGui.PopStyleColor(); materialBackdropPending = false; }
         windowMotion.Restore(this);
         UiGui.PaintTitleWithImageAndStatus(this, VersionedTitle, status: plugin.TitlebarStatus);
-        plugin.DrawAppearanceTitleBarPopups(this);
+        plugin.DrawAppearanceTitleBarPopups(this, windowOpacity);
         plugin.ApplyWindowOpacity(windowOpacity, WindowName);
     }
 
     public override void Draw()
     {
+        if (materialBackdropPending) { ImGui.PopStyleColor(); materialBackdropPending = false; }
+        plugin.PrepareWindowBackground(windowOpacity);
         MaterialSkin.Backdrop();
+        using var structure = MaterialSkin.StructuralBackgroundStyle();
         var material = MaterialTheme.Current.IsGlassmorphism || MaterialTheme.Current.IsSpatial || MaterialTheme.Current.IsCyberpunk;
         windowMotion.DrawChrome();
         using var typography = new DhogGptPresentation.TextScale(IsUltraCompactMode() ? 2f : 1.25f);
@@ -242,12 +255,13 @@ public sealed class MainWindow : Window, IDisposable
         {
             var ultraTheme=DhogGptPresentation.UltraTheme;
             ultraTheme.Density=DhogGptPresentation.Compact?MaterialDensity.Compact:MaterialDensity.Standard;
-            using var palette=MaterialTheme.Push(ultraTheme,MaterialTheme.Metrics.Scale,MaterialStyleMode.ColorsOnly);
+            using var palette=MaterialTheme.Push(ultraTheme,MaterialTheme.Metrics.Scale,plugin.Configuration.UiStylingEnabled ? MaterialStyleMode.ColorsOnly : MaterialStyleMode.Native);
+            using var ultraStructure = MaterialSkin.StructuralBackgroundStyle();
             var window=ImGuiP.GetCurrentWindow();
             using var bodyBackground = new MaterialStyleScope();
             if (material) bodyBackground.Color(ImGuiCol.ChildBg, Vector4.Zero);
             else ImGui.GetWindowDrawList().AddRectFilled(window.InnerRect.Min,window.InnerRect.Max,
-                    ImGui.GetColorU32(ultraTheme.Colors.Background));
+                    ImGui.GetColorU32(MaterialSkin.BackgroundFill(ultraTheme.Colors.Background)));
             DrawSimpleChatMode();
             HandleSimpleComposerAutoFocusFromClick();
             UpdateHoveredConversationItemState();
