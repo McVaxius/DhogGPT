@@ -322,6 +322,8 @@ public sealed partial class Plugin : IDalamudPlugin
             DhogGptPresentation.UltraTheme.Feedback = PlayUiSound;
             var rgb=DhogGptPresentation.Rgb(appliedUiAccent);uiAccentDraft=new(rgb.X,rgb.Y,rgb.Z);
         }
+        uiTheme.HighlightContrastPercent = Configuration.UiHighlightContrastPercent;
+        DhogGptPresentation.UltraTheme.HighlightContrastPercent = Configuration.UiHighlightContrastPercent;
         var soundActive = Configuration.UiStylingEnabled && uiTheme.IsLcars && !Configuration.UiSoundsMuted;
         if (uiSoundActive && !soundActive) uiSounds.Stop();
         uiSoundActive = soundActive;
@@ -1037,7 +1039,19 @@ public sealed partial class Plugin : IDalamudPlugin
 
     private void DrawTitleBarColour()
     {
-        var changed = MaterialAppearanceSelector.DrawColors("appearance", ref colorDraft, ref uiAccentDraft,
+        var contrast = Configuration.UiHighlightContrastPercent;
+        MaterialText.Text(UiText.T("Highlight contrast"), System.Math.Max(1f, ImGui.GetContentRegionAvail().X));
+        ImGui.SetNextItemWidth(MaterialLayout.FitNextItemWidth(280 * MaterialTheme.Metrics.Scale, 120 * MaterialTheme.Metrics.Scale));
+        var changed = false;
+        using (var field = MaterialSkin.NativeFieldStyle())
+        {
+            if (ImGui.SliderInt("##UiHighlightContrastPercent", ref contrast, 0, 100, "%d%%", ImGuiSliderFlags.AlwaysClamp))
+                Configuration.UiHighlightContrastPercent = contrast;
+            changed = ImGui.IsItemDeactivatedAfterEdit();
+        }
+        MaterialText.Text(UiText.T("Makes controls and selection states more distinct."), System.Math.Max(1f, ImGui.GetContentRegionAvail().X));
+        ImGui.Spacing();
+        changed |= MaterialAppearanceSelector.DrawColors("appearance", ref colorDraft, ref uiAccentDraft,
                 new(UiText.T("Color"), UiText.T("Language"), UiText.T("Teal"), UiText.T("Blue"), UiText.T("Pink"), UiText.T("Custom RGB")),
                 new(UiText.T("Auto"), UiText.T("Picker"), UiText.T("Default"), UiText.T("Background, controls and text follow your theme."),
                     UiText.T("Theme colour"), UiText.T("Choose each colour independently."), UiText.T("Background"), UiText.T("Controls"),
