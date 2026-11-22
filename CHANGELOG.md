@@ -1,6 +1,6 @@
-Unreleased
+2026-11-22 - 2.0.0.16 - Linux and Wine fonts
 
-- **Fixed UI font loading on Linux and Wine** by loading bundled Selawik fonts from the DhogGPT install directory. Chat keeps its multilingual glyph ranges.
+- **Fixed Linux and Wine font loading.** The plugin now uses bundled fonts for its interface. Chat keeps its multilingual glyph ranges.
 
 2026-11-12 - 2.0.0.15 - Highlight contrast
 
