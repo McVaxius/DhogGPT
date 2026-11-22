@@ -1,5 +1,6 @@
 using System.Numerics;
 using AethertekUI;
+using AethertekUI.Dalamud;
 using Dalamud.Bindings.ImGui;
 
 namespace DhogGPT.Windows;
@@ -28,7 +29,12 @@ internal static class DhogGptPresentation
     internal static float UltraTabHeight => Compact ? 40 : 46;
     internal static MaterialTheme UltraTheme { get; private set; } = null!;
     internal static readonly float[] FontSizes = [12,12,24,10,9,15,12];
-    internal static readonly string[] FontFiles = ["segoeui.ttf","seguisb.ttf","segoeuib.ttf","segoeui.ttf","segoeui.ttf","seguisb.ttf","seguisb.ttf"];
+    internal static readonly MaterialFontWeight[] FontWeights =
+    [
+        MaterialFontWeight.Regular, MaterialFontWeight.Semibold, MaterialFontWeight.Bold,
+        MaterialFontWeight.Regular, MaterialFontWeight.Regular, MaterialFontWeight.Semibold,
+        MaterialFontWeight.Semibold,
+    ];
     internal static float AtlasHeight(UiFontRole role) => FontSizes[(int)role]*4/3;
     internal readonly ref struct TextScale
     {

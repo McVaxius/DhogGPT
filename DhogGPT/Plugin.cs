@@ -302,7 +302,8 @@ public sealed partial class Plugin : IDalamudPlugin
         {
             uiFonts?.Dispose();uiText?.Dispose();
             uiText=new(language,role=>uiFonts!.Push(role));
-            uiFonts=new(PluginInterface.UiBuilder.FontAtlas,uiText.GlyphRanges(),uiText.GlyphRanges(includeChat:true),language);
+            uiFonts = new(PluginInterface.UiBuilder.FontAtlas, uiText.GlyphRanges(), uiText.GlyphRanges(includeChat: true),
+                language, PluginInterface.AssemblyLocation.DirectoryName!);
             uiLanguages=new(UiText.Languages.Select(l=>new MaterialOption<string>(l.Code,l.Code,l.Name)).ToArray());
             appliedUiLanguage=language;checkedFontGeneration=-1;uiFontIssueLogged=false;
             if (dtrEntry is not null) UpdateDtrBar();

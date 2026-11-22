@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 using AethertekUI;
 using System.Text;
-using Dalamud;
+using AethertekUI.Dalamud;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 
@@ -15,30 +14,12 @@ internal sealed class DhogGptFonts : IDisposable
     private readonly IFontHandle[] handles;
     private int generation;
     internal int Generation => System.Threading.Volatile.Read(ref generation);
-    internal DhogGptFonts(IFontAtlas atlas, ushort[] ranges,ushort[] chatRanges,string language)
+    internal DhogGptFonts(IFontAtlas atlas, ushort[] ranges, ushort[] chatRanges, string language, string assetRoot)
     {
-        handles=DhogGptPresentation.FontSizes.Select((size,index)=>atlas.NewDelegateFontHandle(toolkit=>toolkit.OnPreBuild(build=>
-        {
-            build.NewImAtlas.TexDesiredWidth=4096;
-            build.NewImAtlas.TexDesiredHeight=4096;
-            size=DhogGptPresentation.AtlasHeight((UiFontRole)index);
-            // Chat and composer text can use any supported CJK locale, independently of the UI language.
-            var roleRanges=index==(int)UiFontRole.Body ? chatRanges : ranges;
-            var config=new SafeFontConfig { SizePx=size, GlyphRanges=roleRanges };
-            build.Font=build.AddFontFromFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts),DhogGptPresentation.FontFiles[index]),config);
-            build.AddFontFromFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts),"seguisym.ttf"),
-                new SafeFontConfig { SizePx=size, MergeFont=build.Font, GlyphRanges=roleRanges });
-            // The language selector displays every native name. Host-managed merges cover these too.
-            build.AddDalamudAssetFont(DalamudAsset.NotoSansCjkRegular,new SafeFontConfig
-            {
-                SizePx=size, MergeFont=build.Font, GlyphRanges=roleRanges,
-                // Verified bundled TTC faces: JP=0, KR=1, SC=2, TC=3.
-                // Bundled faces share glyph coverage; select the active locale's regional forms.
-                FontNo=language switch { "ko"=>1, "zh-Hans" or "zh-CN"=>2, "zh-Hant" or "zh-TW"=>3, _=>0 },
-            });
-            build.AttachExtraGlyphsForDalamudLanguage(new SafeFontConfig { SizePx=size, MergeFont=build.Font });
-            build.AddGameSymbol(new SafeFontConfig { SizePx=size,MergeFont=build.Font });
-        }))).ToArray();
+        // Chat and composer text can use any supported CJK locale, independently of the UI language.
+        handles = DhogGptPresentation.FontSizes.Select((_, index) => MaterialFontAtlas.CreateFont(atlas,
+            DhogGptPresentation.FontWeights[index], DhogGptPresentation.AtlasHeight((UiFontRole)index),
+            index == (int)UiFontRole.Body ? chatRanges : ranges, language, assetRoot)).ToArray();
         foreach(var handle in handles) handle.ImFontChanged+=FontChanged;
     }
     private void FontChanged(IFontHandle handle,ILockedImFont font) => System.Threading.Interlocked.Increment(ref generation);

@@ -1,3 +1,7 @@
+Unreleased
+
+- **Fixed UI font loading on Linux and Wine** by loading bundled Selawik fonts from the DhogGPT install directory. Chat keeps its multilingual glyph ranges.
+
 2026-11-12 - 2.0.0.15 - Highlight contrast
 
 - Add a saved Highlight contrast control in Appearance and the Colour menu, defaulting to 50%, with translated captions and help.
