@@ -1,3 +1,8 @@
+2026-11-28 - 2.0.0.17 - On-demand interface resources
+
+- Load window fonts and text shaping when the interface opens, then release them when it closes.
+- Allocate background rendering and audio resources only while their appearance features are in use.
+
 2026-11-22 - 2.0.0.16 - Linux and Wine fonts
 
 - **Fixed Linux and Wine font loading.** The plugin now uses bundled fonts for its interface. Chat keeps its multilingual glyph ranges.

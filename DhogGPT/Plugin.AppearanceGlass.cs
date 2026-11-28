@@ -12,30 +12,73 @@ namespace DhogGPT;
 public sealed partial class Plugin
 {
     private MaterialGlassRenderer? backgroundGlass;
+    private bool backgroundWasBlurred;
     internal bool BackgroundRequested => Configuration.UiStylingEnabled && Configuration.UiColors is { } choices && (choices.HasBackgroundBlur(choices.Mode) || choices.Mode == MaterialColorMode.Glassmorphism && choices.GlassBackground == MaterialGlassBackground.Image);
     private readonly FileDialogManager glassImagePicker = new();
+    private bool backgroundImagePickerOpen;
 
     private void DrawUi()
     {
-        var active = false;
+        RefreshUiText();
+        if (!WindowSystem.Windows.Any(window => window.IsOpen))
+        {
+            if (backgroundImagePickerOpen) glassImagePicker.Draw();
+            if (uiFonts is not null) ReleaseWindowResources();
+            return;
+        }
+
+        ApplyUiAppearance();
         var completed = false;
         try
         {
-            ApplyUiAppearance();
-            using (MaterialTheme.Push(uiTheme, ImGuiHelpers.GlobalScale, Configuration.UiStylingEnabled ? MaterialStyleMode.ColorsOnly : MaterialStyleMode.Native))
-                glassImagePicker.Draw();
+            if (backgroundImagePickerOpen)
+                using (MaterialTheme.Push(uiTheme, ImGuiHelpers.GlobalScale, Configuration.UiStylingEnabled ? MaterialStyleMode.ColorsOnly : MaterialStyleMode.Native))
+                    glassImagePicker.Draw();
             var choices = Configuration.UiColors ?? new();
             var blur = Configuration.UiStylingEnabled && choices.HasBackgroundBlur(choices.Mode);
             var image = Configuration.UiStylingEnabled && choices.Mode == MaterialColorMode.Glassmorphism && choices.GlassBackground == MaterialGlassBackground.Image;
-            active = blur || image;
-            if (active) backgroundGlass ??= new(PluginInterface, Log);
-            backgroundGlass?.ConfigureImage(Textures, image, choices.GlassImagePath);
-            backgroundGlass?.BeginFrame();
-            using var background = MaterialSkin.PushBackgroundRenderer(Configuration.UiStylingEnabled ? backgroundGlass : null, blur, choices.BackgroundBlurPercent / 100f);
+            if ((blur || image) && uiFonts.Ready)
+            {
+                backgroundGlass ??= new(PluginInterface, Log);
+                if (backgroundWasBlurred && !blur) backgroundGlass.ReleaseResources();
+                backgroundGlass.BeginFrame(blur, image);
+                backgroundGlass.ConfigureImage(Textures, image, choices.GlassImagePath);
+                backgroundWasBlurred = blur;
+            }
+            else
+            {
+                DisposeBackgroundGlass();
+            }
+            using var background = MaterialSkin.PushBackgroundRenderer(backgroundGlass, blur, choices.BackgroundBlurPercent / 100f);
             DrawUiContent();
             completed = true;
         }
-        finally { backgroundGlass?.EndFrame(active && completed); }
+        finally { backgroundGlass?.EndFrame(completed); }
+    }
+
+    private void DisposeBackgroundGlass()
+    {
+        backgroundGlass?.Dispose();
+        backgroundGlass = null;
+        backgroundWasBlurred = false;
+    }
+
+    private void ReleaseUiSounds()
+    {
+        uiSounds?.Dispose();
+        uiSounds = null;
+    }
+
+    private void ReleaseWindowResources()
+    {
+        DisposeBackgroundGlass();
+        ReleaseUiSounds();
+        uiFonts?.Dispose();
+        uiFonts = null!;
+        shapedText?.Dispose();
+        shapedText = null!;
+        uiTheme = null!;
+        uiLanguages = null!;
     }
 
     private void ReleaseGlassResources() => backgroundGlass?.ReleaseResources();
@@ -58,16 +101,21 @@ public sealed partial class Plugin
         if (UiGui.Checkbox("Lock window movement and resizing", ref locked)) { Configuration.UiWindowsLocked = locked; Configuration.Save(); }
     }
 
-    private void BrowseBackgroundImage() => glassImagePicker.OpenFileDialog(
-        UiText.T("Choose background image") + "###DhogGPTBackgroundImagePicker",
-        UiText.T("Images") + "{.png,.jpg,.jpeg,.bmp,.gif,.webp,.tif,.tiff,.dds,.tga},.*",
-        (accepted, path) =>
-        {
-            if (!accepted) return;
-            colorDraft = colorDraft with { GlassImagePath = path };
-            Configuration.UiColors = colorDraft;
-            Configuration.Save();
-        });
+    private void BrowseBackgroundImage()
+    {
+        glassImagePicker.OpenFileDialog(
+    UiText.T("Choose background image") + "###DhogGPTBackgroundImagePicker",
+    UiText.T("Images") + "{.png,.jpg,.jpeg,.bmp,.gif,.webp,.tif,.tiff,.dds,.tga},.*",
+    (accepted, path) =>
+    {
+        backgroundImagePickerOpen = false;
+        if (!accepted) return;
+        colorDraft = colorDraft with { GlassImagePath = path };
+        Configuration.UiColors = colorDraft;
+        Configuration.Save();
+    });
+        backgroundImagePickerOpen = true;
+    }
 
     private void DrawBackgroundSettings()
     {

@@ -1,3 +1,4 @@
+using Dalamud.Interface.ManagedFontAtlas;
 using AethertekUI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
@@ -80,12 +81,11 @@ public sealed partial class Plugin : IDalamudPlugin
     public SupplementalLogChannelService SupplementalLogChannelService { get; }
     public VanillaChatWindowService VanillaChatWindowService { get; }
 
-    private readonly AethertekUI.Dalamud.MaterialTextHost shapedText;
+    private AethertekUI.Dalamud.MaterialTextHost shapedText = null!;
     private UiText uiText = null!;
     private DhogGptFonts uiFonts = null!;
     private MaterialTheme uiTheme = null!;
-    private readonly MaterialUiSoundPlayer uiSounds = new();
-    private bool uiSoundActive;
+    private MaterialUiSoundPlayer? uiSounds;
     private readonly Dictionary<Dalamud.Interface.Windowing.Window, Dalamud.Interface.Windowing.TitleBarButton> soundTitleBars = new();
     private readonly Dictionary<Dalamud.Interface.Windowing.Window, AethertekUI.Dalamud.MaterialAppearanceTitleBar> appearanceTitleBars = new();
     private readonly MaterialWindowFold fontStatusFold = new();
@@ -93,6 +93,7 @@ public sealed partial class Plugin : IDalamudPlugin
     private readonly MaterialWindowOpacity fontStatusOpacity = new();
     private MaterialOptions<string> uiLanguages = null!;
     private string appliedUiLanguage = "";
+    private bool loadedChatFonts;
     private uint appliedUiAccent = uint.MaxValue;
     private Vector3 uiAccentDraft;
     private MaterialColorSettings colorDraft = new();
@@ -114,12 +115,11 @@ public sealed partial class Plugin : IDalamudPlugin
 
     public Plugin()
     {
-        shapedText = new(Textures);
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         NormalizeLegacyConfiguration();
         NormalizeChatModeConfiguration();
         InitializeConversationVisibilityDefaults();
-        ApplyUiAppearance();
+        RefreshUiText();
 
         LinkPayloadManager = new LinkPayloadManager();
         LanguageRegistry = new LanguageRegistryService();
@@ -175,11 +175,8 @@ public sealed partial class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= DrawUi;
         PluginInterface.UiBuilder.ResizeBuffers -= ReleaseGlassResources;
         glassImagePicker.Reset();
-        backgroundGlass?.Dispose();
-        uiFonts?.Dispose();
+        ReleaseWindowResources();
         uiText?.Dispose();
-        shapedText.Dispose();
-        uiSounds.Dispose();
         PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
 
@@ -215,7 +212,6 @@ public sealed partial class Plugin : IDalamudPlugin
 
     private void DrawUiContent()
     {
-        ApplyUiAppearance();
         using var shaping = shapedText.Push();
         using var text = uiText.Enter();
         if (!uiFonts.Ready)
@@ -227,11 +223,11 @@ public sealed partial class Plugin : IDalamudPlugin
         if (checkedFontGeneration != uiFonts.Generation)
         {
             try { var generation=uiFonts.Generation;
-                foreach(var size in DhogGptPresentation.FontSizes) shapedText.Renderer.CheckGlyphs(uiText.RequiredText,size*4/3*ImGuiHelpers.GlobalScale);
+                foreach(var size in uiFonts.Roles.Select(role => DhogGptPresentation.FontSizes[(int)role]).Distinct()) shapedText.Renderer.CheckGlyphs(uiText.RequiredText,size*4/3*ImGuiHelpers.GlobalScale);
                 uiFonts.CheckGlyphs(uiText.RequiredText);
                 var hindiLabel = UiText.Languages.Single(l => l.Code == "hi").Name;
                 var hindiAvailable = true;
-                foreach (var size in DhogGptPresentation.FontSizes)
+                foreach (var size in uiFonts.Roles.Select(role => DhogGptPresentation.FontSizes[(int)role]).Distinct())
                     hindiAvailable &= shapedText.Renderer.TryCheckGlyphs([hindiLabel], size * 4 / 3 * ImGuiHelpers.GlobalScale, out _);
                 uiLanguages.Replace(UiText.Languages.Select(l => new MaterialOption<string>(l.Code, l.Code,
                     l.Code == "hi" && !hindiAvailable ? "Hindi (unavailable)" : l.Name,
@@ -295,18 +291,38 @@ public sealed partial class Plugin : IDalamudPlugin
             ApplyWindowOpacity(fontStatusOpacity, "DhogGPT##UiFontStatus");
         }
     }
+    private void RefreshUiText()
+    {
+        var language = UiText.Languages.Any(l => l.Code == Configuration.UiLanguage) ? Configuration.UiLanguage : "en";
+        if (uiText?.Language == language) return;
+        uiText?.Dispose();
+        uiText = new(language, role => uiFonts.Push(role));
+        if (dtrEntry is not null) UpdateDtrBar();
+    }
+
     private void ApplyUiAppearance()
     {
-        var language=UiText.Languages.Any(l=>l.Code==Configuration.UiLanguage)?Configuration.UiLanguage:"en";
-        if(language!=appliedUiLanguage)
+        var language = uiText.Language;
+        var chat = mainWindow.IsOpen || detachedConversationWindows.Values.Any(window => window.IsOpen);
+        if (uiFonts is null || language != appliedUiLanguage || chat != loadedChatFonts)
         {
-            uiFonts?.Dispose();uiText?.Dispose();
-            uiText=new(language,role=>uiFonts!.Push(role));
-            uiFonts = new(PluginInterface.UiBuilder.FontAtlas, uiText.GlyphRanges(), uiText.GlyphRanges(includeChat: true),
-                language, PluginInterface.AssemblyLocation.DirectoryName!);
-            uiLanguages=new(UiText.Languages.Select(l=>new MaterialOption<string>(l.Code,l.Code,l.Name)).ToArray());
-            appliedUiLanguage=language;checkedFontGeneration=-1;uiFontIssueLogged=false;
-            if (dtrEntry is not null) UpdateDtrBar();
+            uiFonts?.Dispose();
+            uiFonts = null!;
+            if (language != appliedUiLanguage)
+            {
+                shapedText?.Dispose();
+                shapedText = null!;
+            }
+            shapedText ??= new(Textures);
+            var ranges = uiText.GlyphRanges();
+            var chatRanges = chat ? uiText.GlyphRanges(includeChat: true) : ranges;
+            var atlas = PluginInterface.UiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.OnNewFrame, true, "DhogGPT UI");
+            uiFonts = new(atlas, ranges, chatRanges, language, PluginInterface.AssemblyLocation.DirectoryName!, chat);
+            uiLanguages = new(UiText.Languages.Select(l => new MaterialOption<string>(l.Code, l.Code, l.Name)).ToArray());
+            appliedUiLanguage = language;
+            loadedChatFonts = chat;
+            checkedFontGeneration = -1;
+            uiFontIssueLogged = false;
         }
         var savedColors = Configuration.UiColors ?? new MaterialColorSettings();
         if (savedColors != appliedSavedColors)
@@ -325,18 +341,16 @@ public sealed partial class Plugin : IDalamudPlugin
         }
         uiTheme.HighlightContrastPercent = Configuration.UiHighlightContrastPercent;
         DhogGptPresentation.UltraTheme.HighlightContrastPercent = Configuration.UiHighlightContrastPercent;
-        var soundActive = Configuration.UiStylingEnabled && uiTheme.IsLcars && !Configuration.UiSoundsMuted;
-        if (uiSoundActive && !soundActive) uiSounds.Stop();
-        uiSoundActive = soundActive;
+        if (!Configuration.UiStylingEnabled || !uiTheme.IsLcars || Configuration.UiSoundsMuted) ReleaseUiSounds();
     }
     private void PlayUiSound(MaterialUiSoundCue cue)
     {
-        if (Configuration.UiStylingEnabled && uiTheme.IsLcars && !Configuration.UiSoundsMuted) uiSounds.TryPlay(cue);
+        if (Configuration.UiStylingEnabled && uiTheme.IsLcars && !Configuration.UiSoundsMuted) (uiSounds ??= new()).TryPlay(cue);
     }
     private void SetUiSoundsMuted(bool muted)
     {
         Configuration.UiSoundsMuted = muted;
-        if (muted) uiSounds.Stop();
+        if (muted) ReleaseUiSounds();
         Configuration.Save();
     }
     internal void DrawUiAppearance()
@@ -972,7 +986,7 @@ public sealed partial class Plugin : IDalamudPlugin
         var sounds = !Configuration.UiSoundsMuted;
         if (UiGui.Checkbox("UI sounds", ref sounds)) SetUiSoundsMuted(!sounds);
         UiGui.TextDisabled("Optional LCARS interface tones. Muted by default.");
-        if (uiSounds.Error is not null) UiGui.TextDisabled("Audio output is unavailable.");
+        if (uiSounds?.Error is not null) UiGui.TextDisabled("Audio output is unavailable.");
         var config = Configuration;
         var changed = false;
         var compactVisibleOnMainWindow = config.UiCompactVisibleOnMainWindow;
