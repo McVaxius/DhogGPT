@@ -1,3 +1,7 @@
+2026-11-28 - 2.0.0.18 - On-demand glyph coverage
+
+- Build font coverage data when a window opens and release it when the last window closes. Status labels remain translated.
+
 2026-11-28 - 2.0.0.17 - On-demand interface resources
 
 - Load window fonts and text shaping when the interface opens, then release them when it closes.

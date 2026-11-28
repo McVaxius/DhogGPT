@@ -26,7 +26,8 @@ internal sealed class UiText : IDisposable
     private readonly Dictionary<string,string> labels;
     private readonly string[] concatenatedPrefixes;
     internal ResourceSet Resources { get; }
-    internal IReadOnlyList<string> RequiredText { get; }
+    private string[]? requiredText;
+    internal IReadOnlyList<string> RequiredText => requiredText ??= BuildFontText();
     internal CultureInfo Culture { get; }
     internal string Language { get; }
     private readonly Func<UiFontRole,IDisposable> pushFont;
@@ -39,7 +40,6 @@ internal sealed class UiText : IDisposable
         Resources=manager.GetResourceSet(CultureInfo.InvariantCulture,true,false) ?? throw new MissingManifestResourceException(Language);
         englishManager=new ResourceManager("DhogGPT.Localization.Strings_en",typeof(UiText).Assembly);
         var english=englishManager.GetResourceSet(CultureInfo.InvariantCulture,true,false) ?? throw new MissingManifestResourceException("en");
-        RequiredText=Values(Resources).Concat(Values(english)).Concat(Languages.Where(l => l.Code != "hi").Select(l=>l.Name)).Distinct().ToArray();
         labels=english.Cast<DictionaryEntry>().ToDictionary(entry=>(string)entry.Value!,entry=>(string)entry.Key,StringComparer.OrdinalIgnoreCase);
         var selectedKeys=Resources.Cast<DictionaryEntry>().Select(entry=>(string)entry.Key).ToHashSet(StringComparer.Ordinal);
         if (!selectedKeys.SetEquals(labels.Values) ||
@@ -113,6 +113,16 @@ internal sealed class UiText : IDisposable
         public void Dispose() => current=previous;
     }
     internal static string Date(DateTimeOffset? date) => date?.ToLocalTime().ToString("g",Current.Culture) ?? T("Never");
+    private string[] BuildFontText()
+    {
+        var english = englishManager.GetResourceSet(CultureInfo.InvariantCulture, true, false)
+            ?? throw new MissingManifestResourceException("en");
+        return Values(Resources).Concat(Values(english)).Concat(Languages.Where(l => l.Code != "hi").Select(l => l.Name))
+            .Distinct().ToArray();
+    }
+
+    internal void ReleaseFontText() => requiredText = null;
+
     internal ushort[] GlyphRanges(bool includeChat = false)
     {
         var chars=RequiredText.SelectMany(text=>MaterialText.NativeGlyphText(text).EnumerateRunes())

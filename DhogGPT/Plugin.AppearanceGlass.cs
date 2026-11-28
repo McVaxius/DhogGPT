@@ -77,6 +77,7 @@ public sealed partial class Plugin
         uiFonts = null!;
         shapedText?.Dispose();
         shapedText = null!;
+        uiText?.ReleaseFontText();
         uiTheme = null!;
         uiLanguages = null!;
     }
